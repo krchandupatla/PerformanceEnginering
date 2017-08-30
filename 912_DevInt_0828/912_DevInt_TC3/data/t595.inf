@@ -1,0 +1,11 @@
+[t595]
+FileName1=t595.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/professional/ref/refProfessionalDetail.do?mode=viewCondition&module=Building&licSeqNbr=2200860532
+Total=1
+RequestHeaderFile=t595_RequestHeader.txt
+RequestBodyFile=t595_RequestBody.txt
+ResponseHeaderFile=t595_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_595.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

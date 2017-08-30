@@ -1,0 +1,11 @@
+[t466]
+FileName1=t466.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/condition/capConditionList.do?mode=viewByCap&module=Building&capIDs=~17BLD-00000-00100-0
+Total=1
+RequestHeaderFile=t466_RequestHeader.txt
+RequestBodyFile=t466_RequestBody.txt
+ResponseHeaderFile=t466_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_466.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,11 @@
+[t411]
+FileName1=t411.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/parcel/refParcelForm.do?mode=viewCondition&module=Building&refParcelNumber=10001
+Total=1
+RequestHeaderFile=t411_RequestHeader.txt
+RequestBodyFile=t411_RequestBody.txt
+ResponseHeaderFile=t411_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_411.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,72 @@
+[
+    {
+        "transactionName": "Login",
+        "rawStartTime": 1503944842812,
+        "rawEndTime": 1503944847278
+    },
+    {
+        "transactionName": "TC3_4_Click_Addresses",
+        "rawStartTime": 1503944847279,
+        "rawEndTime": 1503944850767
+    },
+    {
+        "transactionName": "TC3_5_Search_Addresses",
+        "rawStartTime": 1503944850768,
+        "rawEndTime": 1503944852890
+    },
+    {
+        "transactionName": "TC3_9_Click_Parcel",
+        "rawStartTime": 1503944852905,
+        "rawEndTime": 1503944855019
+    },
+    {
+        "transactionName": "TC3_10_Search_Parcel",
+        "rawStartTime": 1503944855020,
+        "rawEndTime": 1503944856466
+    },
+    {
+        "transactionName": "TC3_14_Click_Owner",
+        "rawStartTime": 1503944856467,
+        "rawEndTime": 1503944858544
+    },
+    {
+        "transactionName": "TC3_15_Search_Owner",
+        "rawStartTime": 1503944858545,
+        "rawEndTime": 1503944860339
+    },
+    {
+        "transactionName": "TC3_19_Click_LicenseProfessionals",
+        "rawStartTime": 1503944860356,
+        "rawEndTime": 1503944863818
+    },
+    {
+        "transactionName": "TC3_19_Click_LicenseProfessionals_SearchTab",
+        "rawStartTime": 1503944863819,
+        "rawEndTime": 1503944868773
+    },
+    {
+        "transactionName": "TC3_20_Search_LicenseProfessionals_Submit",
+        "rawStartTime": 1503944868774,
+        "rawEndTime": 1503944870737
+    },
+    {
+        "transactionName": "TC3_24_Click_Contacts",
+        "rawStartTime": 1503944870738,
+        "rawEndTime": 1503944873069
+    },
+    {
+        "transactionName": "TC3_25_Click_Search_Contacts_Tab",
+        "rawStartTime": 1503944873069,
+        "rawEndTime": 1503944878106
+    },
+    {
+        "transactionName": "TC3_25_Search_Contacts_Submit",
+        "rawStartTime": 1503944878107,
+        "rawEndTime": 1503944880006
+    },
+    {
+        "transactionName": "SignOut",
+        "rawStartTime": 1503944880011,
+        "rawEndTime": 1503944882421
+    }
+]

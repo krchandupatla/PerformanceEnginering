@@ -1,0 +1,23 @@
+HTTP/1.1 200 OK
+Cache-Control: private
+Transfer-Encoding: chunked
+Content-Type: text/xml; charset=utf-8
+Content-Encoding: gzip
+Vary: Accept-Encoding
+Server: Microsoft-IIS/8.5
+request-id: a861354e-84b0-488b-b954-85b790ad4436
+X-CalculatedFETarget: BN6PR17CU001.internal.outlook.com
+X-BackEndHttpStatus: 200
+Set-Cookie: exchangecookie=a661137fbecf4749a33176bf39266299; expires=Tue, 28-Aug-2018 18:38:24 GMT; path=/; HttpOnly
+X-FEProxyInfo: BN6PR17CA0003.NAMPRD17.PROD.OUTLOOK.COM
+X-CalculatedBETarget: DM2PR07MB976.namprd07.prod.outlook.com
+X-BackEndHttpStatus: 200
+x-EwsHandler: GetUserOofSettings
+X-AspNet-Version: 4.0.30319
+X-DiagInfo: DM2PR07MB976
+X-BEServer: DM2PR07MB976
+X-FEServer: BN6PR17CA0003
+X-Powered-By: ASP.NET
+X-FEServer: CY4PR20CA0007
+Date: Mon, 28 Aug 2017 18:38:23 GMT
+

@@ -1,0 +1,11 @@
+[t527]
+FileName1=t527_info.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/reskin/info.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_527.xml
+RequestHeaderFile=t527_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t527_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

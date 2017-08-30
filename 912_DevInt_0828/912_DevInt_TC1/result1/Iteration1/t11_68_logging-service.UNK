@@ -1,0 +1,217 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .config(function ($provide, CONFIG) {
+      $provide.decorator('$log', function ($delegate) {
+        return enhancedConsoleLogger($delegate, CONFIG);
+      });
+    })
+    .factory('LoggingService', service);
+
+  /**
+   * @ngInject
+   */
+  function service($injector, $log, $window, StacktraceService, CONFIG) {
+
+    // PRIVATE data
+
+    var uniqueErrorMessages = {};
+    var usingMockLogEndpoint = false;
+
+    // PRIVATE methods
+
+    function criticalHandler(msg) {
+      sendToServer('Critical', msg);
+    }
+
+    function debugHandler(msg) {
+      sendToServer('Debug', msg);
+    }
+
+    function errorHandler(msg) {
+      rootScope().$broadcast('dashboard.addAlert', { // handled in AutomationController
+        type: 'danger', msg: msg
+      });
+
+      sendToServer('Error', msg);
+    }
+
+    /**
+     * if error message contains "ReferenceError" then abort app.
+     */
+    function exceptionHandler(ex, cause) {
+      // NOTE: In production, add some debouncing
+      // logic here to prevent the same client from
+      // logging the same error over and over again.
+      try {
+        var isUnique = false;
+        var message = ex.toString();
+        var formattedMsg = formatExceptionMessage(ex);
+        var stackTrace = StacktraceService.print({ e: ex });
+
+        // keep track of the last 10 unique error messages
+        if (uniqueErrorMessages.length > 10) {
+          uniqueErrorMessages.length = 0;
+        }
+
+        if (!uniqueErrorMessages[message]) {
+          isUnique = true;
+          uniqueErrorMessages[message] = true;
+        }
+
+        if (isUnique) {
+          rootScope().$broadcast('dashboard.addAlert', { // handled in AutomationController
+            type: 'danger', msg: formattedMsg + ' : ' + stackTrace
+          });
+        }
+
+        if (isUnique) {
+          sendToServer('Critical', formattedMsg, stackTrace, cause);
+        }
+      } catch (ex) {
+        if (console && console.warn) {
+          console.warn(sprintf('Error logging failed : "%s" : %s',  ex.message, ex.stack || ''));
+        }
+      }
+    }
+
+    function formatExceptionMessage(ex) {
+      if (ex.fileName) {
+        return sprintf('%s in %s at line %s, column %s', ex.toString(), ex.fileName, ex.lineNumber, ex.columnNumber);
+      } else {
+        return ex.toString();
+      }
+    }
+
+    function infoHandler(msg) {
+      sendToServer('Info', msg);
+    }
+
+    function sendToServer(logLevel, message, stacktrace, cause) {
+      if (CONFIG.LOG_CLIENT_ERRORS) {
+        writeLog({
+          logLevel: logLevel || 'Info',
+          message: message || '',
+          stacktrace: stacktrace || '',
+          cause: cause || ''
+        });
+      }
+    }
+
+    function rootScope() {
+      var scope = $injector.get('$rootScope');
+
+      if (!scope) {
+        $log.error('unable to get $rootScope');
+
+        scope = {
+          $broadcast: function(event, obj) {
+            $log.error(event + ' ' + JSON.stringify(obj));
+          }
+        };
+      }
+
+      return scope;
+    }
+
+    function warnHandler(msg) {
+      sendToServer('Warn', msg);
+    }
+
+    /**
+     * Using XMLHttpRequest instead of $http to avoid circular dependencies.
+     */
+    function writeLog(logData) {
+      if (!usingMockLogEndpoint) {
+        angular.extend(logData, Accela.settings, {
+          url: $window.location.href
+        });
+
+        Accela.XHR.post(CONFIG.LOG_URL, logData, CONFIG.LOG_ACCESS_KEY);
+      }
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('LOGGING-SERVICE');
+
+    if (CONFIG.USE_MOCK_SERVICES) {
+      usingMockLogEndpoint = true;
+    } else if ((/MOCK/i).test(CONFIG.LOG_URL)) {
+      usingMockLogEndpoint = true;
+    }
+
+    // PUBLIC interface
+
+    return {
+      critical: criticalHandler,
+      debug: debugHandler,
+      error: errorHandler,
+      exceptionHandler: _.debounce(exceptionHandler, 500),
+      formatExceptionMessage:  formatExceptionMessage,
+      info: infoHandler,
+      warn: warnHandler
+    };
+  }
+
+  /**
+   * Add prefix to $log messages for debugging.
+   *
+   * SEE: http://solutionoptimist.com/2013/10/07/enhance-angularjs-logging-using-decorators/
+   */
+  function enhancedConsoleLogger(log, config) {
+    var logEnabled = (config.CONSOLE_LOGGING_ENABLED);
+
+    var _$log = { // capture the original methods
+      log   : (logEnabled ? log.log : angular.noop),
+      info  : (logEnabled ? log.info : angular.noop),
+      debug : (logEnabled ? log.debug : angular.noop),
+      warn  : log.warn,
+      error : log.error
+    };
+
+    function prepareLogFn(logFn, prefix) {
+
+      var enhancedLogFn = function() {
+        var args = [].slice.call(arguments);
+
+        if (prefix) { // prepend an optional prefix to the original message
+          args[0] = prefix + ' : ' + args[0];
+        }
+
+        logFn.apply(null, args); // invoke $log method with our prefixed message
+      };
+
+      enhancedLogFn.logs = []; // add support for angular-mocks expectations
+
+      return enhancedLogFn;
+    }
+
+    // add a new $log method returning an extended $log
+
+    log.getInstance = function(prefix) {
+      var logInstance = {
+        log: prepareLogFn(_$log.log, prefix),
+        info: prepareLogFn(_$log.info, prefix),
+        debug: prepareLogFn(_$log.debug, prefix),
+        warn: prepareLogFn(_$log.warn, prefix),
+        error: prepareLogFn(_$log.error, prefix),
+        format: function(msg) {
+          return prefix + ' : ' + msg;
+        }
+      };
+
+      logInstance.ts = function(msg) { // prefix with a timestamp
+        logInstance.info(new Date().getTime() + ' - ' + msg);
+      };
+
+      logInstance.info('created');
+
+      return logInstance;
+    };
+
+    return log;
+  }
+})();

@@ -1,0 +1,11 @@
+[t930]
+FileName1=t930_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=spaces.14045
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_930.xml
+RequestHeaderFile=t930_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t930_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

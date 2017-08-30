@@ -1,0 +1,390 @@
+(function() {
+  'use strict';
+
+  /**
+   * TASK - dependency injection handled by DashboardModel.
+   */
+  Accela.module('Entity.Task', function($filter, i18nService) {
+    var i18n = i18nService.store;
+
+    // DEFINE class
+
+    function TaskCommon(data) {
+      this.capId = setCapId(data.capId);
+      this.permitType = data.permitType;
+      this.contactName = data.contactName || null;
+      this.contactNbr = data.contactNbr || null;
+      this.conditions = setConditions(data.conditions);
+      this.status = data.status || null;
+      this.taskCategory = data.taskCategory || null;
+      this.taskName = data.taskName || 'taskName is empty';
+      this.conditionCount = data.conditionCount || null;
+      this.conditionSeverity = data.conditionSeverity || null;
+      this.serviceProviderCode = data.serviceProviderCode || null;
+      this.module = data.recordModule || null;
+      this.applicationName = data.applicationName || null;
+      // meta data
+
+      this.isChecked = false;
+      this.isLinkable = false;
+      this.hideFlyout = false;
+      this.condition = null;      // from the first "conditions" entry having a "priority"
+      this.conditionName = null;  // the first condition
+
+      this.isActivity = this.taskCategory === 'ACTIVITY';
+      this.isDocument = this.taskCategory === 'DOCUMENT';
+      this.isInspection = this.taskCategory === 'INSPECTION';
+      this.isMeeting = this.taskCategory === 'MEETING';
+      this.isRecord = this.taskCategory === 'RECORD';
+      this.isWorkflow = this.taskCategory === 'WORKFLOW';
+
+      // Action menu items
+
+      this.actions = [];
+    }
+
+    function TaskActivity(data) {
+      this.dueDate = parseDate(data.dueDateStr);
+      this.dueDateRemaining = parseInt(data.dueDateRemaining, 10);
+      this.dueToday = data.dueToday;
+      this.createDate = parseDate(data.createDateStr);
+      this.activityID = data.activityID;
+      this.description = data.description || i18n.Task.HasNoDescription;
+      this.startDate = parseDate(data.startDateStr);
+      this.priority = getPriority(data.priority);
+    }
+
+    function TaskDocument(data) {
+      var previewUrl = (data.previewUrl || '').toUpperCase();
+
+      this.description = data.description || i18n.Task.HasNoComment;
+      if(data.statusDate)
+      {
+        //api response statusDate format:1430146670000
+        if((/\d+/g).test(data.statusDate))
+        {
+          var tempDate=new Date(data.statusDate);
+          var month=(tempDate.getMonth()+1)<10 ? '0' +(tempDate.getMonth()+1):(tempDate.getMonth()+1);
+          //argument eg. 05/03/2015 00:00:00
+          this.statusDate = parseDate(month+'/'+tempDate.getDate()+'/'+tempDate.getFullYear()+' 00:00:00');
+        }
+        else
+        {
+          this.statusDate = parseDate(data.statusDate);
+        }
+      }
+
+      this.category = data.category;
+      this.downloadUrl = data.downloadUrl || '';
+      this.previewUrl = data.previewUrl || '';
+      this.reviewUrl = data.reviewUrl || '';
+      this.documentNo = data.documentNo;
+      this.isPDFfile = (data.isPDFfile === 'Yes');
+      this.existEdmsPolicy = data.existEdmsPolicy;
+
+      // meta data
+
+      this.isDOCfile = previewUrl.indexOf('.DOC') !== -1;
+      this.isIMGfile = (previewUrl.indexOf('.IMG') !== -1 ||  previewUrl.indexOf('.JPG') !== -1 || previewUrl.indexOf('.PNG') !== -1);
+      this.isPPTfile = previewUrl.indexOf('.PPT') !== -1;
+      this.isTXTfile = previewUrl.indexOf('.TXT') !== -1;
+      this.isXLSfile = previewUrl.indexOf('.XLS') !== -1;
+
+      if (this.isDOCfile) {
+        this.docType = 'DOC';
+      } else if (this.isIMGfile) {
+        this.docType = 'IMG';
+      } else if (this.isPDFfile) {
+        this.docType = 'PDF';
+      } else if (this.isPPTfile) {
+        this.docType = 'PPT';
+      } else if (this.isTXTfile) {
+        this.docType = 'TXT';
+      } else if (this.isXLSfile) {
+        this.docType = 'XLS';
+      }
+    }
+
+    function TaskInspection(data) {
+      var template = '';
+      var hoursTemplate;
+      var minutesTemplate;
+
+      this.duration = data.duration || null;
+      this.durationHours = getHours(data.duration) || null;
+      this.durationMins = getMins(data.duration) || null;
+      this.group = data.group || null;
+      this.location = data.location || null;
+      this.phone = data.phone || null;
+      this.recordType = data.recordType || null;
+      this.scheduleDate = parseDate(data.scheduleDateStr);
+      this.scheduledTime = parseTime(data.scheduledTime);
+      this.scheduledTime2 = parseTime(data.scheduledTime2);
+      this.city = data.city || i18n.Task.HasNoCity;
+      this.zip = data.zip || null;
+      this.inspectionID = data.inspectionID || null;
+      this.inspectionStatus = data.inspectionStatus || null;
+      this.inspectionType = data.inspectionType || null;
+
+      if (data.address) {
+        this.address = data.address;
+
+        // TODO: fix this in the backend later
+
+        var cityStartPos = this.address.lastIndexOf(this.city);
+        var tmp = this.address.toUpperCase().replace(sprintf('%s, ', this.city.trim().toUpperCase()), '').replace(this.zip, '').trim();
+
+        if (tmp.length >= 2) {
+          this.stateCode = tmp.substr(tmp.length -2, 2);
+        } else {
+          this.stateCode = '';
+        }
+
+        if (cityStartPos > 0) {
+          this.address = this.address.substr(0, cityStartPos);
+        }
+      } else {
+        this.address = i18n.Task.HasNoAddress;
+      }
+
+      // meta data
+
+      if (this.scheduledTime2 && (this.durationHours || this.durationMins)) {
+        this.formattedDuration = formatHoursAndMinutes(this.durationHours, this.durationMins);
+      }
+    }
+
+    function TaskMeeting(data) {
+      this.durationHours = getHours(data.duration) || null;
+      this.durationMins = getMins(data.duration) || null;
+      this.scheduledStartDate = parseDate(data.scheduledStartDateStr);
+      this.scheduledStartTime =  parseTime(data.scheduledStartTime);
+      this.address = data.address || i18n.Task.HasNoLocation;
+      this.dueDate = parseDate(data.dueDateStr);
+      this.meetingBody = data.meetingBody || i18n.Task.HasNoMeetingBody;
+      this.meetingGroupID = data.meetingGroupID;
+      this.meetingID = data.meetingID;
+      this.meetingType = data.meetingType;
+      this.responsiblePerson = data.responsiblePerson;
+      this.responsiblePersonDept = data.responsiblePersonDept;
+      this.assignee = data.assignee;
+
+      // meta data
+
+      this.formattedDuration = formatHoursAndMinutes(this.durationHours, this.durationMins);
+    }
+
+    function TaskWorkflow(data) {
+      this.activeCount = data.activeCount || 0;
+      this.assignedDate = parseDate(data.assignedDateStr);
+      this.assignedStaff = data.assignedStaff || null;
+      this.completeCount = data.completeCount || 0;
+      this.dueDate = parseDate(data.dueDateStr);
+      this.dueDateRemaining = parseInt(data.dueDateRemaining, 10);
+      this.dueToday = data.dueToday;
+      this.phone = data.phone || null;
+      this.role = data.role || null;
+      this.serviceProviderCode = data.serviceProviderCode || null;
+      this.taskTotalCount = data.taskTotalCount || 0;
+      this.processCode = data.processCode;
+      this.processID = data.processID;
+      this.stepNumber = data.stepNumber;
+      this.assignAction =  data.assignAction;
+      this.releaseAction = data.releaseAction;
+      this.claimAction = data.claimAction;
+      this.isAdhoc = data.isAdhoc;
+    }
+
+    function Task(data) {
+      TaskCommon.call(this, data);
+
+      this.templateUrl = 'views/automation/dashboard/task/card-layout/';
+
+      if (this.isActivity) {
+        TaskActivity.call(this, data);
+        this.templateUrl += 'activity-task.html';
+      } else if (this.isDocument) {
+        TaskDocument.call(this, data);
+        this.templateUrl += 'document-task.html';
+      } else if (this.isInspection) {
+        TaskInspection.call(this, data);
+        InspectionTimeMsg.call(this);
+        this.templateUrl += 'inspection-task.html';
+      } else if (this.isMeeting) {
+        TaskMeeting.call(this, data);
+        this.templateUrl += 'meeting-task.html';
+      } else if (this.isRecord) {
+        this.templateUrl += 'record-task.html';
+      } else if (this.isWorkflow) {
+        TaskWorkflow.call(this, data);
+        this.templateUrl += 'workflow-task.html';
+      } else {
+        this.templateUrl = 'views/placeholder.html';
+      }
+    }
+
+    // PRIVATE METHODS
+
+    function InspectionTimeMsg() {
+
+      if (this.scheduledTime2 === null && this.scheduledTime !== null) {
+        if (this.scheduledTime === 'AM') {
+          this.msgNoscheduleTime2 = i18n.Task.InTheMorning;
+        }
+        else if (this.scheduledTime === 'PM') {
+          this.msgNoscheduleTime2 = i18n.Task.InTheAfternoon;
+        }
+      } else if (this.scheduledTime2 === null && this.scheduledTime === null) {
+        this.msgNoscheduleTime = i18n.Task.HasNoScheduledTime;
+      }
+    }
+
+    // PRIVATE METHODS
+
+    function formatHoursAndMinutes(hours, minutes) {
+      var result = '';
+      var template = '';
+      var hoursTemplate;
+      var minutesTemplate;
+
+      if (minutes) {
+        template = minutesTemplate = (minutes > 1 ? i18n.Task.DurationMinutes : i18n.Task.DurationMinute);
+      }
+
+      if (hours) {
+        template = hoursTemplate = (hours > 1 ? i18n.Task.DurationHours : i18n.Task.DurationHour);
+
+        if (minutesTemplate) {
+          template = sprintf('%s, %s', hoursTemplate, minutesTemplate);
+          result = sprintf(template, hours, minutes);
+        } else {
+          result = sprintf(template, hours);
+        }
+      } else {
+        result = sprintf(template, minutes);
+      }
+
+      return result;
+    }
+
+    function getPopoverHtml(task) {
+      if (task.conditionCount) {
+        var isMatch = false, matchArrayIndex = 0;
+        for(var iCount = 0; iCount <= task.conditions.length ; iCount++) {
+          if ((task.conditions[iCount] !== undefined && task.conditions[iCount] !== null) && (task.conditionSeverity === task.conditions[iCount].severity.toLowerCase())) {
+            matchArrayIndex = iCount;
+            isMatch = true;
+            break;
+          }
+        }
+
+
+        var item = task.conditions[matchArrayIndex];
+        var moreConditions = task.conditionCount - 1;
+
+        if (isMatch) {
+          task.popoverHtml = sprintf('<span class="title">%s</span><br>', item.conditionName);
+          task.popoverHtml += sprintf('<b>%s</b> %s <b>%s</b><br>', task.conditionSeverity.toUpperCase(), i18n.Task.ConditionApplied, $filter('date')(item.applyDate, 'MMM dd'));
+
+          if (moreConditions) {
+            task.popoverHtml += sprintf('<span class="more">%s</span>', i18n.Task.ConditionPlusNMore.format(moreConditions));
+          }
+        }
+      }
+    }
+
+    /**
+     * Parse date string and return as Date.
+     */
+    function parseDate(str) {
+      var dt = null;
+
+      if (str) {
+        dt = new Date(str);
+
+        if (isNaN(dt)) {
+          dt = JSON.parse(str);
+        }
+
+        return isNaN(dt) ? null : dt;
+      }
+    }
+
+    function parseTime(str) {
+      return str || null;
+    }
+
+    function setCapId(data) {
+      var capId = {};
+
+      if (data) {
+        capId = {
+          ID1: data.id1 || null,
+          ID2: data.id2 || null,
+          ID3: data.id3 || null,
+          customID: data.customId || null,
+          id: data.id || null,
+          serviceProviderCode: data.serviceProviderCode || null,
+          trackingID: data.trackingId || null
+        };
+      }
+
+      return capId;
+    }
+
+    function setConditions(list) {
+      var conditions = [];
+
+      if (list && list.length) {
+        angular.forEach(list, function(item) {
+          conditions.push({
+            applyDate: parseDate(item.applyDateStr),
+            conditionName: item.conditionName || null,
+            severity: item.severity,
+            serviceProviderCode: item.serviceProviderCode || null
+          });
+        });
+      }
+
+      return conditions;
+    }
+
+    function getHours(duration) {
+      if (duration >= 60) {
+        return parseInt(duration / 60, 10);
+      }
+      return 0;
+    }
+
+    function getMins(duration) {
+      return duration % 60;
+    }
+    
+    function getPriority(priority) {
+    	if ('Low' === priority) {
+    		return 'low';
+    	} else if ('Normal' === priority) {
+    		return  'med';
+    	} else if ('High' === priority) {
+    		return 'high';
+    	}
+    }
+
+    // STATIC METHODS - assigned to class
+
+    /**
+     * Constructor for objects of this class
+     */
+    Task.build = function (data) {
+      var task = new Task(data || {});
+
+      if (task) {
+        getPopoverHtml(task);
+      }
+
+      return task;
+    };
+
+    return Task;
+  });
+})();

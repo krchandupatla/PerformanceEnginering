@@ -1,0 +1,86 @@
+#dialogBoxTitle
+{
+	text-overflow:ellipsis; 
+	white-space:nowrap; 
+	color:#636363; 
+	font-size:12px; 
+	overflow:hidden; 
+	cursor:move; 
+	font-weight:bold; 
+	padding-top:4px;
+}
+
+
+.titleContainer
+{
+	border:0;cellSpacing:0;
+	cellPadding:0;
+	table-layout: fixed; 
+	height: 24px; 
+
+}
+#closeContainer
+{
+	text-align:right;
+}
+
+.leftLineImage
+{
+	width: 10px; 
+	background: url(/portlets/images/sky_blue/img/bg_border_popview_L_y.png); 
+	FLOAT: left; 
+	height: 100%;
+}
+.leftLineSpace
+{
+	background-color: white; 
+	width: 5px; 
+	float: left; 
+	height: 100%;
+}
+.middelContentTD
+{
+	position: relative;
+	background-color:#ffffff;
+}
+.rightLineSpace
+{
+	background-color: white; 
+	width: 5px; 
+	float: left; 
+	height: 100%;
+}
+.rightLineImage
+{
+	width: 10px; 
+	background: url(/portlets/images/sky_blue/img/bg_border_popview_R_y.png) right 50%; 
+	float: left; 
+	height: 100%;
+}
+.leftTopCorner
+{
+	background: url(/portlets/images/sky_blue/img/bg_border_popview.png);
+}
+.middleTop
+{
+	background: url(/portlets/images/sky_blue/img/bg_border_popview.png) repeat-x 0px -120px;
+	align : left;
+}
+.rightTopCorner
+{
+	width:15px;
+	background: url(/portlets/images/sky_blue/img/bg_border_popview.png) repeat-x -5px -60px;
+}
+.leftBottomCorner
+{
+	background: url(/portlets/images/sky_blue/img/bg_border_popview.png) repeat-x 0px -228px;
+}
+.middelBottomCorner
+{
+	height:22;
+	background:url(/portlets/images/sky_blue/img/bg_border_popview_B_x.png);
+}
+.ringtBottomCorner
+{
+	background: url(/portlets/images/sky_blue/img/bg_border_popview.png) repeat-x -5px -198px;
+}

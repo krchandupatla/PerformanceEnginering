@@ -1,0 +1,3399 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<!doctype html>
+    <html class="no-js" lang="en" dir="ltr" id="ng-app" ng-app="accela.automation" ng-strict-di="" xmlns:ng="http://angularjs.org">
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+	
+    <!--<link rel="stylesheet" href="/portlets/spa/styles/bootstrap/bootstrap.css" media="screen" />-->
+    <!--<link rel="stylesheet" href="styles/bootstrap/bootstrap-rtl.css" />-->
+    <script src="/portlets/spa/js/lib/showModalDialog.js"></script> 	
+    <script src="/portlets/spa/js/lib/windowCloseOverride.js"></script>
+
+<script language="JavaScript">
+var oldUI = false;
+var profile=new Object();
+profile.agency='FLAGSTAFF';
+profile.isEnabled508=false;
+profile.language='en_US';
+profile.theme='sky_blue';
+profile.enableSecurityDefense=false;
+profile.disableExpressionSection508=false;
+
+
+  //
+  // added by dbalmer@accela.com
+  //
+  function getDocumentIFrameById(doc, id) {
+    var listIFrame = doc.frames[id] || doc.getElementById(id);
+  }
+
+</script>
+
+
+
+
+
+
+<script language="JavaScript">
+
+var toDoNav = false;
+var navFrames = new Array();
+var doNavigation;
+var navScript;
+var isClear= true;
+var lastCapModule = 'Building';
+var currModule ='Building';
+var param="";
+var runOrder ;
+
+var isAjaxRefreshNavScript = false;
+
+function clearNavigation()
+{
+	parent.navFrames = new Array();
+	parent.toDoNav = false;
+	doNavigation=undefined;	
+}
+
+
+	if(parent)
+	{
+		if(parent.toDoNav&&parent.navFrames.length>0)
+		{
+			if(frameElement&&frameElement.id)
+			{
+				if(frameElement.id==parent.navFrames[0])
+				{
+					toDoNav = true;
+					runOrder = parent.runOrder;
+					if(parent.navFrames.length==1)
+					{
+						eval('doNavigation=function(){'+parent.navScript+'}');
+					}
+					else
+					{
+						for(var i=1;i<parent.navFrames.length;i++)
+						{
+							navFrames.push(parent.navFrames[i]);
+						}
+						navScript = parent.navScript;						
+					}
+				}
+			}
+			if(frameElement&&frameElement.id&&frameElement.id=='capForm'&&top.switchModule)
+			{
+				top.switchModule(lastCapModule);
+			}
+		}
+		if(parent.param && parent.param.length>0)
+		{
+			param = parent.param;
+		}
+	}
+	
+	if(runOrder=='before')
+	{
+		if(doNavigation)
+		{
+			doNavigation();
+			if(isClear)
+			{
+				clearNavigation();
+				frameElement.scrollIntoView(true);
+			}		
+		}
+	}
+</script>
+
+
+<script type="text/javascript" src="/portlets/framework/includes/javascript/jquery/jquery-1.11.0.min.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/Ac360ToolManager.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360base.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/widget/widget.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/memoryLeakPatch.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360InputBoxHotKey.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/popup/popup.js"></script>
+
+
+
+<script type="text/javascript">
+<!--
+var pageLoadingCircle = false;
+//-->
+</script>
+
+		<script language="JavaScript">
+			var currModule = 'Building';
+			var formName = 'taskStatusListActionForm';
+		</script>
+	
+
+<!--[if gte IE 8]>
+   <script type="text/javascript">
+      IEVersion = 8;
+   </script>
+<![endif]-->
+<!--[if IE 7]>
+   <script type="text/javascript">
+      IEVersion = 7;
+   </script>
+<![endif]-->
+
+
+	
+		<title>
+			Workflow Task Status List
+		</title>
+		
+			<link rel="stylesheet" href="/portlets/spa/styles/bootstrap/bootstrap.css" media="screen" />
+		
+		
+		<link rel="stylesheet" type="text/css" href="/portlets/images/sky_blue/styles.css" id="stylesId"/>
+		<link rel="stylesheet" type="text/css" href="/portlets/images/sky_blue/print-styles.css" media="print"/>
+
+		<link rel="stylesheet" type="text/css" href="/portlets/spa/styles/re-skin-v2.css" id="stylesId" media="screen" />
+<script type="text/javascript" src="/portlets/framework/includes/javascript/opos.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/masked.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/myTask.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/menubar.js"></script><script type="text/javascript" src="/docs/AAHELP.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/watermark.js"></script>
+		
+
+<script type="text/javascript">
+
+/**
+ * Support open window in IE8.
+ * If user's browser is IE 8, pass the session cookie to the child window.
+ */
+function windowOpen(targetURL,name,parameters,jsessionid,path,secure)
+{	
+    var newURL = targetURL;
+	if (isIE8())
+	{	   
+	   var newtargetURL = encodeURIComponent(targetURL);	
+	   newURL = "/portlets/datapicker/popupWindow.jsp?&targetURL=" + newtargetURL;
+	   
+	   var _jsessionid = "vZkludqgj8ZjGM2oojONEkOJ";
+	   var _path = "/portlets";
+	   var _secure = "true";
+	   
+	   if (typeof(jsessionid) != 'undefined')
+	   {
+	   		_jsessionid = jsessionid;
+	   }
+	   if (typeof(path) != 'undefined')
+	   {
+	   		_path = path;
+	   }
+	   if (typeof(secure) != 'undefined')
+	   {
+	   		_secure = secure;
+	   }	   
+	   newURL = newURL + "&jsessionid=" + _jsessionid + "&path=" + _path + "&secure=" + _secure;	  
+	}	
+	return window.open(newURL, name, parameters);	
+}
+</script>
+
+		<script type="text/javascript">
+		if(!pageLoadingCircle)
+		{
+			var processBarObj = new UI.ProcessBar();
+			processBarObj.forceDestroyExceptPageLoading(processBarObj.getTargetDoc().targetDoc);
+		}
+
+		function isIE8()
+		{
+		    var ie8 = false;
+			// In firefox, we cannot get the variable 'IEVersion' defined in layoutTab.jsp
+			if (typeof(IEVersion) != 'undefined' && IEVersion == 8) 
+			{		
+				ie8 = true;
+			}	
+			return ie8;
+		}
+		<!--
+		
+		//-->
+		</script>
+
+			<script language="JavaScript">
+			var pendoOptions = '{"product":"Accela Core","userID":"e9af1fa5171aed0adbee00284a455086465aa31fc36563edabf646e11d55a6088095a23efeee0ca56703d10969d3ac54e979ab211892ee56defc91c468476a08","module":"Building","environment":"INTERNAL","serviceURL":"https://d3accju1t3mngt.cloudfront.net/js/pa.min.js","serviceID":"567a146e-65ac-46a5-7a13-b32474a4f67b","userGroup":"BuildingAdmin","agency":"FLAGSTAFF","version":"av.9.1.3.170801"}';
+			if(pendoOptions!= undefined && pendoOptions!= null && pendoOptions.length!=0){
+				var pendoData = JSON.parse(pendoOptions);
+				if(pendoData.serviceID != undefined && pendoData.serviceID != null && pendoData.serviceID.length != 0){
+					window.pendo_options = {
+					apiKey: pendoData.serviceID,
+					usePendoAgentAPI: false,
+					visitor: {
+					id: pendoData.userID,
+					userGroup: pendoData.userGroup,
+					userId: pendoData.userID
+					},
+					account: {
+					id: pendoData.agency,
+					productId: pendoData.product,
+					productVersion: pendoData.version,
+					environment: pendoData.environment,
+					module: pendoData.module
+					}
+					};
+					(function() {
+					var script = document.createElement('script');
+					script.type = 'text/javascript';
+					script.async = true;
+					script.src = pendoData.serviceURL;
+					var firstScript = document.getElementsByTagName('script')[0];
+					firstScript.parentNode.insertBefore(script, firstScript);
+					})();
+				}
+			}
+			</script>
+
+
+		<script language="JavaScript">
+						
+			var jetspeedTop = getTopIframe(this);			
+			function doPageInit()
+			{
+				try{
+					InitializeEbaCombos();
+				}catch(error){}				
+				resizePictureIFrame();
+				setFocusElement();
+				scrollBarIssue.resizeIframeNoScrollBar(scrollBarIssue.getFrameElement(document));
+			}
+						
+			var starttime = 0;
+			var showTimerID;
+			var menuheadout = true;
+			var menuentryout = true;
+
+			function delaymenu(divID, srcId)
+			{
+				if (divID == null || divID == 'undefined')
+				{
+					divID = 'Spacer';
+				}
+				//showTimerID = setInterval("showmenu('"+divID+"', '" + srcId + "')", 10);				
+				document.getElementById(divID).style.visibility = "";
+				document.getElementById(divID).style.display = "";
+				UI.positionMgr.show(srcId, divID);
+			}
+			
+			function cancelmenu()
+			{
+				clearInterval(showTimerID);
+			}
+			function hidemenu(divID)
+			{
+				if (menuheadout && menuentryout) {
+					obj = MM_findObj(divID);
+					if(obj)
+					{
+						if(obj.style.display == "none")
+						{
+							return;
+						}
+						obj.style.display = "none";
+					}					
+					MM_showHideLayers(divID,'','hidden');
+				}
+			}
+
+			function updatetime()
+			{
+				now = new Date();
+				starttime = now.getMilliseconds();
+			}
+			function hidenAsContactFloatMenu(divID)
+			{
+				if(menuentryout)
+				{
+					MM_showHideLayers(divID,'','hidden');
+				}				
+			}
+			
+		</script>
+
+	</head>
+	<body class="MarginLRXY0px srbgcolor srbgcolor" onLoad="doPageInit()">
+		<script type="text/javascript">
+			$(document).ready(function () {
+				function hideLoadingMask(){
+					window.top.$('.spinner').addClass("ng-hide");
+				}
+				try{try{
+					if(isWorkflowPage==undefined || isWorkflowPage==null || isWorkflowPage==false)
+					hideLoadingMask();
+				}catch(errtext){hideLoadingMask();}}catch(err){}
+			});
+			$(document).on("click", "#dTabsTable a", function(e){
+				try{
+					window.top.$('.spinner').removeClass("ng-hide");
+				}catch(err){}
+			});
+
+			$(window).focus(function() {
+				$.ajax({
+				type: "GET",
+				url: "/portlets/spa/session.do?mode=activateSpace&spaceName=" + 'spaces.c7ae1',
+				success: function (data) {}
+				});
+			});
+
+			new UI.ProcessBar({"pageLoadingCircle" : pageLoadingCircle}).pageLoadingCircle();
+		</script>
+		<form id="taskStatusListActionForm" name="taskStatusListActionForm" method="post" action="/portlets/workflow/workflowStatusList.do?module=Building" onsubmit="enableAllSelect" enctype="application/x-www-form-urlencoded" target="_self">
+		<input type="hidden" name="value(FirstEntryURL)" value="/portlets/workflow/workflowStatusList.do?module=Building">
+		<input type="hidden" name="value(CurrentEntryURL)" value="/portlets/workflow/workflowStatusList.do?module=Building">
+		<input type="hidden" id="portlet_language" name="portlet_language" value="en_US">
+		<input type="hidden" id="refresh_target" name="refresh_target" value=""/>
+		<input type="hidden" id="refresh_url" name="refresh_url" value=""/>
+		<input type="hidden" id="buttonName" name="buttonName" value=""/>
+		<input type="hidden" id="modeName" name="modeName" value="list"/>
+		<input type="hidden" id="module" name="module" value="Building"/>
+		<input type="hidden" name="accelasubmitbuttonname" id="accelasubmitbuttonname" value=""/>
+		<input type="hidden" name="itemName" id="itemName" value=""/>
+		<input type="hidden" id="CurrentViewID" name="CurrentViewID" value="267"/>
+		<input type="hidden" id="exceptionLogID" name="exceptionLogID" value=""/>
+
+
+		<script>
+			var pageTitle = 'ALT Idd: 17-2017-4-0339' === 'null' ? null : 'ALT Idd: 17-2017-4-0339';
+			var spaceTitle = (parent && parent.frameElement && parent.frameElement.dataset) ? parent.frameElement.dataset.spaceTitle : undefined;
+			var titleToUse = pageTitle || spaceTitle;
+			if(titleToUse) {
+				document.write('<header class="header"><h1><a href="#" onclick="returnListView()"><i class="arrow-back"></i></a><span>');
+				document.write(titleToUse + ('null' === 'null' ? '': ' - null'));
+				document.write('</span></h1><a class="refresh" href="javascript: location.reload();"></a></header>');
+			}
+		</script>
+			
+		<div class="work-space">
+	    
+        <div id="utility-menu">
+        <div class="panel panel-default no-border no-margin">
+	        <div class="panel-body utility-item-group">
+	        
+			    <div id="tr_tarbar">
+       			
+
+
+
+
+
+
+
+    
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+    
+        
+        
+                    <ul class="nav nav-pills nav-stacked" id="dTabsTable" name="dTabsTable">
+                        
+                        <li role="presentation" id="Activity" class="tab"><a  id="" href="/portlets/activity/srActivityList.do?mode=list&searchBy=bySR&module=Building" target="" class="utility-item-content">Activities
+
+                      	<span id="CountID5">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Activity Summary" class="tab"><a   href="/portlets/activity/activitySummaryList.do?module=Building" target="" class="utility-item-content">Activity Summary
+
+                      	<span id="CountID6">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Address" class="tab"><a   href="/portlets/address/addressList.do?mode=search&module=Building" target="" class="utility-item-content">Address
+
+                      	<span id="CountID2">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="AddtInfo" class="tab"><a   href="/portlets/addtinfo/addtInfoForm.do?mode=view&module=Building" target="" class="utility-item-content">Addtl Info
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="GIS" class="tab"><a   href="/portlets/gis/gisFeatureList.do?mode=list&module=Building" target="" class="utility-item-content">GIS
+
+                      	<span id="CountID8">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="ClassicReports" class="tab"><a   href="/portlets/aaproxy/AAProxy.do?mode=iframe&FNTNAME=CAP_REP&module=Building" target="" class="utility-item-content">Classic Reports
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Comments" class="tab"><a   href="/portlets/cap/capCommentList.do?mode=view&isRedirect=false&module=Building" target="" class="utility-item-content">Comments
+
+                      	<span id="CountID23">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Communications" class="tab"><a   href="/portlets/commons/communication/cmInRecordList.do?mode=searchListByCap&boxType=inRecordList&module=Building" target="" class="utility-item-content">Communications
+
+                      	<span id="CountID415">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Conditions" class="tab"><a   href="/portlets/condition/capConditionList.do?mode=list&value(conditionOfApproval)=N&module=Building" target="" class="utility-item-content">Conditions
+
+                      	<span id="CountID17">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="ConditionsOfApproval" class="tab"><a   href="/portlets/coa/conditionOfApprovalList.do?mode=list&fromNotice=NO&module=Building" target="" class="utility-item-content">Conditions of Approval
+
+                      	<span id="CountID397">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="RecordActivityReport" class="tab"><a   href="/portlets/commons/communication/recordActivity/recordActivityReport.do?mode=list&module=Building" target="" class="utility-item-content">Consolidated Record Activities
+
+                      	<span id="CountID456">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Contact" class="tab"><a   href="/portlets/contact/contactList.do?mode=list&module=Building" target="" class="utility-item-content">Contacts
+
+                      	<span id="CountID1">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="ContEducation" class="tab"><a   href="/portlets/cap/contEducation.do?value(mode)=list&module=Building" target="" class="utility-item-content">Continuing Education
+
+                      	<span id="CountID378">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="AppSpecInfo" class="tab"><a   href="/portlets/appspecinfo/appSpecInfoForm.do?mode=view&module=Building" target="" class="utility-item-content">Custom Fields
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="AppSpecInfoTable" class="tab"><a   href="/portlets/appspecinfo/appSpecInfoTableForm.do?mode=list&module=Building" target="" class="utility-item-content">Custom Lists
+
+                      	<span id="CountID21">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="DistributionHistory" class="tab"><a   href="/portlets/ams/workorder/woAssetDistributionList.do?value(mode)=list&module=Building" target="" class="utility-item-content">Distribution History
+
+                      	<span id="CountID226">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Document" class="tab"><a   href="/portlets/document/documentList.do?mode=list&entityType=CAP&entry=yes&from=CAP&module=Building" target="" class="utility-item-content">Documents
+
+                      	<span id="CountID18">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Education" class="tab"><a   href="/portlets/cap/education.do?value(mode)=list&fromList=true&module=Building" target="" class="utility-item-content">Education
+
+                      	<span id="CountID372">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Evidence" class="tab"><a   href="/portlets/evidence/evidenceList.do?mode=list&module=Building" target="" class="utility-item-content">Evidence
+
+                      	<span id="CountID24">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Examination" class="tab"><a   href="/portlets/cap/examination.do?value(mode)=list&module=Building" target="" class="utility-item-content">Examination
+
+                      	<span id="CountID379">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Fees" class="tab"><a   href="/portlets/fee/feeList.do?mode=list&module=Building" target="" class="utility-item-content">Fee
+
+                      	<span id="CountID10">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Inspections" class="tab"><a   href="/portlets/inspection/inspectionListCapSpecific.do?mode=list&module=Building" target="" class="utility-item-content">Inspections
+
+                      	<span id="CountID19">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Meeting" class="tab"><a   href="/portlets/meeting/meetingList.do?mode=list&module=Building" target="" class="utility-item-content">Meetings
+
+                      	<span id="CountID373">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Organization" class="tab"><a   href="/portlets/pa/organizationForm.do?mode=view4CAP&module=Building" target="" class="utility-item-content">Organization
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Owner" class="tab"><a   href="/portlets/owner/ownerList.do?mode=list&module=Building" target="" class="utility-item-content">Owner
+
+                      	<span id="CountID14">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Parcel" class="tab"><a   href="/portlets/parcel/parcelList.do?mode=list&entityType=PARCEL_DAILY&module=Building" target="" class="utility-item-content">Parcel
+
+                      	<span id="CountID12">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Part" class="tab"><a   href="/portlets/ams/workorder/woPartList.do?value(mode)=list&module=Building" target="" class="utility-item-content">Part
+
+                      	<span id="CountID20">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Payments" class="tab"><a   href="/portlets/fee/paymentList.do?mode=list&module=Building" target="" class="utility-item-content">Payment
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="PaymentHistory" class="tab"><a   href="/portlets/fee/paymentHistoryList.do?module=Building" target="" class="utility-item-content">Payment History
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Professionals" class="tab"><a   href="/portlets/professional/professionalList.do?mode=list&module=Building" target="" class="utility-item-content">Professionals
+
+                      	<span id="CountID13">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="CapDetail" class="tab"><a   href="/portlets/cap/capDetail.do?mode=view&isRedirect=false&module=Building" target="" class="utility-item-content">Record
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="XRefCap" class="tab"><a   href="/portlets/xrefcap/crossReferenceXRefCapList.do?mode=doQuickQueryList&isFirstEnter=Y&module=Building" target="" class="utility-item-content">Related Records
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Renewal" class="tab"><a   href="/portlets/renewalinfo/renewalCapList.do?mode=list&module=Building" target="" class="utility-item-content">Renewal
+
+                      	<span id="CountID27">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="RenewalInfo" class="tab"><a   href="/portlets/renewalinfo/renewalInfoForm.do?mode=view&module=Building" target="" class="utility-item-content">Renewal Info
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Status" class="tab"><a   href="/portlets/cap/capStatusView.do?mode=view&module=Building" target="" class="utility-item-content">Status
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Structures" class="tab"><a   href="/portlets/aaproxy/AAProxy.do?mode=iframe&FNTNAME=CAP_STRUCTURE&module=Building" target="" class="utility-item-content">Structures
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="StructuresEstablishments" class="tab"><a   href="/portlets/cap/structureestablishment.do?mode=listStructEstablish&module=Building" target="" class="utility-item-content">Structures & Establishments
+
+                      	<span id="CountID360">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="CapTabSummary" class="tab"><a   href="/portlets/cap/capsummary/CapTabSummary.do?mode=tabSummary&isRedirect=false&module=Building" target="" class="utility-item-content">Summary
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="TrustAccounts" class="tab"><a   href="/portlets/trustaccount/capTrustAccountsList.do?value(mode)=list&module=Building" target="" class="utility-item-content">Trust Accounts
+
+                      	<span id="CountID3">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="FeeValuation" class="tab"><a   href="/portlets/feevaluation/feeValuationList.do?mode=list&module=Building" target="" class="utility-item-content">Valuation Calc
+
+                      	<span id="CountID152">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Workflow" class="tabSelected"><a   href="/portlets/workflow/workflowStatusList.do?module=Building" target="" class="utility-item-content">Workflow
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="History" class="tab"><a   href="/portlets/workflow/workflowHistoryList.do?module=Building" target="" class="utility-item-content">Workflow History
+
+                      	<span id="CountID4">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="WorkOrderTask" class="tab"><a   href="/portlets/ams/workordertask/workOrderTaskList.do?value(mode)=list&module=Building" target="" class="utility-item-content">Work Order Task
+
+                      	<span id="CountID303">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="StatusHistory" class="tab"><a   href="/portlets/cap/capStatusHistory.do?mode=list&clearForm=clearForm&module=Building" target="" class="utility-item-content">Application History
+
+                      	<span id="CountID134">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="AssessFeeHistory" class="tab"><a   href="/portlets/fee/assessFeeHistory.do?mode=list&module=Building" target="" class="utility-item-content">Assess Fee History
+
+                      	<span id="CountID133">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="WorkOrderAsset" class="tab"><a   href="/portlets/ams/workorder/workOrderAssetList.do?mode=list&module=Building" target="" class="utility-item-content">Assets
+
+                      	<span id="CountID16">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Costing" class="tab"><a   href="/portlets/ams/workorder/costingList.do?value(mode)=list&module=Building" target="" class="utility-item-content">Assignments and Costs
+
+                      	<span id="CountID15">(..)</span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                        <li role="presentation" id="Calendar" class="tab"><a   href="/portlets/cap/capCalendar.do?mode=monthly&module=Building" target="" class="utility-item-content">Calendar
+
+                      	<span id="CountID"></span></a>
+                        <div class="white-triangle">
+                        </div>
+                        </li>
+                        
+                    </ul>
+
+        
+        <!-- for communication with Automation New UX -- dbalmer@accela.com -->
+        <script language="JavaScript" src="/portlets/framework/includes/javascript/portletInterface.js"></script>
+
+
+        <script language="JavaScript">
+
+        function callServer(xmlParam)
+        {
+        	var xmlHttp = createXMLHttpRequest();
+	        if (!xmlHttp)
+	        {
+	      	  alert('TabBar: Cannot create an AJAX XMLHTTP instance');
+	        }
+	        var url = "https://aa-pt6245.dev.accela.com:5443/portlets/cap/tabRecordCount.do?module=Building&ID1=17BLD&ID2=00000&ID3=00100" + "&xmlin=" + xmlParam;
+	        xmlHttp.open("GET", url, true);
+	        xmlHttp.onreadystatechange = callback;
+	        xmlHttp.setRequestHeader("Content-Type", "txt/xml");
+	        xmlHttp.send();
+	        callback();
+	        return true;
+
+	        function callback()
+	        {
+		        if(xmlHttp.readyState == 4)
+		        {
+			        if (xmlHttp.status == 200
+			        && xmlHttp.responseXML != null
+			        && xmlHttp.responseXML.documentElement != null)
+			        {
+			        updateCount(xmlHttp.responseXML.documentElement);
+			        }
+		        }
+	        }
+        }
+
+        function updateCount(rootElement)
+        {
+	        var itemElements = rootElement.getElementsByTagName('count');
+	        var itemLength = itemElements.length;
+
+	        for (var i = 0; i < itemLength; i++)
+	        {
+		        itemSubElements = itemElements[i].getElementsByTagName('countID');
+		        var countID = itemSubElements[0].firstChild.data;
+		
+		        itemSubElements = itemElements[i].getElementsByTagName('recordCount');
+		        var recordCount = itemSubElements[0].firstChild.data;
+		        updateTabBar(countID, recordCount);
+	        }
+        }
+
+        function updateTabBar(countID, recordCount)
+        {
+	        var itemName = "CountID" + countID;
+	        var itemElement = document.getElementById(itemName);
+	        if(itemElement)
+	        {
+		        var tagName = itemElement.tagName;
+		        if(tagName == "SPAN")
+		        {
+		        var label = "(" + recordCount + ")";
+		        itemElement.innerHTML = label;
+		        //scrollBarIssue.autoAdjustOuterContainer(); // CAGAMMA-805 - causing performance issue
+		        }
+        	}
+        }
+
+        function scrollIntoViewIfOutOfView(el) {
+          var topOfPage = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+          var heightOfPage = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+          var elY = 0;
+          var elH = 0;
+          if (document.layers) { // NS4
+            elY = el.y;
+            elH = el.height;
+          }
+          else {
+            for(var p=el; p&&p.tagName!='BODY'; p=p.offsetParent){
+              elY += p.offsetTop;
+            }
+            elH = el.offsetHeight;
+          }
+          if ((topOfPage + heightOfPage) < (elY + elH)) {
+            el.scrollIntoView(true);
+          }
+          else if (elY < topOfPage) {
+            el.scrollIntoView(true);
+          }
+        }
+
+        window.onload = function()
+        {
+      	
+       			callServer("<root><countID>5</countID><countID>6</countID><countID>2</countID><countID>134</countID><countID>133</countID><countID>16</countID><countID>15</countID><countID>23</countID><countID>415</countID><countID>17</countID><countID>397</countID><countID>456</countID><countID>1</countID><countID>378</countID><countID>21</countID><countID>226</countID><countID>372</countID><countID>24</countID><countID>379</countID><countID>10</countID><countID>8</countID><countID>19</countID><countID>373</countID><countID>14</countID><countID>12</countID><countID>20</countID><countID>13</countID><countID>371</countID><countID>27</countID><countID>360</countID><countID>3</countID><countID>152</countID><countID>303</countID><countID>4</countID></root>");
+        
+    		    callServer("<root><countID>18</countID></root>");
+        
+        	doPageInit();
+
+             //scroll the currently selected item into view
+            var selectedMenuItem = document.querySelector('.tabSelected');
+            if(selectedMenuItem) {
+                setTimeout(function() {
+                    scrollIntoViewIfOutOfView(selectedMenuItem);
+                }, 100);
+            }
+        }
+
+        // indexes track the position of the tabs
+        var iTabMove = 20;
+        var iTabMoveRate = 5;
+        var oMoveTimer;
+
+        //add window load resize handle, make the tab containter when resize window.
+       // Ac360.attachEvent(window,"onresize", tabInitial);
+
+        // size the container the screen resolution
+        function tabInitial()
+        {
+	        var oContainer =  document.getElementById("container");
+	        var oTabsTable = document.getElementById("dTabsTable");
+	        var oRightArrow = document.getElementById("moveRightArrow");
+	        var menuBar = document.getElementById("bar1");
+	        var leftBar = document.getElementById("leftBar");
+	        var rightBar = document.getElementById("rightbar")
+	        var widthMenuBar = 0;
+	        if(menuBar)
+	        {
+	      	  widthMenuBar = menuBar.offsetWidth;
+	        }
+	
+	    	var tabWidth = 0;
+			var displayBody = document.getElementById("displayBody");
+			if(displayBody.offsetWidth < document.body.clientWidth)
+			{
+				tabWidth = document.body.clientWidth - leftBar.offsetWidth -rightBar.offsetWidth - widthMenuBar - tabDropMenu.offsetWidth;
+			}
+			else
+			{
+				tabWidth = displayBody.offsetWidth - leftBar.offsetWidth -rightBar.offsetWidth - widthMenuBar - tabDropMenu.offsetWidth;
+			}
+			oContainer.style.width = tabWidth + "px";
+			oRightArrow.style.visibility = "visible";
+        }
+
+        function doStartMoveRightI18N()
+        {
+	        var oTabsTable = document.getElementById("dTabsTable");
+	        var oTabs = document.getElementById("dTabs");
+	        var oRightArrow = document.getElementById("moveRightArrow");
+	        var oLeftArrow = document.getElementById("moveLeftArrow");
+	        if(parseInt(oTabs.style.left) > (oTabsTable.clientWidth -510))
+	        {
+		        oRightArrow.style.visibility = "hidden";
+		        return;
+	        }
+	        oTabs.style.left = parseInt(oTabs.style.left) +iTabMove;
+	        oTabs.style.right = parseInt(oTabs.style.right) - iTabMove;
+	        clearTimeout(oMoveTimer);
+	        oMoveTimer = setTimeout("doStartMoveRightI18N()", iTabMoveRate);
+	        oLeftArrow.style.visibility = "visible";
+        }
+
+        function doStopMoveRight()
+        {
+        	clearTimeout(oMoveTimer);
+        }
+
+        function doStartMoveLeftI18N()
+        {
+	        var oTabs = document.getElementById("dTabs");
+	        var oRightArrow = document.getElementById("moveRightArrow");
+	        var oLeftArrow = document.getElementById("moveLeftArrow");
+	
+	        if(parseInt(oTabs.style.right) >= 0)
+	        {
+		        oLeftArrow.style.visibility = "hidden";
+		        return;
+	        }
+	
+	        oRightArrow.style.visibility = "visible";
+		oTabs.style.left = parseInt(oTabs.style.left) -iTabMove + 'px';
+		oTabs.style.right = parseInt(oTabs.style.right) + iTabMove + 'px';
+	        clearTimeout(oMoveTimer);
+	        oMoveTimer = setTimeout("doStartMoveLeftI18N()", iTabMoveRate);
+        }
+
+        function doStartMoveRight()
+        {
+	        var oTabsTable = document.getElementById("dTabsTable");
+	        var oTabs = document.getElementById("dTabs");
+	        var oRightArrow = document.getElementById("moveRightArrow");
+	        var oLeftArrow = document.getElementById("moveLeftArrow");
+	
+	        if(parseInt(oTabs.style.right) > (oTabsTable.clientWidth -501))
+	        {
+		        oRightArrow.style.visibility = "hidden";
+		        return;
+	        }
+	
+		oTabs.style.left = parseInt(oTabs.style.left) - iTabMove + 'px';
+		oTabs.style.right = parseInt(oTabs.style.right) + iTabMove + 'px';
+	        clearTimeout(oMoveTimer);
+	        oMoveTimer = setTimeout("doStartMoveRight()", iTabMoveRate);
+	        oLeftArrow.style.visibility = "visible";
+        }
+
+        function doStartMoveLeft()
+        {
+	        var oTabs = document.getElementById("dTabs");
+	        var oRightArrow = document.getElementById("moveRightArrow");
+	        var oLeftArrow = document.getElementById("moveLeftArrow");
+	
+	        if(parseInt(oTabs.style.left) >= 0)
+	        {
+		        oLeftArrow.style.visibility = "hidden";
+		        return;
+	        }
+	
+	        oRightArrow.style.visibility = "visible";
+		oTabs.style.left = parseInt(oTabs.style.left) + iTabMove + 'px';
+		oTabs.style.right = parseInt(oTabs.style.right) - iTabMove + 'px';
+	        clearTimeout(oMoveTimer);
+	        oMoveTimer = setTimeout("doStartMoveLeft()", iTabMoveRate);
+        }
+
+        function doStopMoveLeft()
+        {
+       	 clearTimeout(oMoveTimer);
+        }
+
+        //add window load event handle, make the tab init after all elements initializing.
+        Ac360.attachEvent(window,"onload", init);
+
+        /**
+        * Tab bar initial.
+        */
+        function init(e)
+        {
+	        //tabInitial();
+	        //tabItemInit();
+        }
+
+        /**
+        * Tab item initial.
+        * 1. relocate the selected item to visibel position
+        * 2. set current tab name
+        */
+        function tabItemInit()
+        {
+	
+	        //set the current tab
+	        try
+			{
+		        if (parent!=null && (parent.frames != null))
+		        {
+			        if (parent.frames[0] != null)
+			        {
+				        if (parent.frames[0].document.getElementById("value(currentTab)"))
+				        {
+				        	parent.frames[0].document.getElementById("value(currentTab)").value = "Workflow";
+				        }
+			        }
+		        }
+		        
+		        
+	        }catch(err){}
+        }
+        
+        tabItemInit();
+        
+        </script>
+<noscript>
+	Do not support the scripting.
+</noscript>
+
+
+
+
+
+
+
+       			</div>
+            
+
+        	</div>
+        </div>
+        </div>
+	<!--<div id="work-spaces" style="position:relative; left:20%; width:80%; height:680px;overflow:auto;">-->
+		<div class="workspace-utility-menu" id="tr_tarbar_newUI">
+		
+		<table border="0" cellpadding="0" cellspacing="0" width="100%"  ignore="all" id="top-menu-bar">
+		<tr>
+			<td>
+			<table border="0" cellpadding="0" cellspacing="0" width="100%" id="menu_bar_">
+					
+					<tr id="tr_menubar">
+						<td class="portlet-menu2">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="JavaScript">
+
+	var canNotSaveReport = 'Cannot save multiple records to EDMS. Select one record and save.';
+	var messageNoLess = "Please select at least one record."
+	var messageOnlyOne = "Please select only one record."
+	var dispIconText = true;
+	var isGeneralCAP = false;
+</script>
+
+
+		
+
+
+
+
+
+
+
+
+				
+
+
+
+
+
+		<div id ="_$conditionDiv" class="message_note">
+			<div class="note_icon" title="Notice"></div>
+			A notice was added to this record on 2017-05-01.<br/>Condition: Another Notice for Demo : For demo, update comment for testing after cap created Severity: Notice
+			<br/>
+			Total conditions: 1 &nbsp;&nbsp;(Notice: 1)
+			<br/>
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a href="#" onclick="return getConditionList('/portlets/condition/capConditionFrame.do?module=Building');">View notice</a>
+		</div>
+
+
+			
+	
+			
+
+
+
+
+
+
+<input type="hidden" name="generalCAPSearch" value=""  id="generalCAPSearch"/>
+<table border="0" cellspacing="0" cellpadding="0" id="menu_Bar">
+	<tr>
+	
+			
+			
+
+
+
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+				<script type="text/javascript">
+				<!--
+					var containId = "menuContain-" + Util.increase();
+					document.write("<td id='"+containId+"' nowrap>");
+					//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+					function createDropMenu(dropMenuButonObj)
+					{
+						var displayText = "true";
+						dropMenuButonObj.displayText = displayText; 
+						var dropMenuButton = new UI.DropMenuButton(dropMenuButonObj);	
+						
+							var itemId = "drop_customize";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Customize Content";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/genericview/genericviewFormSetup.do?viewID=267&dynamicPaging=false&refreshAfterCustView=false&currentMenuItem=customize&currentURl=%2Fportlets%2Fworkflow%2FworkflowStatusList.do%3Fmodule%3DBuilding&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_csv";
+							var target = "_parent";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "CSV Export";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/workflow/workflowStatusList.do?objectName=taskStatusList&fileName=taskStatusList&ExportFileType=csv&CurrentViewID=267&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_viewedit";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Edit View";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/genericview/genericviewDailyAdminSetup.do?viewID=267&dynamicPaging=false&refreshAfterCustView=false&currentMenuItem=viewEdit&currentPosition=enterDailyAdmin&isList=true&currentURl=%2Fportlets%2Fworkflow%2FworkflowStatusList.do%3Fmodule%3DBuilding&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_asnAndDel";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Delete &amp; Assign Workflow";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/workflow/workflowEdit.do?value(mode)=asnAndDel&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_printportlet";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Print Page";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "javascript:IEprint()";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+						
+						dropMenuButton.setSwapImg(swapImg);
+						dropMenuButton.render();	
+					}
+				
+				document.write("</td>");
+				//-->
+				</script>
+
+		</tr>
+	</table>
+</td>
+
+			<script type="text/javascript">
+				var menuValue = 'Menu';
+				var encodeMenuValue =encodeURI(menuValue);
+				var menu_item_tip = "Menu";
+				var menu_item_img = "/portlets/images/sky_blue/menu/menu_button.gif";
+				var swapImg = "/portlets/images/sky_blue/menu/menu_on.gif";
+				var menu_item_id = "menu1Link";
+				var menu_item_imgId = "menu1";
+				createDropMenu({text: menuValue, tip : menu_item_tip, img : menu_item_img, containId : containId, id : menu_item_id, imgId : menu_item_imgId});						
+			</script>
+	
+	
+
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'New';
+					var img = "/portlets/images/sky_blue/menu/new_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/new_on.gif";
+					var tip = 'New';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="n";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/workflow/workflowAdHocForm.do?value(mode)=New&module=Building";
+					var isImgButton = "false";
+					var id = "new";
+					var imgId = "new";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Supervisor';
+					var img = "/portlets/images/sky_blue/menu/supervisor-normal.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/supervisor-down.gif";
+					var tip = 'Supervisor';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/workflow/workflowSupervisorActivation.do?mode=supervisor&module=Building";
+					var isImgButton = "false";
+					var id = "Supervisor";
+					var imgId = "Supervisor";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Task Activation';
+					var img = "/portlets/images/sky_blue/menu/overwrite-normal.jpg";
+					var swapImg = "/portlets/images/sky_blue/menu/overwrite-down.jpg";
+					var tip = 'Task Activation';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/workflow/workflowSupervisorActivation.do?mode=activation&module=Building";
+					var isImgButton = "false";
+					var id = "Activation";
+					var imgId = "Activation";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Help';
+					var img = "/portlets/images/sky_blue/menu/help_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/help_on.gif";
+					var tip = 'Help';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="z";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "javascript:ShowI18NHelp(2075)";
+					var isImgButton = "false";
+					var id = "Help";
+					var imgId = "Help";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+
+
+	
+	
+	
+	
+	
+	
+		
+	
+
+	
+	
+</tr>
+
+</table>
+	
+
+<input name="objectName" id="objectName" type="hidden" value="taskStatusList">
+<input name="CheckBoxName" type="hidden" value="" id="CheckBoxName">
+<input name="MaxNumber" type="hidden" value="" id="MaxNumber">
+<input name="ExportFileType" type="hidden" value="print" id="ExportFileType">
+<input name="CurrentViewID" type="hidden" value="267" id="CurrentViewID">
+<input name="sessionIdFromWindow" type="hidden" value="vZkludqgj8ZjGM2oojONEkOJ" id="sessionIdFromWindow">
+
+<input name="listID" type="hidden" value="" id="listID">
+<input name="printType" type="hidden" value="" id="printType">
+<input name="checkBoxValue" type="hidden" value="" id="checkBoxValue"><iframe id="edms" tabindex="-1" src="/portlets/framework/includes/error/blank.jsp"  frameborder="0" width="0" height="0" marginheight="0" marginwidth="0" title="menu">&nbsp;</iframe></td>
+					</tr>
+					
+				</table>
+			</td>
+   		</tr>
+		
+		<tr>
+			<td>
+			<div id="_$divContent" style="width:100%;xxx-padding-left: 10px;" ignore="self">						
+			<div id="_$mainContent" class="tab_bd">
+            <table id="content_main_table" border="0" cellpadding="0" cellspacing="0" width="100%">
+               	
+		        <tr id="_error_msg_tr">
+		            <td nowrap="nowrap">
+		            	<div tabindex="0" id="err_msg">
+			                
+			            </div>
+						<div tabindex="0" id="msg">
+			                
+			            </div>
+		           </td>
+		        </tr>
+				<tr>
+					<td style="xxx-padding-left: 10px;">
+							
+					<a name="maincontent" id="maincontent" tabindex="-1"></a>
+					<table id="displayBody" border="0" cellpadding="0" cellspacing="0" width="100%">
+						<tr>
+							<td>
+								
+
+
+ 
+
+
+
+
+
+
+
+
+
+<table border='0' width="100%" class="workflow-odlui" >
+	<tr>
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+		<input type='hidden' name="refreshUrlForCapCondition" value='' id="refreshUrlForCapCondition">
+		<td id="treeTD" class="workflow-frame-td" VALIGN="top" width="300px">
+			<table border="0" width="300px" cellpadding="0">
+				<tr>
+					<td>
+					   	<iframe  id="workflowTaskTreeFrame" name="workflowTaskTreeFrame" src="https://aa-pt6245.dev.accela.com:5443/portlets/workflow/workflowTaskList.do?&module=Building&mode=list" frameborder="0" scrolling="yes" title="Record+WorkFlow" height="100%" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/workflow/workflowTaskList.do?&module=Building&mode=list'>View the content of this inline frame</a> within your browser.</iframe>
+					   	<input type="hidden" id="stepNumber" value=""></td>
+				</tr>
+			</table>
+		</td>
+
+
+
+<script language="JavaScript">
+ 
+</script>
+
+		<td id="rightPart" VALIGN="top" style="padding:3px 0 0 0">
+		<input type="hidden" name="isFormResized" id="isFormResized" value="true"/>
+		<div id="err_msg_rt"></div>
+		
+
+		<TABLE align="center" border="0" cellPadding="2" cellSpacing="2">	
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		</tbody>
+	      </table>
+
+
+	<script type="text/javascript">
+		tableCorner.addTableListen('AccelaMainTable');
+	</script>
+
+
+	<div id="listContainer">
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%"  id="AccelaMainTable" class="AccelaMainTable" summary="Workflow Task Status List">
+    
+
+
+
+
+
+<tr width="600">
+
+<th class="portlet-section-subheader AlignL" width="300" valign="top" nowrap>
+
+<a  id="" href="/portlets/workflow/workflowStatusList.do?page=1&column=taskDescription&module=Building" target="_self">Task</a>
+
+
+
+
+
+ 
+</th>
+
+<th class="portlet-section-subheader AlignL" width="100" valign="top" nowrap>
+
+<a   href="/portlets/workflow/workflowStatusList.do?page=1&column=disposition&module=Building" target="_self">Status</a>
+
+
+
+
+
+ 
+</th>
+
+<th class="portlet-section-subheader AlignL" width="80" valign="top" nowrap>
+
+<a   href="/portlets/workflow/workflowStatusList.do?page=1&column=statusDate&module=Building" target="_self">Status Date</a>
+
+
+
+
+
+ 
+</th>
+
+<th class="portlet-section-subheader AlignL" width="98" valign="top" nowrap>
+
+<a   href="/portlets/workflow/workflowStatusList.do?page=1&column=sysUser.fullName&module=Building" target="_self">Action By</a>
+
+
+
+
+
+ 
+</th>
+
+<td class="portlet-section-subheader AlignL" width="100%" valign="top" nowrap>&nbsp;</td>
+</tr>
+
+
+			
+
+
+
+			
+			
+			
+				
+				<tr class="singleRow" id="row1" onclick="highlight('row1')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Submit Application
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="doubleRow" id="row2" onclick="highlight('row2')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Structure Plan Review
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="singleRow" id="row3" onclick="highlight('row3')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Plan Review
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="doubleRow" id="row4" onclick="highlight('row4')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Fire Code Review
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="singleRow" id="row5" onclick="highlight('row5')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Transportation
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="doubleRow" id="row6" onclick="highlight('row6')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Refuse Collection
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="singleRow" id="row7" onclick="highlight('row7')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Zoning
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="doubleRow" id="row8" onclick="highlight('row8')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Recreation and Parks
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="singleRow" id="row9" onclick="highlight('row9')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Sewers and Drains
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="doubleRow" id="row10" onclick="highlight('row10')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Electrical Review
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="singleRow" id="row11" onclick="highlight('row11')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Permit Pre-Issue
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="doubleRow" id="row12" onclick="highlight('row12')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Issue Permit
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="singleRow" id="row13" onclick="highlight('row13')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Inspections
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="doubleRow" id="row14" onclick="highlight('row14')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Certificate of Occupancy
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			
+			
+			
+			
+				
+				<tr class="singleRow" id="row15" onclick="highlight('row15')">
+					<td class="AlignL portlet-section-body" nowrap>
+						Closed
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+												
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td class="AlignL portlet-section-body" nowrap>
+						
+						&nbsp;
+					</td>
+				
+				
+				<td>&nbsp;</td></tr>
+			</table><table id="_$nextTable"><input type="hidden" name="pageSizeR" value="9999"/>
+		</TABLE>
+				
+	</td>
+	</tr>
+</table>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+
+	try
+	{	
+		//document.getElementById("err_msg_rt").innerHTML=document.getElementById("err_msg").innerHTML;
+		setMsgDivHtml("err_msg_rt", document.getElementById("err_msg").innerHTML);
+		document.getElementById("err_msg").innerHTML="";
+	}
+	catch(err)
+	{
+	}	
+//-->
+</SCRIPT>
+<div id="workflowchart-parent">
+	<div class="modal fade" role="dialog" id="workflowchartModal" tabindex="-1" aria-labelledby="myModalLabel" style="display:none">
+	   <div class="modal-dialog" role="document">
+		  <div class="modal-content">
+			 <div class="modal-header">
+				<button type="button" id="chartmodalclose" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button> 
+				<h4 class="modal-title" id="myModalLabel">Workflow Design</h4>
+			 </div>
+			 <div class="modal-body">            
+			 </div>
+		  </div>
+	   </div>
+	</div>
+</div>
+<script src="/portlets/spa/js/i18n-config.js"></script>
+<script src="/portlets/spa/node_modules/handlebars/dist/handlebars.min.js"></script>
+<script src="/portlets/spa/js/common.js"></script>
+<script src="/portlets/spa/js/workflow/main.js"></script>
+
+							</td>
+						</tr>
+					</table>
+				
+					</td>
+				</tr>
+			</table>
+					
+			</div>
+			</div>
+			</td>
+		</tr>
+		
+		</table>
+		</div>
+	</div>
+</form>	
+<script type="text/javascript">
+<!--
+
+function returnListView()
+{
+	parent.showList();
+}
+
+function showPrevious()
+{	
+	var numb = "";
+	
+	var listIFrameName = null;
+	var listIFrame = null;
+	var aListLink = null;
+
+	if(parent.document.frames['contactList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['contactList'];
+		listIFrameName = 'contactList';
+		aListLink = 'ContactListLink';
+	}
+	else if(parent.document.frames['activityList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['activityList'];
+		listIFrameName = 'activityList';
+		aListLink = 'ActivityListLink';
+	}
+	else if(parent.document.frames['trustAccountList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['trustAccountList'];
+		listIFrameName = 'trustAccountList';
+		aListLink = 'TrustAccountListLink';
+	}
+	else if(parent.document.frames['ownerList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['ownerList'];
+		listIFrameName = 'ownerList';
+		aListLink = 'RefOwnerListLink';
+	}
+	else if(parent.document.frames['refParcelList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['refParcelList'];
+		listIFrameName = 'refParcelList';
+		aListLink = 'RefParcelListLink';
+	}
+	else if(parent.document.frames['addressList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['addressList'];
+		listIFrameName = 'addressList';
+		aListLink = 'RefAddressListLink';
+	}
+	else if(parent.document.frames['feeSetList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['feeSetList'];
+		listIFrameName = 'feeSetList';
+		aListLink = 'feeSetListLink';
+	}
+	else if(parent.document.frames['professionalList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['professionalList'];
+		listIFrameName = 'professionalList';
+		aListLink = 'professionalListLink';
+	}
+	else
+	{
+    // modified by dbalmer@accela.com
+    listIFrame = getDocumentIFrameById(parent.document, 'capList');
+		listIFrameName = 'capList';
+	}
+
+	
+	var accelaMTable = listIFrame.document.getElementById('AccelaMainTable');
+	if(accelaMTable)
+	{
+		var aList = listIFrame.document.getElementsByName(aListLink);
+		var previous = null;
+		for(var i = 0; i < aList.length ; i++)
+		{
+			if(aList[i].id == numb)
+			{
+				if(aList[i-1])
+				{
+					previous = aList[i-1].id;
+					break;
+				}
+				else
+				{
+					previous = null;
+				}
+			}
+		}
+	
+		if(previous == null)
+		{
+			var previouspage = listIFrame.document.getElementById('PreviousPage');
+			if(previouspage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var aList2 = listIFrame.document.getElementsByName(aListLink);
+					if(aList2)
+					{
+						aList2[aList2.length-1].click();
+					}
+				};
+				previouspage.click();
+			}
+		}
+		else
+		{
+			var previousRecord = listIFrame.document.getElementById(previous);
+			previousRecord.click();
+		}
+	}
+	else
+	{
+		var currentRows = listIFrame.document.getElementsByName(numb);
+
+		var currentRowId = currentRows[0].id;
+		var index = currentRowId.substr(numb.length+1);
+		var previousIndex = Number(index);
+		if(previousIndex == 0)
+		{
+			var previouspage = listIFrame.document.getElementById('PreviousPage');
+			if(previouspage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var accelaTable = listIFrame.document.getElementsByClassName('AccelaMainTable');
+					var count = null;
+					if(accelaTable)
+					{
+						var accelaTBody = accelaTable[0].getElementsByTagName('tbody');
+						if(accelaTBody)
+						{
+							var singleRow = accelaTBody[0].getElementsByClassName('singleRow');
+							var doubleRow = accelaTBody[0].getElementsByClassName('doubleRow');
+							if(doubleRow && doubleRow.length > 0)
+							{
+								count = singleRow.length + doubleRow.length;
+							}
+							else
+							{
+								if(singleRow.length)
+								{
+									count = singleRow.length;
+								}
+							}
+						}
+					}
+					if(count != null)
+					{
+						listIFrame.document.getElementById('table-row-'+ count).getElementsByTagName('a')[0].click();
+					}
+				};
+				previouspage.click();
+			}
+		}
+		else
+		{
+			var aLink = listIFrame.document.getElementById('table-row-'+ previousIndex).getElementsByTagName('a');
+			aLink[0].click();
+		}
+	}
+}
+
+function showNext()
+{
+	var numb = "";
+	
+	var listIFrameName = null;
+	var listIFrame = null;
+	var aListLink = null;
+
+	if(parent.document.frames['contactList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['contactList'];
+		listIFrameName = 'contactList';
+		aListLink = 'ContactListLink';
+	}
+	else if(parent.document.frames['activityList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['activityList'];
+		listIFrameName = 'activityList';
+		aListLink = 'ActivityListLink';
+	}
+	else if(parent.document.frames['trustAccountList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['trustAccountList'];
+		listIFrameName = 'trustAccountList';
+		aListLink = 'TrustAccountListLink';
+	}
+	else if(parent.document.frames['ownerList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['ownerList'];
+		listIFrameName = 'ownerList';
+		aListLink = 'RefOwnerListLink';
+	}
+	else if(parent.document.frames['refParcelList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['refParcelList'];
+		listIFrameName = 'refParcelList';
+		aListLink = 'RefParcelListLink';
+	}
+	else if(parent.document.frames['addressList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['addressList'];
+		listIFrameName = 'addressList';
+		aListLink = 'RefAddressListLink';
+	}
+	else if(parent.document.frames['feeSetList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['feeSetList'];
+		listIFrameName = 'feeSetList';
+		aListLink = 'feeSetListLink';
+	}
+	else
+	{
+		listIFrame = parent.document.frames['capList'];
+		listIFrameName = 'capList';
+	}
+
+	
+	var accelaMTable = listIFrame.document.getElementById('AccelaMainTable');
+
+	if(accelaMTable)
+	{
+		var aList = listIFrame.document.getElementsByName(aListLink);
+		var hasNext = true;
+		var next = null;
+		for(var i = 0; i < aList.length ; i++)
+		{
+			if(aList[i].id == numb)
+			{
+				if(aList[i+1])
+				{
+					next = aList[i+1].id;
+					break;
+				}
+				else
+				{
+					next = null;
+				}
+			}
+		}
+	
+		if(next == null)
+		{
+			var nextpage = listIFrame.document.getElementById('NextPage');
+			if(nextpage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var aList2 = listIFrame.document.getElementsByName(aListLink);
+					if(aList2)
+					{
+						aList2[0].click();
+					}
+				};
+				nextpage.click();
+			}
+		}
+		else
+		{
+			var nextRecord = listIFrame.document.getElementById(next);
+			nextRecord.click();
+		}
+	}
+	else
+	{
+		var currentRows = listIFrame.document.getElementsByName(numb);
+
+		var currentRowId = currentRows[0].id;
+		var index = currentRowId.substr(numb.length+1);
+		var nextIndex = Number(index)+2;
+		
+		var accelaTable = listIFrame.document.getElementsByClassName('AccelaMainTable');
+		var count = null;
+		if(accelaTable)
+		{
+			var accelaTBody = accelaTable[0].getElementsByTagName('tbody');
+			if(accelaTBody)
+			{
+				var singleRow = accelaTBody[0].getElementsByClassName('singleRow');
+				var doubleRow = accelaTBody[0].getElementsByClassName('doubleRow');
+				if(doubleRow && doubleRow.length > 0)
+				{
+					count = singleRow.length + doubleRow.length;
+				}
+				else
+				{
+					if(singleRow.length)
+					{
+						count = singleRow.length;
+					}
+				}
+			}
+		}
+		
+		
+		if(nextIndex <= count)
+		{
+			var aLink = listIFrame.document.getElementById('table-row-'+ nextIndex).getElementsByTagName('a');
+			aLink[0].click();
+		}
+		else
+		{
+			var nextPage = listIFrame.document.getElementById('NextPage');
+			if(nextPage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					listIFrame.document.getElementById('table-row-1').getElementsByTagName('a')[0].click();
+				};
+				nextPage.click();
+			}
+		}
+	}
+}
+//-->
+</script>
+
+<script language="javascript">
+<!--
+
+tableCorner.addTabListen("_$mainContent");
+	function appendParamToURL(frm, url)
+	{
+		var tmp = url;
+		try
+		{
+			if (frm.document.forms[0].isGeneralCAP
+				&& frm.document.forms[0].isGeneralCAP.value == 'Y')
+			{
+				if (tmp.indexOf("isGeneralCAP") == -1)
+				{
+					tmp += tmp.indexOf("?") == -1 ? "?" : "&";
+					tmp += "isGeneralCAP=Y";
+				}
+			}
+		}
+		catch(e)
+		{
+		}
+		return tmp;
+	}
+	
+try{
+
+	
+	var myname=self.name;
+	var isBlank=true;
+	var isBlankObj=getParentObject("isBlankThird");
+	if(isBlankObj !=null && isBlankObj.value=="No")
+	{
+		isBlank=false;
+	}		
+	
+	if(myname == null || (myname!="mydataForm" && myname!="myassetForm" && myname!="assetInspectionFormDetail"&& myname!="assetCAFormDetail" 
+		&& myname!="professionalDataForm" && myname != "addressdataForm" && myname != "refParceldataForm"))
+	{
+		if(isBlank && parent!=null && (parent.frames != null))
+		{
+			var blankPageUrlStr = "/portlets/framework/includes/error/blank.jsp";
+			if (parent.frames["mydataForm"] != null && myname != "myassetdataForm")
+			{
+				d=parent.frames["mydataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["myassetForm"] != null && myname != "myassetdataForm")
+			{
+				d=parent.frames["myassetForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["assetInspectionFormDetail"] != null)
+			{
+				d=parent.frames["assetInspectionFormDetail"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["assetCAFormDetail"] != null)
+			{
+				d=parent.frames["assetCAFormDetail"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["professionaldataForm"] != null)
+			{
+				d=parent.frames["professionaldataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["addressdataForm"] != null)
+			{
+				d=parent.frames["addressdataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["refParceldataForm"] != null)
+			{
+				d=parent.frames["refParceldataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+		}
+		else
+		{
+			if (isBlankObj !=null)
+			{
+				isBlankObj.value="Yes";
+			}
+		}	
+	}
+	else if(myname != null && (myname=="mydataForm" || myname=="myassetForm" || myname=="assetInspectionFormDetail" || myname=="assetCAFormDetail"))
+	{
+		if (parent.frames["blank"] != null)
+			{
+				d=parent.frames["blank"];
+				d.location.href="/portlets/framework/includes/error/blank.jsp";				
+			}
+	}
+	//end-Lytton Cheng 2005-07-22
+	}catch(err){
+	}
+	//-->
+</script>	
+
+<script language="javascript">
+<!--
+adjustListContainer();
+
+
+Ac360.attachEvent(document,'onreadystatechange',fnStartInit);
+
+var pageFocusd = false;
+function fnStartInit()
+{	
+	try{
+		if (document.readyState=="complete")
+		{
+			var fromPortal = isFromJetspeed();
+
+			if(!pageFocusd && (!fromPortal || ((typeof(top.finishLoading) == "undefined") || top.finishLoading)) || window.name.indexOf("ifr_popup") > -1)
+			{
+				focusInputableElement(document);
+				pageFocusd = true;
+			}
+			if(top.finishLoading && !top.setGlobalFocus)
+			{
+				top.jetspeedOnLoad();
+			}
+		}
+	}catch(E){
+		focusInputableElement(document);
+	}
+}
+
+	//-->	
+</script>
+
+		<script language="JavaScript1.2" defer>
+
+			<!--
+			try
+			{
+				if(onAfterLoad!=null && onAfterLoad!="undefined")
+				{
+					onAfterLoad();
+				}
+			}catch(E){}
+			
+
+
+     
+			//-->
+			
+			
+			
+		</script>		
+           
+	</body>
+	<noscript>
+		Do not support the scripting.
+	</noscript>
+	<!--  %@ include file="timeout.jsp" %-->
+</html>
+	
+	<script type="text/javascript" src="/portlets/framework/includes/javascript/layoutPublic.js"></script>
+	<script language="JavaScript">
+	<!--
+	if(doNavigation)
+	{
+		window.setTimeout(doNavigation,350);
+		if(isClear)
+		{
+			clearNavigation();
+			frameElement.scrollIntoView(true);
+		}		
+	}
+
+	try
+	{
+		//execute script from create new for ajax  
+		if (parent.isAjaxRefreshNavScript && typeof(parent.navScript) != 'undefined' && parent.navScript != null && parent.navScript != "" )
+		{
+			eval(parent.navScript);
+			parent.isAjaxRefreshNavScript = false;
+		}
+	}
+	catch(e){}
+
+
+//------------------reset readonly style begin----------------------------
+	readOnlyObj.resetReadOnly();
+//------------------reset readonly style end------------------------------
+//------------------reset session time out--------------------------------
+if (top && top.setTimeoutTimer)
+{
+	top.sessionTimeOutWarnObj.renewSession();
+	top.setTimeoutTimer();
+}
+
+//------------------reset session time out--------------------------------
+//------------------reset bellow height begin-----------------------------
+//tabHandle.resizeTab();
+//scrollBarIssue.init();
+//------------------reset bellow height end--------------------------------
+	//-->
+	</script>
+
+
+
+
+
+
+

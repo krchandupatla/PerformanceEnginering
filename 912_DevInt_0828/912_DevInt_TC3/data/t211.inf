@@ -1,0 +1,11 @@
+[t211]
+FileName1=t211_selectDate.gif
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/selectDate.gif
+Total=1
+ContentType=image/gif
+SnapshotXmlFile=snapshot_211.xml
+RequestHeaderFile=t211_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t211_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

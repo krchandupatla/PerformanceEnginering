@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Cache-Control: private
+Expires: Thu, 01 Jan 1970 00:00:00 UTC
+X-XSS-Protection: 0
+Set-Cookie: LASTEST_REQUEST_TIME=1503945105973; Domain=dev.accela.com; Path=/; Secure,LATEST_WEB_SERVER=10.1.0.6; Domain=dev.accela.com; Path=/; Secure,LATEST_SESSION_ID=q0DRFTb9tIe7JGj-xD+PWAnC; Domain=dev.accela.com; Path=/; Secure
+Accept-Ranges: bytes
+ETag: W/"1674-1498747136000"
+Last-Modified: Thu, 29 Jun 2017 14:38:56 GMT
+Content-Type: text/javascript
+Content-Length: 1674
+Date: Mon, 28 Aug 2017 18:31:45 GMT
+Connection: close
+

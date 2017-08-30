@@ -1,0 +1,105 @@
+(function() {
+	'use strict';
+
+  angular.module('accela.automation')
+    .directive('aaAgencySwitch', function() {
+
+      /**
+       * @ngInject
+       */
+      function controller($rootScope, $scope, $timeout, AgencyService, CONFIG, AGENCY_SWITCH_CONFIG) {
+
+        // PRIVATE data
+
+        var timeoutCount = 0;
+
+        // PUBLIC data
+
+        $scope.model = angular.copy(AGENCY_SWITCH_CONFIG);
+        $scope.model.agency = CONFIG.SessionAgency;
+
+        // PRIVATE methods
+
+        function isPortletsRegistered() {
+          var cookies = document.cookie;
+          if (cookies)
+          {
+            cookies = cookies.split(';');
+            for (var i=0; i<cookies.length; i++)
+            {
+              var cookie = cookies[i];
+              var index = cookie.indexOf('=');
+              var cookieName = cookie.substring(0, index);	//Get the 1st item to avoid there exists "=" in URL
+              var cookieValue = cookie.substring(index+1);
+              if (cookieName.toUpperCase().indexOf('ACSWITCHAGENCY') !== -1)
+              {
+                var urls = cookieValue.split('!#!');
+                for (var j=0; j<urls.length; j++)
+                {
+                  var url = urls[j];
+                  index = url.indexOf('://');
+                  index = url.indexOf('/', index + 3);
+                  if (url.substring(index, index + 9) === '/portlets')
+                  {
+                    return true;
+                  }
+                }
+              }
+            }
+          }
+          return false;
+        }
+
+        function switchAgency() {
+          var statusCheck = function() {
+            AgencyService.statusCheck($scope.model.agency).then(statusCheckDone);
+          };
+
+          var statusCheckDone = function(response) {
+            var params = [];
+
+            if (response.data.resultCode.toUpperCase() === 'OK')  {
+              params.push('module=' + $scope.model.module);
+              params.push('servProvCode=' + $scope.model.agency);
+              params.push('successUrl= ' + $scope.model.successUrl);
+              params.push('failureUrl= ' + $scope.model.failureUrl);
+              window.location.href = $scope.model.ssoUrl + '/security/switchOrganization.do?' + params.join('&');
+            } else {
+              $rootScope.$broadcast('dashboard.addAlert', {
+                type: 'error',
+                msg: response.data.resultMsg
+              });
+            }
+          };
+
+          if (isPortletsRegistered()) {
+            statusCheck($scope.model.agency);
+          } else {
+            /*
+             * Period check whether the portlets have registered its agency switch url in cookie ACSwitchAgency.
+             * If registered, do the switch; else check again until a specified large count.
+             * The check interval is 0.5s and the max count is 600 which means 5 minutes.
+             */
+            if (++timeoutCount < 600) {
+              $timeout(statusCheck, 500);
+            }
+          }
+        }
+
+        // EVENT handlers
+
+        $scope.$watch('model.agency', function(newAgency, oldAgency) {
+          if (newAgency !== '' && newAgency !== oldAgency) {
+            switchAgency(newAgency);
+          }
+        });
+      }
+
+      return {
+        restrict : 'E',
+        replace: true,
+        templateUrl : 'views/core/agency-switch-list.html',
+        controller : controller
+      };
+    });
+})();

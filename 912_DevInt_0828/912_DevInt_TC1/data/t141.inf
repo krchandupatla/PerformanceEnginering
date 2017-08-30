@@ -1,0 +1,11 @@
+[t141]
+FileName1=t141_icon-space-pin-dark.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/menubar/icon-space-pin-dark.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_141.xml
+RequestHeaderFile=t141_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t141_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

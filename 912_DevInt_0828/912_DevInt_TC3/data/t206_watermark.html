@@ -1,0 +1,49 @@
+/**
+ * Accela Automation
+ * File: watermark.js
+ * Accela, Inc.
+ * Copyright (C): 2007-2012
+ * 
+ * Description: This javascript implement the functions of watermark.
+ * 
+ * Notes:
+ * $Id: watermark.js 81442 2007-12-12 09:45:44Z ACHIEVO\jack.su $
+ * 
+ * Revision History:
+ * 12/27/2007, Oscar Huang, Initial.
+ */
+document.write("<script src='/portlets/framework/includes/javascript/I18N.js'></script>");
+function __AV360WatermarkAPI()
+{
+	this.version = "1.0";
+	this.instances = 0;
+	this.objects = {};
+}
+
+var AV360WatermarkAPI = new __AV360WatermarkAPI();
+
+var w3c=(document.getElementById)? true:false; 
+var agt=navigator.userAgent.toLowerCase(); 
+var ie = ("ActiveXObject" in window)? true : false;
+var ie5=(w3c && ie)? true : false; 
+var ns6=(w3c && (navigator.appName=="Netscape"))? true: false; 
+var op8=(navigator.userAgent.toLowerCase().indexOf("opera")==-1)? false:true;
+
+function AV360Watermark(value)
+{
+	this.superClass.call(this,value);
+}
+
+//extend common count bound
+Util.extend(AV360Watermark, UI.waterMark.waterMark);
+
+/**
+ * We should invoke this method to refresh the position of all watermark objects when the page layout has been changed.
+ */
+function refreshAllWatermarks()
+{
+
+ }	
+ 
+function onAfterReset(){
+}

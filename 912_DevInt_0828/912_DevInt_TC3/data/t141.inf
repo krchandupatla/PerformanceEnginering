@@ -1,0 +1,11 @@
+[t141]
+FileName1=t141_userSecurityProfile.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/userSecurityProfile.do?mode=getSecurityProfileByModule&items=0008,8488,8143,8400,8145,8144,8478,8213,8477,8487,8132
+Total=1
+ContentType=application/x-json
+SnapshotXmlFile=snapshot_141.xml
+RequestHeaderFile=t141_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t141_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

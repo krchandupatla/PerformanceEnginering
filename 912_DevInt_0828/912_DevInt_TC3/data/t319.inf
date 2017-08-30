@@ -1,0 +1,11 @@
+[t319]
+FileName1=t319_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=null
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_319.xml
+RequestHeaderFile=t319_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t319_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

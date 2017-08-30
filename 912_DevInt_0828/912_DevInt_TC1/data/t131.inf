@@ -1,0 +1,11 @@
+[t131]
+FileName1=t131_today.xml
+URL1=http://cdn.content.prod.cms.msn.com/singletile/summary/alias/experiencebyname/today?market=en-US&source=appxmanifest&tenant=amp&vertical=sports
+Total=1
+ContentType=text/xml
+SnapshotXmlFile=snapshot_131.xml
+RequestHeaderFile=t131_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t131_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

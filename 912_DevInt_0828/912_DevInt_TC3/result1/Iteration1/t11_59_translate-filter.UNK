@@ -1,0 +1,12 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .filter('translate', function () {
+      return function (str) {
+        Accela.translations[str] = str; // to capture requested translations
+        return str;
+      };
+    });
+})();

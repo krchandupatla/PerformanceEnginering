@@ -1,0 +1,11 @@
+[t216]
+FileName1=t216_jquery.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/ext-2.0.2/adapter/jquery/jquery.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_216.xml
+RequestHeaderFile=t216_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t216_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,67 @@
+function inputServProvCode(servProvCode) 
+{
+	var username = document.getElementById("username");
+	var password = document.querySelector("input[name=password]");
+	username.setAttribute("readOnly" , "true");
+	password.setAttribute("readOnly" , "true");
+	username.setAttribute("class" , "readonly");
+	password.setAttribute("class", "readonly");
+	if (servProvCode || servProvCode.trim() != "") 
+	{
+		var xmlhttp;
+		if (window.XMLHttpRequest) 
+		{
+			xmlhttp = new XMLHttpRequest();
+		} 
+		else if (window.ActiveXObject) 
+		{
+			try 
+			{
+				xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+			} 
+			catch (e) 
+			{
+				try 
+				{
+					xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+				} 
+				catch (e1) 
+				{
+					alert("Your browser doesn't support Ajax request.");
+					return;
+				}
+			}
+		}
+
+		xmlhttp.open("GET", "/ssoAdapter/loginAction.do?requestType=checkWebSSOAdapter&servProvCode=" + servProvCode, true);
+		xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		xmlhttp.setRequestHeader("Accept", "text/xml");
+		xmlhttp.onreadystatechange = function() 
+		{
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) 
+			{
+				var data = eval('(' + xmlhttp.responseText + ')');
+				if (data.action == "Keep_Going") 
+				{
+					username.removeAttribute("readOnly");
+					// Fix issue that user name input element's status is still
+					// invalid when you click "Tab" key after you input agency.
+					username.blur();	
+					username.focus();	
+					password.removeAttribute("readOnly");
+					username.removeAttribute("class");
+					password.removeAttribute("class");
+				} 
+				else if (data.action == "redirect") 
+				{
+					top.location = data.actionURL;
+				}
+				else if(data.action == "alter")
+				{
+					alert(data.message);
+				}
+			}
+		}
+		xmlhttp.send();
+	}
+}

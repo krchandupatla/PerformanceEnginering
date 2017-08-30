@@ -1,0 +1,27 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .factory('UserModel', service);
+
+  /**
+   * @description
+   * Provides Angularized data model for dependency injection.
+   * Entities are defined in /js/core/entities
+   *
+   * @ngInject
+   */
+  function service() {
+
+    // PRIVATE data
+
+    var userProfileFactory = Accela.Entity.UserProfile();
+
+    // PUBLIC interface
+
+    return {
+      UserProfile: userProfileFactory
+    };
+  }
+})();

@@ -1,0 +1,20 @@
+/**
+ * Notify Accela.PortletInterface when a tab is loaded or clicked.
+ *
+ * dbalmer@accela.com
+ */
+
+var activeTab, portletInterface, tabs;
+
+// we're in a nested iframe
+if (parent && parent.parent && parent.parent.Accela) {
+    portletInterface = parent.parent.Accela.PortletInterface;
+
+    if (portletInterface) {
+        tabs = document.querySelectorAll('#dTabsTable li a');
+
+        if (tabs) {
+            portletInterface.bindTabClick(tabs);
+        }
+    }
+}

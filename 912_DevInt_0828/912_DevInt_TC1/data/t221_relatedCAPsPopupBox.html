@@ -1,0 +1,266 @@
+/**
+* related CAPs AJAX Popup DIV javaScript, depend jquery javascript framework
+* Accela Automation
+* File: relatedCAPsPopupBox.js
+*
+* Accela, Inc.
+* Copyright (C): 2010-2014
+*
+* Description:
+* related CAPs AJAX Popup DIV javaScript
+*
+*
+*/
+
+function createDiv()
+{
+	css1 = "<link rel=\"stylesheet\" type=\"text/css\" href=\"/portlets/images/sky_blue/styles.css\">";
+	css2 = "<link id=\"themeStyles\"  type=\"text/css\" rel=\"stylesheet\" href=\"/portlets/framework/includes/javascript/dojo1.4.3/dijit/themes/tundra/tundra_rtl.css\">";
+	div1 = "<div id=\"relatedCAPPicker\" onmouseover =\""+window.frameElement.id+".moveOverRelatedCAPDiv()\" style=\"border-color: "
+	+"ThreeDShadow ThreeDShadow ThreeDShadow ThreeDShadow;border:1px solid #0;position:absolute;display:none\">"
+	+"<table cellPadding=\"3\" cellSpacing=\"0\" style=\"background : #ffffff;\"><tr><td align=\"left\" "
+	+"class=\"portlet-section-subheader\"><span id=\"realtedCAPsNumber\"></span></td>"
+	+"<td  class=\"AlignR portlet-section-subheader\"><A href=\"javascript:void(0);\" onclick=\""+window.frameElement.id+".closeRelatedCAPDiv();\">"
+	+"<img src=\"/portlets/images/sky_blue/menu/close_button.gif\" border='0'></A></td></tr><tr>"
+	+"<td class=\"portlet-form-field-label\" colspan=\"2\"><div id=\"relatedRecordsContent\"></div></td></tr></table></div>";
+
+	var oldDialog = parent.document.getElementById("relatedPopup");
+	if(oldDialog)
+	{
+		parent.document.removeChild(oldDialog);
+	}else{
+		var css_el_1 = $(css1)[0];
+		var css_el_2 = $(css2)[0];
+		parent.document.body.appendChild(css_el_1);	
+		parent.document.body.appendChild(css_el_2);	
+	}
+	var newDialog = $("<div id=relatedPopup'></div>")[0];
+	newDialog.innerHTML = div1;
+	parent.document.body.appendChild(newDialog);
+	dialog = parent.document.getElementById("relatedCAPPicker");
+}
+
+var css1, css2,jscode,dialog,content, mousePos;
+var mayHidePopupDiv = true;
+var reqRelatedRecordUrl = "";
+
+
+
+function showRelatedCAPPicker(ajaxResult)
+{
+	var capListframe = parent.document.getElementById("capList");
+	var feeSetframe = parent.document.getElementById("feeSetList"); 
+	if(capListframe && feeSetframe)
+	{
+		return;
+	}
+	dialog = parent.document.getElementById("relatedCAPPicker");
+	if(!dialog)
+	{
+		createDiv();
+	}
+	$(window).unload(function(){closeRelatedCAPDiv();});
+	parent.document.getElementById("relatedRecordsContent").innerHTML = ajaxResult.html;
+	parent.document.getElementById("realtedCAPsNumber").innerHTML = ajaxResult.records;
+	mayHidePopupDiv = true;
+	$(dialog).css('left',getLeftPosition(dialog, mousePos.x));
+	$(dialog).css('top', getTopPosition(mousePos.y));
+	$(content).css('height','');
+	$(content).css('overflowY','');
+	if(200 < $(dialog).height())
+	{
+		$(content).css('height','200px');
+		$(content).css('overflowY','scroll');
+	}
+	$(dialog).show();
+}
+
+var relatedUrl = '';
+var mouseOverFlag = false;
+function showRelatedRecord(url)
+{
+	relatedUrl = url;
+	mousePos = mousePosition(window.event);
+	mouseOverFlag = true;
+	setTimeout('runAjaxForGetRelatedRecords()',1000);
+}
+
+function runAjaxForGetRelatedRecords()
+{
+	if(mouseOverFlag)
+	{
+		ajaxGetRelatedRecords(relatedUrl);
+	}
+}
+
+function ajaxGetRelatedRecords(reqUrl)
+{
+	if(reqUrl != reqRelatedRecordUrl || mayHidePopupDiv == false)
+	{
+		mayHidePopupDiv = true;
+		hideRelateCapDiv();
+	}
+	if (!beShowdPopupDiv(dialog))
+	{
+		reqRelatedRecordUrl = reqUrl;
+		$.ajax({
+		  url: "/portlets/cap/formAjaxUtil.do?mode=doGetRelatedRecords&" + reqUrl,
+		  dataType: 'json',
+		  data: "iframeId=" + window.frameElement.id,
+		  success: function(result, ioArgs)
+		  {	
+		    showRelatedCAPPicker(result);
+		  }
+		});
+	}
+}
+
+function beShowdPopupDiv(dialog)
+{
+	if(dialog && $(dialog).css('display') == 'block')
+	{
+		return true;
+	}
+	return false;
+}	
+function closeRelatedCAPDiv()
+{
+	//For feature 13ACC-00695, avoid showing confirm saving dialog when click the close button after view related record.
+	function removeBeforeUnload(frame)
+	{
+		if(typeof frame.isNeedAttachEvent != "undefined")
+		{
+			frame.isNeedAttachEvent = false;
+			return;
+		}
+		
+		if(frame.frames && frame.frames.length > 0)
+		{
+			
+			for(var i=0; i < frame.frames.length; i++)
+			{
+				removeBeforeUnload(frame.frames[i]);
+			}
+		}
+	}
+	removeBeforeUnload(window.parent);
+	
+	
+	mayHidePopupDiv = true;
+	hideRelateCapDiv();
+}
+function moveOverRelatedCAPDiv()
+{
+	mayHidePopupDiv = false;
+}
+function hideRelatedCAPPicker()
+{
+	setTimeout("hideRelateCapDiv()", 4000);
+	mouseOverFlag = false;
+}
+function hideRelateCapDiv()
+{
+	if (mayHidePopupDiv && beShowdPopupDiv(dialog))
+	{
+		mayHidePopupDiv = true;
+		$(dialog).hide();
+	}
+}
+function loadJS(fileUrl)
+{
+	var oHead = parent.document.getElementsByTagName('HEAD').item(0);
+    var oScript= document.createElement("script");
+    oScript.type = "text/javascript";
+    oScript.src= fileUrl;
+    oHead.appendChild(oScript);
+}
+
+function openPartialCap(url)
+{  
+	var partialCapUrl = "/portlets/cap/CapBySingle.do?mode=editPartialCap" + url;
+	popupPartialCap(partialCapUrl);
+}
+
+function openRefCapTabs(relatedUrl)
+{
+	relatedUrl =  "/portlets/xrefcap/crossReferenceXRefCapList.do?"
+		+"mode=doQuickQueryList&fromCapQuick=Y&isFirstEnter=Y" + relatedUrl;
+	var currentFrameId = window.frameElement.id; 
+	var capFormFrame = getNextIframe(currentFrameId);
+	
+	if(capFormFrame)
+	{
+		capFormFrame.src = relatedUrl;
+	}
+}
+
+function getNextIframe(currentFrameId)
+{
+	var frames = window.parent.frames;
+	var currentEl = false;
+	for(var i=0; i < frames.length; i++)
+	{
+		var iframeId = frames[i].frameElement.id;
+		if(iframeId == currentFrameId)
+		{
+			currentEl = true;
+		if(oldUI != false)
+		{	
+			continue;
+		}
+		}
+		if(currentEl)
+		{
+			if(iframeId == 'pictureIFrame')
+			{
+				continue;
+			}
+			
+			if(iframeId == 'mydataForm' && currentFrameId == "dataForm")
+			{
+				continue;
+			}
+			return frames[i].frameElement;
+		}
+	}
+	return null;
+}
+
+function mousePosition(ev){
+	  if(ev.pageX || ev.pageY){
+	  	return {x:ev.clientX, y:ev.clientY};
+	  }
+	  return {
+		  x:ev.clientX + parent.document.body.scrollLeft - parent.document.body.clientLeft,
+		  y:ev.clientY + parent.document.body.scrollTop - parent.document.body.clientTop
+	  };
+}
+
+/**
+ * it need add the iframe height
+ * var ifr=document.getElementById('ifr');
+ * ifX=ifr.offsetLeft;
+ * ifY=ifr.offsetTop;
+ * while(ifr=ifr.offsetParent){
+ * ifX+=ifr.offsetLeft;
+ * ifY+=ifr.offsetTop;
+ * @param mouseY
+ * @return
+ */
+function getTopPosition(mouseY)
+{
+	var ifY = window.frameElement.offsetTop;
+	return mouseY + ifY - 20;
+}
+
+
+function getLeftPosition(dialog, left)
+{
+	var divWidth = $(dialog).width();
+
+	if((left + divWidth + 50) > $(window).width())
+	{
+		return left - (divWidth + 10);
+	}
+	return left + 10; 
+}	

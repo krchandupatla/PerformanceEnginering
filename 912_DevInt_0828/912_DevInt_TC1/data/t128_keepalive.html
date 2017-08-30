@@ -1,0 +1,54 @@
+/**
+ * Ping the backend to keep the services from timing out.
+ */
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .controller('KeepAliveController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($scope, $timeout, DataService) {
+
+    var timer;
+    var pingCount = 0;
+    var dataService = DataService.getInstance('AGENCY');
+
+    function ping() {
+      $scope.status = sprintf('%d - %s', ++pingCount, (new Date().toString()));
+
+      dataService.send('TAB_LIST').then(function() {
+        timer = $timeout(ping, 60000);
+      }, function(error) {
+        alert(JSON.stringify(error));
+      });
+    }
+
+    function start() {
+      ping();
+      $scope.button = 'Stop';
+    }
+
+    function stop() {
+      $timeout.cancel(timer);
+      $scope.button = 'Start';
+      $scope.status = '';
+      pingCount = 0;
+    }
+
+    $scope.button = 'Start';
+    $scope.status = '';
+
+    $scope.toggle = function() {
+      ($scope.button === 'Stop' ? stop : start)();
+    };
+
+    $scope.$on('$destroy', function() {
+      stop();
+    });
+  }
+})();
+

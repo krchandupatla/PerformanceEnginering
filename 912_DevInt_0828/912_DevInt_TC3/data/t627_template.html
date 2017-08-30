@@ -1,0 +1,446 @@
+//Accela Automation
+//File: template.js
+//Accela, Inc.
+//Copyright (C): 2011-2014
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: template.js 125874 2011-01-20 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+
+function Template () {
+	this.noValidate = false;
+	this.isSearch = false;
+	this.templateName = '';
+	this.isReadOnly = false;
+	this.divID= '';
+	this.valueUIName='';
+	this.structureUIName='';
+	this.layoutUIName='';
+	this.uiUID='';
+	
+	this.clear = function(){
+		document.getElementById(this.valueUIName).value = '';//save value
+		document.getElementById(this.valueUIName).defaultValue = '';//save value
+		if(document.getElementById(this.divID).innerHTML)
+		{
+			document.getElementById(this.divID).innerHTML = '';
+		}		
+		document.getElementById(this.structureUIName).value = '';//save source
+		document.getElementById(this.structureUIName).defaultValue = '';//save source
+		document.getElementById(this.layoutUIName).value = '';
+		this.templateName = null;
+		this.map = null;
+		// Retain the expression and the attached event. As the expression object had added the reload event.
+		//this.expression = null;
+		if(this.expression)
+		{
+			if(!Template.templatesWithExpression)
+			{
+				Template.templatesWithExpression = new HashMap(10);
+			}
+			Template.templatesWithExpression.put(this.uiUID,this);
+		}
+		Template.templates.remove(this.uiUID);
+	};
+	
+	/**
+	 * 1. Validate the template value maps 
+	 * 2. Get template value JSON string from the template value maps.
+	 * 3. Store the value string into UI vlaue element.
+	 */
+	this.getValuesJSON = function(noValidate)
+	{
+		var map = this.map;
+		if (!map)
+			return null;
+		var validated = this.noValidate || noValidate || TemplateValidate.validateMap(map,!this.noValidate); 
+		var resultJSON;
+		if (!validated)
+		{
+			return resultJSON;
+		}
+		var results = [], records, record, data, widget, entry, key, rows, subgroupObj, columnValue, fieldName, tmp;
+		for (var it = map.iterator(); it.hasNext();)
+		{
+			entry = it.next();
+			key = entry.key;
+			widget = entry.value;
+			subgroupObj = widget.subgroupObj;
+			rows = subgroupObj.rows;//array
+			if (!rows || rows.length <= 0)
+				continue;
+			data = {};
+			records = [];
+			for (var i = 0; i < rows.length; i++)//all row
+			{
+				record = {};
+				for (var p in rows[i])//row
+				{
+					columnValue = {};
+					fieldName = p;
+					tmp = rows[i][p];
+					columnValue['valueSeq'] = tmp.seq ? tmp.seq : "";
+					columnValue['value'] = tmp.value ? tmp.value : "";
+					columnValue['rowIndex'] = String(i + 1);
+					record[fieldName] = columnValue;
+				}
+				records.push(record);
+			}
+			data['values'] = records;
+			data['group'] = subgroupObj.groupName;
+			data['subgroup'] = subgroupObj.subgroupName;
+			data['templateType'] = subgroupObj.templateType;
+			results.push(data);
+		}
+		resultJSON = BaseJS.jsonToStr(results);
+		if (resultJSON)
+		{
+			document.getElementById(this.valueUIName).value = resultJSON;
+		}
+		for (var i = 0; i < results.length; i++)
+		{
+			results[i] = null;
+			delete results[i]; 
+		}
+		return resultJSON;
+	};
+		
+	this.getExpression = function()
+	{
+		if (this.expression)
+			return this.expression;
+		this.expression = new TemplateExpression.expression();
+		this.expression.init(this.map);
+		return this.expression;
+	}
+	
+	
+};
+
+	/*
+	 * Create Template JS Object and Render Template 
+	 */
+	Template.create = function(templateStr, whereID, sourceId, layout, entityType,noBackground)
+	{
+		if(!templateStr)
+		{
+			return;
+		}
+		var json = BaseJS.strToJson(templateStr);
+		var templateForms = json.templateForms;
+		var templateTables = json.templateTables;
+		// Not create Template JS object if the template forms is null
+		//support for special case , ASI only has template tables and all template form fields are disabled.
+		if(!templateForms && !templateTables)
+		{
+			return;
+		}
+		var template = new Template(); 
+		
+		//template.isDisabled = true;
+		if (typeof isDisabledTemplate == 'function')
+		{
+			template.isDisabled = isDisabledTemplate(entityType);
+		}
+
+		
+		if (typeof(isSearch) != 'undefined')
+		{
+			template.isSearch = isSearch();
+			if(template.isSearch)
+			{
+				template.noValidate= true;
+			}
+		}
+		template.divID= whereID;
+		template.structureUIName=sourceId;
+
+		template.uiUID= json.UIUID;
+		template.entityPKModel = json.entityPKModel;
+		if(template.uiUID == TemplateHelper.getDocDefaultUIUID())
+		{
+			template.noValidate= true;
+		}
+		template.valueUIName= TemplateHelper.addUIUID(GENERIC_TEMPLATE_VALUE_PREFIX,template.uiUID);
+		template.layoutUIName=TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_PREFIX,template.uiUID);
+		if(!Template.templates)
+		{
+			Template.templates= new HashMap(10);
+		}
+		if(Template.templatesWithExpression&&Template.templatesWithExpression.get(template.uiUID)!=null)
+		{
+			var templateWithExpression = Template.templatesWithExpression.get(template.uiUID);
+			template.expression = templateWithExpression.expression;
+		}
+		Template.templates.put(template.uiUID, template);
+		
+		template.isReadOnly = json.readOnly;
+		var map = new HashMap(10);
+		var formLayout;
+		
+		var contain = document.getElementById(whereID);
+		
+		
+		//render form
+		var formPanel = document.createElement("div"); 
+		contain.appendChild(formPanel);
+		if (templateForms)
+		{
+			for (var i = 0; i < templateForms.length; i++) 
+			{
+				var group = templateForms[i];
+				template.templateName = group.groupName;
+				//var group = templateForms[groupName];
+				if (!group)
+					continue;
+				var subgroups =	group.subgroups;
+				if(!subgroups)
+					continue;
+				var templateType = group.templateType;
+				
+				//layout
+				var panel = document.createElement("div"); 
+				formPanel.appendChild(panel);
+				if (layout)
+					formLayout = Template.layout.innerHTML(panel, layout);
+				
+				for (var j = 0; j < subgroups.length; j++)
+				{
+					var form = new Template.form();
+					var key = form.createGoup(subgroups[j], panel, templateType, template.templateName,formLayout,template);
+					if(key)
+					{
+						map.put(key, form);
+					}
+				}
+			}
+		}
+		
+		
+		//render table
+		// Get correct table panel. TABLE_ADDRESS is Constant. See template.jsp.
+		var tablePanel = document.getElementById(TemplateHelper.addUIUID(TABLE_ADDRESS,template.uiUID));
+		if (!tablePanel)
+		{
+			tablePanel = document.createElement("div"); 
+			contain.appendChild(tablePanel);
+		}
+		
+		if (templateTables)
+		{
+			var br = document.createElement("br");
+			tablePanel.appendChild(br);
+			for (var i = 0; i < templateTables.length; i++)
+			{
+				if (!templateTables[i])
+				{
+					continue;
+				}
+				var subgroups =	templateTables[i].subgroups;
+				var templateType = templateTables[i].templateType;
+				var groupName = templateTables[i].groupName;
+				
+				if (!subgroups)
+				{
+					continue;
+				}
+				for (var j = 0; j <  subgroups.length; j++) 
+				{
+					if (template.isSearch)
+					{
+						var form = new Template.form();
+						var key = form.createGoup(subgroups[j], formPanel, templateType, groupName, layout, template);
+						if(key)
+						{
+							map.put(key, form);
+						}
+					}
+					else
+					{
+						var table = new Template.table();
+						var key = table.createGoup(subgroups[j], tablePanel, templateType, groupName, null, template, noBackground);
+						if(key)
+						{
+							map.put(key, table);
+						}
+					}
+				}
+			}
+		}
+		//cache structure 
+		var structure = BaseJS.jsonToStr(json);
+		document.getElementById(sourceId).value = structure;
+		document.getElementById(sourceId).defaultValue = structure;
+		template.map = map;
+		// The initialCondition method need some Expression methods, but the methods will generate after finished load HTML.
+		/*
+		if(conditionUIUID!='0')
+		{
+			initialCondition();
+		}
+		*/
+		if (template.expression)
+		{
+			template.expression.init(map);				
+		}
+		templateForms = null;
+		delete templateForms;
+		templateTables = null;
+		delete templateTables;
+		json = null;
+		delete json;
+		//for fix bug #46573
+		scrollBarIssue.autoAdjustForTableAddOrRemoveRows(document);
+	}
+
+Template.baseFn = function() {
+	Template.baseFn.superclass.constructor.call(this);
+}
+
+Ext.extend(Template.baseFn, Ext.util.Observable, {
+	addMonitor : function(listeners) {
+		if (!listeners)
+			return;
+		for ( var p in listeners) {
+			this.addListener(p, listeners[p], this);
+		}
+	}
+});
+
+
+Template.widget = function ()
+{
+	this.subgroupObj = {};
+	this.tableID = 'template_table_'+ TemplateHelper.increaseId(); 
+	this.isIE = (window.ActiveXObject || "ActiveXObject" in window)? true : false;
+}
+
+Ext.extend(Template.widget, Template.baseFn, {
+	
+	createGoup : function(supgroup, contain, templateType, groupName, layout,template, noBackground)
+	{
+			if (!supgroup)
+				return;
+			var fields = supgroup['fields'];
+			var rows = supgroup['rows'];
+			
+			if (!fields)
+			{
+				return;
+			}
+			var subgroupName = supgroup['subgroupName'];
+			this.subgroupObj['displayOrder'] = supgroup['displayOrder'];
+			this.subgroupObj['displayName'] = supgroup['displayName'];
+			this.subgroupObj['subgroupName'] = subgroupName;
+			this.subgroupObj['templateType'] = templateType;
+			this.subgroupObj['groupName'] = groupName;
+			this.subgroupObj['readOnly'] = supgroup.readOnly;
+			this.subgroupObj.hasSelectCol = supgroup.hasSelectCol;
+			this.subgroupObj.noBackground = noBackground;
+			
+			var fieldMap = this.analyseField(fields);
+			this.subgroupObj['fields'] = fieldMap;
+			
+			this.layout(contain, rows, layout, template);//<trId, {value,....}>
+			
+			supgroup['rows'] = null;//remove default value
+			
+			var key = TemplateHelper.generatorMapKey(groupName, subgroupName, templateType);
+
+		if (layout)
+		{
+			//jQuery.addwatermarks();
+			var waterMarkArray = Template.layout.waterMarkArray;
+			if (waterMarkArray)
+			{
+				for (var i = 0; i < waterMarkArray.length; i++){
+					waterMarkArray[i].attach(waterMarkArray[i].objectId);
+				}
+				 Template.layout.waterMarkArray = null;
+			}
+		}
+		return key;
+	},
+	
+	//default layout
+	layout : function(subgroupObj, contain, rows, layout)
+	{
+		
+	},
+	
+	analyseField : function(fields)
+	{
+		var structureArray = [], field, obj, cellIndex = 1;
+		if (!fields) 
+		{
+			return structureArray;
+		}
+		for (var i = 0; i < fields.length; i++)
+		{
+			field = fields[i];
+			var obj = this.decorator(field);
+			structureArray.push(obj);
+			cellIndex++;
+		}
+		return structureArray;
+	},
+	
+	decorator : function(field)
+	{
+		var fieldType = field.fieldTypeValue;
+		var fieldName = field.fieldName;
+		var obj;
+		switch(fieldType)
+		{
+			case 1:
+				var obj = new Template.text();
+				break;
+			case 2:
+				var obj = new Template.dateText();
+				break;
+			case 3:
+				var obj = new Template.radio();
+				break;
+				case 4://number
+				var obj = new Template.numberText();
+				break;
+			case 5:
+				var obj = new Template.select();
+				break;
+			case 6:
+				var obj = new Template.textArea();
+				break;
+			case 7://time
+				var obj = new Template.timeText();
+				break;
+			case 8:
+				var obj = new Template.moneyText();
+				break;
+			case 9:
+				var obj = new Template.checkbox();
+				break;
+			default:
+				var obj = new Template.text();
+		};
+		if (obj && field)
+		{
+			Ext.apply(obj, field);
+		}
+		return obj;
+	},
+	
+	createValue : function(seq0, value0, fieldName0, id0)
+	{
+		var obj = new Object();
+		//{seq: seq0, value: value0, fieldName: fieldName0, id: id0};
+		obj.seq = seq0;
+		obj.value = value0;
+		obj.fieldName = fieldName0;
+		obj.id = id0;
+		return obj;
+	}
+});

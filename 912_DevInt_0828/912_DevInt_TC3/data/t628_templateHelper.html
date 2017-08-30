@@ -1,0 +1,797 @@
+//Accela Automation
+//File: templateHelper.js
+//Accela, Inc.
+//Copyright (C): 2011-2014
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: templateHelper.js 125874 2010-10-13 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+
+TemplateHelper = {
+	separation : '_',
+	groupSeparation : '#@#@',
+	columns : 3,
+	maxLength: 100,
+	textAreaMaxLength: 4000,
+	noValidate : false,
+	isReadOnly : false,
+	increaseId : (function(){
+		var id = 0;
+		return function(){return id++;};
+	})(),
+	
+	createErrorPanel : function(id)
+	{
+		var erroMsgId = this.errorMsgId(id);
+		var font = document.createElement('font');
+		font.id = erroMsgId;
+		font['air-error'] = "true";
+		var element = document.getElementById(id);
+		var field = $(element).data('field');
+		var displayName = field.styleLabel ? field.styleLabel : field.displayFieldName;
+		displayName = BaseJS.htmlEncode(displayName);
+		font['air-label'] = displayName;	
+		if (field.fieldTypeValue == 7)//radio
+		{
+			id += this.separation+'Hour';
+		}
+		font['air-for'] = id;
+		font.className = 'Error';
+		return font;
+	},
+	
+	errorMsgId : function(id)
+	{
+		return id + this.separation + "_error_span";
+	},
+	createTable : function()
+	{
+		var table = document.createElement('table');
+		table.className = "AccelaMainTableVariant";
+		var tableId = this.increaseId();
+		table.border = '0';
+		table.cellSpacing = '0';
+		table.cellPadding = '0';
+		table.id = tableId;
+		return table;
+	},
+	getHead : function(field, isTable, eleId, templateIsSearch, noColor)
+	{
+		var tmp = Template.layout.generatorStyleByLayout(field, isTable, noColor);
+		if (isTable)
+		{
+			var fieldType = field.fieldTypeValue;
+			switch(fieldType)
+			{
+				case 4:
+					tmp += '&nbsp;<font style="font-weight: normal">'+numberLabel+'</font>';
+					break;
+				case 8:
+					 tmp += '&nbsp;<font style="font-weight: normal">'+moneyLabel+'</font>';
+					break;
+			}
+		}
+		if (field.requireFlag == "Y" && !templateIsSearch && isNeed2ValidateRequired != 'N')
+		{
+			tmp += '&nbsp;<font class="redstar" id="'+this.getRequierId(eleId)+'">'+requiredMsg+'</font>';
+		}
+		return tmp;
+	},
+	
+	getRequierId : function(id) {
+		return id + "_require_span";
+	},
+	
+	createRequire : function(eleId) {
+		var font = document.createElement('font');
+		font.id = eleId + "_require_span";
+		font.className = "redstar";
+		return font;
+	},
+	
+	getDisplayFieldName : function(field)
+	{
+		if (!field)
+			return "";
+		var displayFieldName = field.styleLabel ? field.styleLabel : field.displayFieldName;
+		displayFieldName = BaseJS.htmlEncode(displayFieldName);
+		return displayFieldName; 
+	},
+	
+	getLableId : function(id){
+		return id + "_lable";
+	},
+	
+	setReadOnly : function(field, ele)
+	{
+		if (field.readOnly)
+		{
+			var fieldType = field.fieldTypeValue;
+			switch(fieldType)
+			{
+			    case 3:
+			    case 5:
+			    case 7:
+			    case 9:
+			    	ele.disabled = true;
+			    	break;
+			    default:
+			    	ele.readOnly = true;
+			}
+			readOnlyObj.resetReadOnly([ele]);
+		}
+		
+	},
+	
+	getRadioId : function(id)//radio label id
+	{
+		return [id + this.separation+'Yes', id + this.separation+'No'];
+	}, 
+	
+	getDateTimeId : function(id)//datetime drop down id(one is hour, other is minuter)
+	{
+		return [id + this.separation+'Hour', id + this.separation+'Minuter'];
+	},
+	
+	generatorMapKey : function(groupName, subgroupName, templateType)
+	{
+		return groupName + this.groupSeparation + subgroupName + this.groupSeparation + templateType;
+	},
+	
+	getTarget : function(e)
+	{
+		if (e.srcElement)
+		{
+			return e.srcElement;
+		}
+		else if (e.currentTarget)
+		{
+			return e.currentTarget;
+		}
+	},
+	
+	insertRow: function(table)
+	{	
+		return TableHelper.insertRow(table);
+	},
+	
+	insertCell:function(row)
+	{
+		return TableHelper.insertCell(row);
+	},
+	
+	removeEvent : function(oTarget, sEventType, funName)
+	{
+		if (!oTarget || !sEventType)
+			return;
+	    if(oTarget.removeEventListener)
+	    {
+			oTarget.removeEventListener(sEventType, funName, false);
+	 	}
+	 	else if(oTarget.detachEvent)
+	 	{
+			oTarget.detachEvent('on' + sEventType, funName);
+			oTarget['on' + sEventType] = null;
+	 	}
+	 	else
+	 	{
+	  		oTarget['on' + sEventType] = null;
+	 	}
+	},
+	
+	events : {//template current has support below event
+		click : 'click',
+		blur : 'blur',
+		change : 'change',
+		keydown : 'keydown',
+		focus : 'focus',
+		mouseover : 'mouseover'
+	},
+	
+	//	The err_msg should one attribute for one template object.
+	clearSection508Msg : function()
+	{
+		var  err_msg = document.getElementById('err_msg');
+		
+		if(err_msg.innerHTML.trim() == "")
+		{
+			return;
+		}
+		err_msg.innerHTML = '';
+		scrollBarIssue.autoAdjustForErrorMsgDisplay();
+	},
+	
+	addUIUID : function (paramName, uiUID)
+	{
+		if (uiUID != null)
+		{
+			paramName = paramName + uiUID;
+		}
+		return paramName;
+	},
+	
+	addPageAdjustIgnoreAll : function (obj)
+	{
+		if(obj)
+		{
+			obj.ingore='all';
+		}
+	},
+		
+	addPageAdjustIgnoreSelf : function (obj)
+	{
+		if(obj)
+		{
+			obj.ingore='self';
+		}
+	},
+	createEduTemplate : function (pTargetTR, defaultUIUID, newUIUID, templateStr,rowIndex,layout,entityType)
+	{
+		 
+		var divID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_DIV_PREFIX,newUIUID);
+		var valueUIID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_VALUE_PREFIX,newUIUID);
+		var structureUIID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_STRUCTURE_PREFIX,newUIUID);
+		var layoutUIID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_PREFIX,newUIUID);
+		var structureBakUIID = TemplateHelper.addUIUID(GENERIC_TEMPLATE_STRUCTURE_BAK_PREFIX ,newUIUID);
+		var layoutBakUIID = TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_BAK_PREFIX ,newUIUID);
+		var structureBakTemplateModelBridgeID = structureBakUIID + "templateModelBridge";
+		var layoutBaklayoutModel1BridgeID = layoutBakUIID + "layoutModel1Bridge";
+		var uiUIDElementID = "";
+		
+		switch(entityType)
+		{
+
+			case 31:
+			case 34:
+			case 43:
+				uiUIDElementID = TemplateHelper.getEduUIUIDElementID(rowIndex);
+				break;
+			case 32:
+			case 35:
+			case 44:
+				uiUIDElementID = TemplateHelper.getContEduUIUIDElementID(rowIndex);
+				break;
+			case 33:
+			case 36:
+			case 42:
+				uiUIDElementID = TemplateHelper.getExamUIUIDElementID(rowIndex);
+				break;
+			default:
+				uiUIDElementID = "";
+		}
+		
+		
+		
+		var divElement =  $('<div id="'+divID+'"/>')[0];
+		this.addPageAdjustIgnoreAll(divElement);
+		var valueElement = $('<input type="hidden" name="'+valueUIID+'" id="'+valueUIID+'"/>')[0];
+		var structureElement = $('<input type="hidden" name="'+structureUIID+'" id="'+structureUIID+'"/>')[0];
+		// Add [disabled="disabled"] to fix the performance issue (Bug 47692). This value is too large.
+		var layoutElement = $('<input type="hidden" disabled="disabled" name="'+layoutUIID+'" id="'+layoutUIID+'"/>')[0];
+		var structureBakElement = $('<input type="hidden" disabled="disabled" name="'+structureBakUIID+'" id="'+structureBakUIID+'"/>')[0];
+		var layoutBakElement = $('<input type="hidden" disabled="disabled" name="'+layoutBakUIID+'" id="'+layoutBakUIID+'"/>')[0];
+		var structureBakTemplateModelBridge = 
+			$('<span id = '+structureBakTemplateModelBridgeID+' style="display: none;"></span>')[0];
+		var layoutBaklayoutModel1Bridge = 
+			$('<span id = '+layoutBaklayoutModel1BridgeID+' style="display: none;"></span>')[0];
+		
+		var uiUIDElement = $('<input type="hidden" name="'+uiUIDElementID+'" id="'+uiUIDElementID+'" value="'+newUIUID+'"/>')[0];
+		var defaultTemplateValueElement = document.getElementById(TemplateHelper.addUIUID(GENERIC_TEMPLATE_VALUE_PREFIX,defaultUIUID));
+		if(defaultUIUID && defaultTemplateValueElement)
+		{
+			valueElement.value = defaultTemplateValueElement.value;
+		}
+		structureElement.value = templateStr;
+		structureBakElement.value = templateStr;
+		structureBakTemplateModelBridge.value = templateStr;
+		if(layout)
+		{
+			layoutElement.value = layout;
+			layoutBakElement.value = layout;
+			layoutBaklayoutModel1Bridge.value = layout;
+		}
+		
+		var lCell = pTargetTR.lastChild.lastChild;
+		
+		lCell.appendChild(uiUIDElement);
+		lCell.appendChild(divElement);
+		lCell.appendChild(valueElement);
+		lCell.appendChild(structureElement);
+		lCell.appendChild(layoutElement);
+		lCell.appendChild(structureBakElement);
+		lCell.appendChild(layoutBakElement);
+		lCell.appendChild(structureBakTemplateModelBridge);
+		lCell.appendChild(layoutBaklayoutModel1Bridge);
+		lCell.appendChild(document.createElement('br'));		      
+		resetEduTemplateUiUids.push(newUIUID);
+	},
+	
+	getEduUIUIDElementID: function(rowIndex)
+	{
+		return "edu"+rowIndex+"UIUID";
+	},
+	getContEduUIUIDElementID: function(rowIndex)
+	{
+		return "contEdu"+rowIndex+"UIUID";
+	},
+	getExamUIUIDElementID: function(rowIndex)
+	{
+		return "exam"+rowIndex+"UIUID";
+	},
+	
+	createDocTemplate : function (pTargetTR, defaultUIUID, newUIUID, templateStr,rowIndex,layout)
+	{
+		var divID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_DIV_PREFIX,newUIUID);
+		var valueUIID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_VALUE_PREFIX,newUIUID);
+		var structureUIID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_STRUCTURE_PREFIX,newUIUID);
+		var layoutUIID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_PREFIX,newUIUID);
+		var uiUIDElementID= TemplateHelper.getDocUIUIDElementID(rowIndex);
+		
+		var divElement =  $('<div id="'+divID+'"/>')[0];
+		this.addPageAdjustIgnoreAll(divElement);
+		var valueElement = $('<input type="hidden" name="'+valueUIID+'" id="'+valueUIID+'"/>')[0];
+		var structureElement = $('<input type="hidden" name="'+structureUIID+'" id="'+structureUIID+'"/>')[0];
+		var layoutElement = $('<input type="hidden" disabled="disabled" name="'+layoutUIID+'" id="'+layoutUIID+'"/>')[0];
+		var uiUIDElement = $('<input type="hidden" name="'+uiUIDElementID+'" id="'+uiUIDElementID+'" value="'+newUIUID+'"/>')[0];
+		
+		var defaultTemplateValueElement = document.getElementById(TemplateHelper.addUIUID(GENERIC_TEMPLATE_VALUE_PREFIX,defaultUIUID));
+		if(defaultUIUID && defaultTemplateValueElement)
+		{
+			valueElement.value = defaultTemplateValueElement.value;
+		}
+		structureElement.value = templateStr;
+		if(layout)
+		{
+			layoutElement.value = layout;
+		}
+		var colspanLen = pTargetTR.offsetParent.rows[0].cells.length;
+		var lCell = gDocCommonUtil.addTDWithParam(pTargetTR,'colspan="'+colspanLen+'"');
+		
+		lCell.appendChild(uiUIDElement);
+		lCell.appendChild(divElement);
+		lCell.appendChild(valueElement);
+		lCell.appendChild(structureElement);
+		lCell.appendChild(layoutElement);
+	},
+	
+	getDocUIUIDElementID: function(rowIndex)
+	{
+		return "doc"+rowIndex+"UIUID";
+	},
+	
+	copyTemplate : function (defaultUIUID,uiUID,templateStr,layout)
+	{
+		var divID=TemplateHelper.addUIUID(GENERIC_TEMPLATE_DIV_PREFIX,uiUID);
+		var valueUIID=TemplateHelper.addUIUID(GENERIC_TEMPLATE_VALUE_PREFIX,uiUID);
+		var structureUIID=TemplateHelper.addUIUID(GENERIC_TEMPLATE_STRUCTURE_PREFIX,uiUID);
+		var layoutUIID=TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_PREFIX,uiUID);
+		
+		var divElement =  document.getElementById(divID);
+		var valueElement = document.getElementById(valueUIID);
+		var structureElement = document.getElementById(structureUIID);
+		var layoutElement = document.getElementById(layoutUIID);
+		
+		var defaultTemplateValueElement = document.getElementById(TemplateHelper.addUIUID(GENERIC_TEMPLATE_VALUE_PREFIX,defaultUIUID));
+		if(defaultTemplateValueElement)
+		{
+			valueElement.value = defaultTemplateValueElement.value;
+		}
+		structureElement.value = templateStr;
+		var defaultTemplateLayoutElement = document.getElementById(TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_PREFIX,defaultUIUID));
+		if(defaultTemplateLayoutElement && layout)
+		{
+			layoutElement.value = layout;
+		}
+		
+	},
+	
+	render : function (uiUID, entityType)
+	{
+		var templateStrID= TemplateHelper.addUIUID(GENERIC_TEMPLATE_STRUCTURE_PREFIX,uiUID);
+		var templateStr = document.getElementById(templateStrID).value;
+		var layoutStrID = TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_PREFIX,uiUID);
+		var layoutStr = document.getElementById(layoutStrID).value;
+		// The render function comes form template.jsp.
+		render( templateStr, layoutStr, uiUID, entityType);
+	},
+	
+	
+	/*
+	 * add contact template for multiple contact spear form  
+	 */
+	changeContactTemplate : function (contactType,contactUIUID)
+	{
+		
+		var url = '/portlets/generictemplate/genericTemplate.do?mode=getTemplateByContactType&uiUID='+contactUIUID+'&contactType='+ encodeURIComponent(contactType);
+		try
+		{
+			if(window.expression)
+			{
+				window.expression.__clearErrorMessage();
+			}
+			var message = document.getElementById("err_msg");
+			if(message)
+			{
+				message.innerHTML = "";
+			}
+			remoteAccess(url, renderTemplate, document.forms[0]);
+		}
+		catch(e)
+		{
+			alert(e.message);
+		}
+		return true;
+	},
+	
+	/*
+	 * Change search contact template  
+	 */
+	changeSearchContactTemplate : function (contactType, contactUIUID)
+	{		
+		var url = '/portlets/contact/ref/refContactList.do?mode=getSearchTemplateByContactType&uiUID=' + contactUIUID + '&contactType=' + contactType;
+		try
+		{
+			if (window.expression)
+			{
+				window.expression.__clearErrorMessage();
+			}
+			
+			var message = document.getElementById("err_msg");
+			
+			if (message)
+			{
+				message.innerHTML = "";
+			}
+			
+			remoteAccessNoForm(url, function(data){ 
+					// change people template data
+					renderTemplate(data);
+					ajaxAnywhere.submitAJAX('setSearchContactType=&mode=setSearchContactType');
+				});
+		}
+		catch (e)
+		{
+			alert(e.message);
+		}
+		
+		return true;
+	},
+	
+	/*
+	 * add edu template for multiple contact spear form  
+	 */
+	addEduTemplate : function (eduName,eduNameSeq,rowIndex,uiUID,eduSeq,entityType,readOnly,module)
+	{
+		var url = '/portlets/generictemplate/genericTemplate.do?mode=addEduTemplate&eduName='+encodeURIComponent(eduName)+'&eduNameSeq='+eduNameSeq+'&rowIndex='+rowIndex+'&entityType='+entityType+
+					'&uiUID='+uiUID+'&eduSeq='+eduSeq +'&readOnly=' +readOnly+'&module=' +module;
+		try
+		{
+			remoteAccessNoForm(url, renderEduTemplate);
+		}
+		catch(e)
+		{
+			alert(e.message);
+		}
+		return true;
+	},
+	/*
+	 * add edu template for multiple contact spear form  
+	 */
+	changeEduTemplate : function (eduName,eduNameSeq,rowIndex,uiUID,eduSeq,entityType)
+	{
+	
+		 
+		var url = '/portlets/generictemplate/genericTemplate.do?mode=getTemplateByEduType&eduName='+encodeURIComponent(eduName)+'&eduNameSeq='+eduNameSeq+'&rowIndex='+rowIndex+'&entityType='+entityType+'&uiUID='+uiUID+'&eduSeq='+eduSeq;
+		
+		try
+		{
+			remoteAccessNoForm(url, renderEduTemplate);
+		}
+		catch(e)
+		{
+			alert(e.message);
+		}
+		return true;
+	},
+	
+	/*
+	 * copy contact template when click "as contact"  in spear form
+	 */
+	asContactTemplate : function (oldModel,currentContactType,originalUiUid,currentUiUid)
+	{
+		var url = '/portlets/generictemplate/genericTemplate.do?mode=getTemplateByContactType&uiUID='+currentUiUid+'&originalUiUid='+originalUiUid+'&fromAsContact=Y'+'&contactType='+currentContactType;
+		var template = TemplateHelper.getContactTemplate(oldModel);
+		if(template)
+		{
+			var resultJSON = template.getValuesJSON(true);
+			var hiddenObject = document.getElementById("is_hidden_"+template.valueUIName);
+			if(hiddenObject)
+			{
+				hiddenObject.value = resultJSON;
+			}
+		}
+		try
+		{
+			remoteAccess(url, renderTemplate, document.forms[0]);
+		}
+		catch(e)
+		{
+			alert(e.message);
+		}
+		return true;
+	},
+	
+	
+	/*
+	 * add document template for new uploading document.
+	 */
+	addDocumentTemplate : function (rowID,rowIndex,docSeq)
+	{
+		var url = '/portlets/generictemplate/genericTemplate.do?mode=addDocumentTemplate&rowID='+rowID+'&rowIndex='+rowIndex+'&'+moduleName+'='+module;
+		if(docSeq)
+		{
+			url= url + '&docSeq='+docSeq;
+		}
+		var template = TemplateHelper.getDocDefaultTemplate();
+		if(template)
+		{
+			template.getValuesJSON();
+		}
+		try
+		{
+			TemplateHelper.sendRequestWithoutForm(url,renderDocumentTemplate);
+		}
+		catch(e)
+		{
+			alert(e.message);
+		}
+		return true;
+	},
+	
+	addValidatedDocTemplate : function (rowID,lRowIndex,template,uiUID,layout)
+	{
+		var pTargetTR = document.getElementById(rowID);
+		if(!TemplateHelper.docsMap)
+		{
+			TemplateHelper.docsMap = new HashMap(10);
+		}
+		TemplateHelper.docsMap.put(lRowIndex, uiUID);
+		TemplateHelper.createDocTemplate(pTargetTR,null,uiUID,template,lRowIndex,layout);
+		TemplateHelper.render(uiUID);
+	},
+	
+	copyDocumentTemplate : function (rowIndex)
+	{
+		var uiUID = TemplateHelper.docsMap.get(parseInt(rowIndex));
+		var url = '/portlets/generictemplate/genericTemplate.do?mode=copyDocumentTemplate&rowIndex='+rowIndex+'&'+moduleName+'='+module+'&uiUID='+uiUID;
+		var template = TemplateHelper.getDocDefaultTemplate();
+		if(template)
+		{
+			template.getValuesJSON();
+		}
+		try
+		{
+			remoteAccess(url, renderDocumentTemplate, document.forms[0]);
+		}
+		catch(e)
+		{
+			alert(e.message);
+		}
+		return true;
+	},
+	
+	//to generate the template fields' value into the valuetextarea field
+	getContactDefaultTemplate : function()
+	{
+		var defaultUIUID = 0;
+		var contactTemplateUIUID = document.getElementById("contactsModel*uiuid");
+		if(contactTemplateUIUID)
+		{
+			defaultUIUID = parseInt(contactTemplateUIUID.value);
+		}
+		var template = null;
+		if(Template.templates)
+		{
+			template = Template.templates.get(parseInt(defaultUIUID));
+		}
+		return template;
+	},
+	
+	//to generate the template fields' value into the valuetextarea field
+	getContactTemplate : function(model)
+	{
+		var defaultUIUID = 0;
+		var contactTemplateUIUID = document.getElementById(model+"*uiuid");
+		if(contactTemplateUIUID)
+		{
+			defaultUIUID = parseInt(contactTemplateUIUID.value);
+		}
+		var template = null;
+		if(Template.templates)
+		{
+			template = Template.templates.get(parseInt(defaultUIUID));
+		}
+		return template;
+	},
+	
+	getDocDefaultTemplate : function()
+	{
+		var defaultUIUID = TemplateHelper.getDocDefaultUIUID();
+		var template = null;
+		if(Template.templates)
+		{
+			template = Template.templates.get(parseInt(defaultUIUID));
+		}
+		return template;
+	},
+
+	getDocDefaultUIUID : function ()
+	{
+		var docTemplateUIUID = document.getElementById("docTemplateUIUID");
+		if(docTemplateUIUID)
+		{
+			return parseInt(docTemplateUIUID.value);
+		}
+		return null;
+	},
+	
+	deleteDocTemplate : function (rowIndex)
+	{
+		var uiUID = TemplateHelper.docsMap.get(rowIndex);
+		if(Template.templates)
+		{
+			Template.templates.remove(parseInt(uiUID));
+		}
+	},
+	deleteEduTemplateRow : function (rowIndex,entityType) 
+	{
+		var uiUID = TemplateHelper.getEDUMapByEDUtype(entityType).get(rowIndex);
+		
+		if(Template.templates)
+		{
+			Template.templates.remove(parseInt(uiUID));
+		}
+		
+	},
+	getEDUMapByEDUtype : function(entityType)
+	{
+		switch(entityType)
+		{
+			case 31:
+			case 34:
+			case 43:
+				if(!TemplateHelper.edusMap)
+				{
+					TemplateHelper.edusMap = new HashMap(10);
+				}
+				return TemplateHelper.edusMap; 
+			case 32:
+			case 35:
+			case 44:
+				if(!TemplateHelper.contEdusMap)
+				{
+					TemplateHelper.contEdusMap = new HashMap(10);
+				}
+				return TemplateHelper.contEdusMap; 
+			case 33:
+			case 36:
+			case 42:
+				if(!TemplateHelper.examMap)
+				{
+					TemplateHelper.examMap = new HashMap(10);
+				}
+				return TemplateHelper.examMap; 
+			default:
+				return null;
+		}
+	},
+	createTemplateDataAndValidation : function (rowIndex,templateData,uiUUID,entityType)
+	{
+		var pTargetTR = document.getElementById(getTemplateRowName(entityType) + rowIndex);		
+		TemplateHelper.getEDUMapByEDUtype(entityType).put(rowIndex, uiUUID);
+		TemplateHelper.createEduTemplate(pTargetTR,null,uiUUID,templateData.template,rowIndex,templateData.templateLayout,entityType);
+		TemplateHelper.render(uiUUID);
+	},
+	newTemplate: function(uiUID)
+	{
+		var template = new Template();
+		template.divID = TemplateHelper.addUIUID(GENERIC_TEMPLATE_DIV_PREFIX,uiUID);
+		template.structureUIName =TemplateHelper.addUIUID(GENERIC_TEMPLATE_STRUCTURE_PREFIX,uiUID);
+		template.uiUID = uiUID;
+		template.valueUIName =TemplateHelper.addUIUID(GENERIC_TEMPLATE_VALUE_PREFIX,uiUID);
+		template.layoutUIName =TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_PREFIX,uiUID);
+		
+		return template;
+	},
+	
+	initOneTemplateForConditionExpression: function (uiUID)
+	{
+		if(Template.templates)
+		{
+			return;
+		}
+		Template.templates = new HashMap(10);
+		var template = TemplateHelper.newTemplate(parseInt(uiUID));
+		template.noValidate= true;
+		Template.templates.put(template.uiUID, template);
+	},
+	clearUndefinedEducationTemplate: function (uiElementId)
+	{
+		var templateDivID = TemplateHelper.addUIUID(GENERIC_TEMPLATE_DIV_PREFIX,document.getElementById(uiElementId).value);
+		var templateElement = document.getElementById(templateDivID);
+		var templateContent = "";
+		if(typeof(templateElement) != 'undefined' && templateElement != null)
+		{
+			templateContent = templateElement.innerHTML;
+		}
+		if(templateContent)
+		{
+			if (!confirm(changeMsg))
+			{
+				return false;	
+			}
+		}	
+		clearHTMLAndTemplateJSObject(document.getElementById(uiElementId).value);
+		
+		return true;
+	},
+	sendRequestWithoutForm : function(url,callBack)
+	{
+		var docGroupObj = document.getElementById('value(docGroup)');
+		var docTypeObj = document.getElementById('value(type)');
+		var docCategoryObj = document.getElementById('value(docCategory)');
+		var docTemplateUIUIDObj = document.getElementById('docTemplateUIUID');
+		var valuetextareaObj;
+		var sourcetextareaObj;
+		var docGroup ="";
+		var docType ="";
+		var docTemplateUIUID =""; 
+		var valuetextarea ="";
+		var sourcetextarea="";
+		var docCategory ="";
+		if(docGroupObj)
+		{
+			docGroup = encodeURIComponent(docGroupObj.value);
+		}
+		if(docTypeObj)
+		{
+			docType =  encodeURIComponent(docTypeObj.value);
+		}
+		if(docCategoryObj)
+		{
+			docCategory =  encodeURIComponent(docCategoryObj.value);
+		}
+		if(docTemplateUIUIDObj)
+		{
+			docTemplateUIUID = encodeURIComponent(docTemplateUIUIDObj.value);
+			valuetextareaObj = document.getElementById('valuetextarea'+docTemplateUIUID);
+			sourcetextareaObj = document.getElementById('sourcetextarea'+docTemplateUIUID);
+		}
+		if(valuetextareaObj)
+		{
+			valuetextarea = encodeURIComponent(valuetextareaObj.value);
+		}
+		if(sourcetextareaObj)
+		{
+			sourcetextarea = encodeURIComponent(sourcetextareaObj.value); 
+		}
+		var documentSeq = 0;
+		documentSeqObj = document.getElementById("documentSeq");
+		if(documentSeqObj)
+		{
+			documentSeq = documentSeqObj.value;
+		}
+		var isFromDocDetail = document.getElementById("isFromDocDetail");
+		var isFromDocDetailValue = "N";
+		if(isFromDocDetail)
+		{
+		  isFromDocDetailValue = isFromDocDetail.value;
+		}
+		var content = '&docTemplateUIUID='+docTemplateUIUID+'&valuetextarea'+docTemplateUIUID+'='+valuetextarea+'&sourcetextarea'+docTemplateUIUID+'='+sourcetextarea+'&docGroup='+docGroup+'&docType='+docType+"&docCategory="+docCategory+"&documentSeq="+documentSeq + "&isFromDocDetail="+isFromDocDetailValue;	
+		new Ac360.ajax().send(url, content, callBack,true);
+	}
+}

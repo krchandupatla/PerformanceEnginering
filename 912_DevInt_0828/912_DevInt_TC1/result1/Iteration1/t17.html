@@ -1,0 +1,127 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html>
+<head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="JavaScript">
+<!--
+	var removeCAPMessage = "";
+
+	function hiddenSeparatorBar()
+	{
+		var separatorBar = document.getElementById('separatorBar');
+		separatorBar.style.display = 'none';
+		var _$capForm = document.getElementById('_$capFormId');
+		_$capForm.style.display = 'none';
+	}
+	
+	function showSeparatorBar()
+	{
+		var separatorBar = document.getElementById('separatorBar');
+		separatorBar.style.display = 'block';
+		var _$capForm = document.getElementById('_$capFormId');
+		_$capForm.style.display = 'block';
+		//_$capForm.style.height = '0px';
+		var isNewUI = true;
+		if(!isNewUI)
+		{
+			var capForm = document.getElementById('capForm');
+			capForm.contentWindow.tableCorner.refleshCorner("_$mainContent");
+		}
+	}
+
+	function checkSeparatorLoad()
+	{
+		var capList = document.getElementById('capList');
+		var separatorBarFlag = capList.contentWindow.document.getElementById('showSeparatorBar');
+		
+		if (separatorBarFlag)
+		{
+			showSeparatorBar();
+		}
+		else
+		{
+			hiddenSeparatorBar();
+		}
+		scrollBarIssue.pageAdjust();
+	}
+-->
+</script>
+
+
+<link rel="stylesheet" type="text/css" href="/portlets/spa/styles/portlet-iframe-content.css"/>
+
+</head>
+<body>
+
+<iframe  id="capList" name="capList" src="https://aa-pt6245.dev.accela.com:5443/portlets/cap/capSearch.do?searchBy=ByCondition&amp;height=270&amp;mode=init&amp;module=Building&amp;cleanCapId=Y&amp;isGeneralCAP=Y&amp;supportMulAgencySearch=Y" frameborder="0" scrolling="auto" title="Record List" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/cap/capSearch.do?searchBy=ByCondition&amp;height=270&amp;mode=init&amp;module=Building&amp;cleanCapId=Y&amp;isGeneralCAP=Y&amp;supportMulAgencySearch=Y'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="capForm" name="capForm" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="Record Detail" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="newGisMapForm_spaces_c7ae1" name="newGisMapForm_spaces_c7ae1" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="Record Detail" width="100%" style="display:none"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="mydataForm" name="mydataForm" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="Data Form" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+
+</body>
+<script type="text/javascript" src="/portlets/framework/includes/javascript/ac360base.js"></script>
+
+<script type="text/javascript">
+
+	var portletDetails = {
+		initial: 'capList',
+		frameToHideAfterInitialLoad: 'capForm',
+		 clickHandlers: [
+			{
+			   selector: '#drop_createGis',
+			   targetFrame: 'newGisMapForm_spaces_c7ae1'
+		   	},
+			{
+				selector: '#drop_showGis',
+				targetFrame: 'newGisMapForm_spaces_c7ae1'
+			},
+			{
+				selector: '#drop_showWorkLocation',
+				targetFrame: 'newGisMapForm_spaces_c7ae1'
+			},
+			{
+				selector: 'form[name="crossReferenceXRefCapListForm"] .AccelaMainTable a[onclick^="return clickCAPIDinIScript"]',
+				targetFrame: 'mydataForm'
+			}
+	   ]
+	};
+
+	var portletNavigation = new parent.Accela.PortletNavigation();
+	portletNavigation.init(window, document, history, parent.Accela.PortletInterface, portletDetails);
+
+	function showList()
+	{
+		portletNavigation.showList();
+	}
+</script>
+
+<noscript>
+	Do not support the scripting.
+</noscript>
+
+</html>

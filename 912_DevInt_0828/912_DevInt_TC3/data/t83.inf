@@ -1,0 +1,11 @@
+[t83]
+FileName1=t83_user-manager.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/core/services/user-manager.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_83.xml
+RequestHeaderFile=t83_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t83_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

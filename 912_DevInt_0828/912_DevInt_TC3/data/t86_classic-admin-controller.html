@@ -1,0 +1,21 @@
+/**
+ * NOT USED -- Classic Admin is now just opened in a new window.
+ */
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .controller('ClassicAdminController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($scope, $sce, CONFIG) {
+    if (CONFIG.CFMX_URL) {
+      $scope.url = $sce.trustAsResourceUrl(CONFIG.CFMX_URL + '/login/index.cfm?fuseaction=checkuser&isFromPortlet=Y&paneID=P-14d9beabe07-10003');
+    } else {
+      $scope.url = null;
+    }
+  }
+})();

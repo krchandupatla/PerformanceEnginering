@@ -1,0 +1,19 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('aaOnLoad', function() {
+      return {
+        restrict: 'A',
+        scope: {
+          callback: '&aaOnLoad'
+        },
+        link: function(scope, element, attributes) {
+          if (typeof scope.callback === 'function') {
+            element.on('load', scope.callback);
+          }
+        }
+      };
+  });
+})();

@@ -1,0 +1,226 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .factory('SpaceIconFactory', service);
+
+  /**
+   * @ngInject
+   **/
+  function service() {
+
+    function getEntityIcon(url) {
+      var icon, entityType;
+
+      var matches = url.match(/entityType=(\w*)/);
+
+      if (matches.length > 1) {
+        entityType = matches[1].replace('COMMON_', '').toUpperCase();
+      }
+
+      if (entityType) {
+        switch(entityType) {
+          case 'ADDRESS':
+          case 'PARCEL':
+          case 'OWNER':
+          case 'STRUCTURE':
+            icon = 'icon-location';
+            break;
+          case 'ASSET':
+            icon = 'icon-assets';
+            break;
+          case 'CONTACT':
+          case 'PROFESSIONAL':
+            icon = 'icon-people';
+            break;
+          case 'CAP':
+          case 'GENCAP':
+            icon = 'icon-record';
+            break;
+        }
+      }
+
+      return icon;
+    }
+
+    function getSpaceIcon(url) {
+      var icon = 'icon-default';
+      var parts = (url || '').split('?');
+      var baseUrl = (parts.length ? parts[0] : '');
+
+      switch (url) {
+        //Financial
+        case '/portlets/fee/cashierSession.do': //Cashier Session
+        case '/portlets/aaproxy/AAProxy.do?mode=ccCheckReview&FNTNAME=CreditCardCheckReview': //Credit/Transaction
+        case '/portlets/commons/fee/batchInvoicePortlet.jsp': // Invoices
+        case '/portlets/commons/fee/paymentProcessingPortlet.jsp': //Payment Processing
+        case '/portlets/commons/trustaccount/trustAccountPortlet.jsp': //Trust Account
+        case '/portlets/commons/pointofsale/pointOfSalePortlet.jsp': // Poit of Sale
+          icon = 'icon-financial';
+          break;
+
+        //Alerts
+        case '/portlets/alert/alertMessageList.do': //Alert
+        case '/portlets/message/messageListClient.do': //Bulletin Board
+        case '/portlets/commons/outlook/inbox.jsp': //Outlook Inbox
+          icon = 'icon-alert';
+          break;
+
+        //Assets
+        case '/portlets/ams/asset/assetPortlet.jsp?module=AMS': //Assets
+        case '/portlets/ams/conditionassessment/assetCAPortlet.jsp?module=AMS': //Asset Condition Assessment
+        case '/portlets/ams/asset/assetPortlet.jsp': //Assets Common Component
+        case '/portlets/ams/pmschedule/pmschedulePortlet.jsp?module=AMS': //PM Schedules
+        case '/portlets/ams/part/partPortlet.jsp?module=AMS': //Part Inventory
+          icon = 'icon-assets';
+          break;
+
+        //Location
+        case '/portlets/commons/address/refAddress.jsp': //Addresses
+        case '/portlets/commons/parcel/refParcel.jsp': //Parcels
+        case '/portlets/commons/structureestablishment/refStructEstabl.jsp': //Structure & Establishments
+        case '/portlets/aaproxy/AAProxy.do?mode=iframe&FNTNAME=SET_PARCEL': //Genealogy
+          icon = 'icon-location';
+          break;
+
+        //People
+        case '/portlets/commons/owner/refOwner.jsp': //Owners
+        case '/portlets/commons/contact/refContact.jsp?mode=search': //Contacts
+        case '/portlets/commons/professional/refProfessional.jsp': //Licensed Professionals
+          icon = 'icon-people';
+          break;
+
+        //Profile
+        case '/portlets/commons/preference/changePreference.do': //Preference Management
+        case '/portlets/commons/publicuser/admin/publicUserPortlet.jsp': //Public User
+        case '/portlets/user/userinfo.do': //User Info
+          icon = 'icon-profile';
+          break;
+
+        //Reports
+        case '/portlets/reports/adHocReport.do?mode=list': //Ad hoc Reporting
+        case '/portlets/reports/reportShow.do?mode=show': //Accela Custom Reports
+        case '/portlets/easyReport/easyReportList.do': //Reports
+        case '/portlets/crystal/crystalUserList.do': //Smart Charts
+        case '/portlets/commons/crystal/smartchart20.jsp': //Smart Charts 2
+        case '/portlets/reports/reportsTreeFrame.jsp?reportPortletNo=2': //Reports 2
+        case '/portlets/reports/reportsTreeFrame.jsp?reportPortletNo=3': //Reports 3
+        case '/portlets/reports/reportsTreeFrame.jsp?reportPortletNo=4': //Reports 4
+        case '/portlets/reports/reportsTreeFrame.jsp?reportPortletNo=5': //Reports 5
+          icon = 'icon-reports';
+          break;
+
+        //Tasks
+        case '/portlets/activity/activity.do?mode=search': //Activities
+        case '/portlets/commons/taskmanagement/taskManagementMain.jsp': //Task Portlet
+        case '/portlets/workflow/myTaskEntrance.do': //My Tasks
+          icon = 'icon-tasks';
+          break;
+
+        //Inspections
+        case '/portlets/inspection/inspectionListAndDetail.jsp': //Inspection
+        case '/portlets/inspection/inspectionRouteSheetPortlet.jsp': //Inspection Route Sheet
+        case '/portlets/inspection/calendarInspectionMain.do?mode=enterMain': //Inspection Calendar
+          icon = 'icon-inspection';
+          break;
+
+        //Time Accounting
+        case '/portlets/commons/timeaccount/timeprofilesMain.jsp': //Time Accounting
+          icon = 'icon-time';
+          break;
+
+        //Record
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=Building': //Building Permit
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=ServiceRequest': //Cases
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=Enforcement': //Enforcement
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=Licenses': //Licenses
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=-select-': //Record
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=AMS': //Work Orders
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=Fire': //Fire
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=Health': //Health
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=Planning': //Planning
+        case '/portlets/commons/cap/myCAPDetailPortlet.jsp?module=PublicWorks': //Public Works
+          icon = 'icon-record';
+          break;
+
+        default:
+          if (baseUrl === '/portlets/cap/capsummary/CapTabSummary.do') {
+            icon = 'icon-record';
+          } else if (baseUrl === '/portlets/contact/contactDetail.do') {
+            icon = 'icon-people';
+          } else if (baseUrl === '/portlets/spa/dashboardMeetingDetail.do') {
+            icon = 'icon-time';
+          }
+          break;
+      }
+
+      return icon;
+    }
+
+    function getSpaceIconByType(spaceIconType) {
+      var icon = 'icon-record';
+
+      switch (spaceIconType) {
+        case 'Addresses':
+        case 'Parcels':
+        case 'Owners':
+          icon = 'icon-location';
+          break;
+        case 'Assets':
+          icon = 'icon-assets';
+          break;
+        case 'Contacts':
+          icon = 'icon-people';
+          break;
+        case 'ACTIVITY':
+        case 'DOCUMENT':
+          icon = 'icon-record';
+          break;
+        case 'INSPECTION':
+          icon = 'icon-inspection';
+          break;
+        case 'MEETING':
+          icon = 'icon-time';
+          break;
+        case 'WORKFLOW':
+          icon = 'icon-tasks';
+          break;
+      }
+
+      return icon;
+    }
+
+    function isEntity(url) {
+      return url.indexOf('getRecentlyViewedEntityPage') !== -1; // from "Recent" list on launchpad
+    }
+
+    function updateSpaceIcon(space) {
+      if (!space) {
+        return;
+      }
+
+      if (space.spaceIcon) {
+        return;
+      }
+
+      if (isEntity(space.spaceUrl)) {
+        space.spaceIcon = getEntityIcon(space.spaceUrl);
+
+        if (space.spaceIcon) {
+          return;
+        }
+      }
+
+      if (space.spaceIconType) {
+        space.spaceIcon = getSpaceIconByType(space.spaceIconType);
+      } else {
+        space.spaceIcon = getSpaceIcon(space.spaceUrl);
+      }
+    }
+
+    return {
+      updateSpaceIcon: updateSpaceIcon
+    };
+  }
+})();

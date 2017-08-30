@@ -1,0 +1,11 @@
+[t702]
+FileName1=t702_signout.gif
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/security/signout.do
+Total=1
+ContentType=image/gif
+SnapshotXmlFile=snapshot_702.xml
+RequestHeaderFile=t702_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t702_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

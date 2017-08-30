@@ -1,0 +1,22 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .controller('SpacesController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($scope, SpaceConfiguration) {
+    $scope.containers = [];
+
+    for (var i = 1; i < SpaceConfiguration.numberOfSpaces + 1; i++) {
+      $scope.containers.push({
+        name: 'container' + i,
+        routeName: 'spaces.' + SpaceConfiguration.spaceExtension + i
+      });
+    }
+  }
+})
+();

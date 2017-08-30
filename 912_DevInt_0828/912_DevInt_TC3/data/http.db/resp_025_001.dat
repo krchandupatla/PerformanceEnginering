@@ -1,0 +1,11 @@
+<html>
+<head>
+<meta http-equiv="refresh" content="10;URL=https://aa-pt6245.dev.accela.com:5443/portlets/spa/dashboard.do"/>
+<script>
+function doRedirect(){document.location.href='https://aa-pt6245.dev.accela.com:5443/portlets/spa/dashboard.do';}
+</script>
+</head>
+<body>
+<img src="https://aa-pt6245.dev.accela.com:5443/security/auth.do?signOffScript=https://aa-pt6245.dev.accela.com:5443/portlets/security/signout.do&switchAgencyScript=https://aa-pt6245.dev.accela.com:5443/portlets/commons/sso/blank.jsp&CSRF_REQ_PARAM=" onLoad="doRedirect()" onError="doRedirect()"/>
+</body>
+</html>

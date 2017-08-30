@@ -1,0 +1,11 @@
+[t798]
+FileName1=t798.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/contact/ref/refContactList.do?value(mode)=search&value(lookup)=false&value(usedQueryInfo)=Y&module=Building
+Total=1
+RequestHeaderFile=t798_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t798_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_798.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

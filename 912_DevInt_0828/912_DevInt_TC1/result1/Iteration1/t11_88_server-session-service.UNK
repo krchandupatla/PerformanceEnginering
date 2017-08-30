@@ -1,0 +1,65 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .factory('ServerSessionService', service);
+
+  /**
+   * @ngInject
+   **/
+  function service($q, $http, CONFIG) {
+
+    var activeSpaceName;
+    var baseUri = '/portlets/spa/session.do?mode=';
+
+    function _send(url) {
+      var deferred = $q.defer();
+
+      if (CONFIG.USE_MOCK_SERVICES) {
+        url = 'mock-api/empty.json?' + url.replace(baseUri, '');
+      }
+
+      $http.get(url).then(function () {
+        return deferred.resolve(null);
+      }, function () {
+        return deferred.reject();
+      });
+
+      return deferred.promise;
+    }
+
+    function start(spaceName) {
+      var deferred = $q.defer();
+
+      _send(baseUri + 'activateSpace&spaceName=' + spaceName).then(function() {
+        activeSpaceName = spaceName;
+        deferred.resolve();
+      });
+
+      return deferred.promise;
+    }
+
+    function end(spaceName) {
+      activeSpaceName = null;
+      return _send(baseUri + 'removeSpace&spaceName=' + spaceName +  '&newSpaceName=null');
+    }
+
+    function reset() {
+      activeSpaceName = null;
+      return _send(baseUri + 'removeAllSpaces');
+    }
+
+    function getActiveSpaceName() {
+      return activeSpaceName;
+    }
+
+    return {
+      start: start,
+      end: end,
+      activate: start,
+      reset: reset,
+      getActiveSpaceName: getActiveSpaceName
+    };
+  }
+})();

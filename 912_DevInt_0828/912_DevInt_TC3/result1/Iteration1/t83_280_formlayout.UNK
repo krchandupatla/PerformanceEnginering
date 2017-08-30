@@ -1,0 +1,117 @@
+//Accela Automation
+//File: formlayout.js
+//Accela, Inc.
+//Copyright (C): 2010-2013
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: formlayout.js 125874 2010-11-24 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+
+Template.layout = {
+	
+	layout : function(formLayout, subgroupObj)
+	{
+		//var formLayout = BaseJS.strToJson(layout);
+		//layoutMap = <String, LayouStyle>, see:LayoutUtil.grouptGFilterScreenElementModel(..)
+		var layoutMap = formLayout.map;
+		if (!layoutMap)
+		{
+			return {};
+		}
+		this.decoratorField(subgroupObj, layoutMap);
+		//contain.innerHTML = formLayout.layoutHtml;
+		return layoutMap; 	
+	},
+	
+	innerHTML : function(contain, layout)
+	{
+		var formLayout = BaseJS.strToJson(layout);
+		contain.innerHTML = formLayout.layoutHtml;
+		return formLayout;
+	},
+	
+	/*
+	 * layoutElements:{grouName#subgroupName#fieldName1: LayouStyle, fieldName2:....}
+	 */
+	decoratorField : function(subgroupObj, layouStyle)
+	{
+		var field, key, ele;
+		var fields = subgroupObj['fields'];
+		var groupName = subgroupObj['groupName'];
+		var subGroupName = subgroupObj['subgroupName'];
+		for (var j = 0; j < fields.length; j++)
+		{
+			field = fields[j];
+			key = this.composeLayoutKey(groupName, subGroupName, field.fieldName);
+			ele = layouStyle[key];
+			if (ele)
+			{
+				BaseJS.apply(field, ele);
+			}
+		}
+	},
+	
+	composeLayoutKey : function(groupName, subGroupName, fieldName)
+	{
+		return groupName + TemplateHelper.groupSeparation + subGroupName + TemplateHelper.groupSeparation + fieldName;
+	},
+	
+	getLayoutkey : function(groupName, subGroupName, fieldName)
+	{
+		return groupName + TemplateHelper.groupSeparation + subGroupName + TemplateHelper.groupSeparation + fieldName;
+	},
+	
+	generatorStyleByLayout : function(field, isTable, noColor)
+	{
+		var tmp = field.styleLabel ? field.styleLabel : field.displayFieldName;
+		tmp = BaseJS.htmlEncode(tmp);
+		var sb = '';
+		
+		if (field.styleColor)
+		{
+			sb = sb + 'color:' + field.styleColor+'; ';
+		}
+		else if (isTable)
+		{
+			sb = sb + (noColor ? '' : 'color: #3399cc;') + 'text-align : center';
+			
+		}
+			
+		if (field.styleFont)
+		{
+			sb = sb + 'font-family:' + field.styleFont+'; ';
+		}
+		
+		if (sb.length > 0)
+		{
+					
+			sb = '<font style = "' + sb + '">' + tmp + '</font>';
+		}
+		else
+		{
+			sb = tmp;
+		}
+		
+		return sb;
+	},
+	
+	waterMask : function(field, inputObj)
+	{
+		var waterMarkStr = field['watermark'];
+		if (waterMarkStr)
+		{
+			//inputObj['watermark'] = {html: waterMaskStr, cls: 'maskColor'};
+
+			var waterMarkObj = new AV360Watermark(waterMarkStr);
+			waterMarkObj.objectId = inputObj.id;
+			if (typeof this.waterMarkArray == 'undefined' || !this.waterMarkArray)
+				this.waterMarkArray = new Array();
+			this.waterMarkArray.push(waterMarkObj);
+		}
+	}
+	
+};

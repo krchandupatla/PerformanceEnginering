@@ -1,0 +1,11 @@
+[t282]
+FileName1=t282_table-footer-right-bottom-400-12.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/menu/table-footer-right-bottom-400-12.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_282.xml
+RequestHeaderFile=t282_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t282_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

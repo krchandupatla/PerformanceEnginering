@@ -1,0 +1,11 @@
+[t324]
+FileName1=t324.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/commons/parcel/refParcel.jsp
+Total=1
+RequestHeaderFile=t324_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t324_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_324.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

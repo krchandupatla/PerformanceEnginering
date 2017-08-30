@@ -1,0 +1,11 @@
+[t150]
+FileName1=t150_menu_assets_icon.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/space-icons/menu_assets_icon.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_150.xml
+RequestHeaderFile=t150_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t150_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

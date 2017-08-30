@@ -1,0 +1,197 @@
+/**
+ * Flyout menus from main menu -- dbalmer@accela.com
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('aaMainMenuFlyout', function($rootScope, $log, $q, $state, $timeout, OverlayService) {
+
+      $log = $log.getInstance('MAIN-MENU-FLYOUT-DIRECTIVE');
+
+      return {
+        restrict: 'A',
+        replace: false,
+        link: function (scope, element, attrs) {
+
+          // PRIVATE data
+
+          var tabIndex;
+          var animating = false;
+          var flyout, focusField;
+          var trigger, triggerLink;
+          var previousDashboardState;
+
+          var mainMenu = $('#main-menu');
+          var overlayName = attrs.aaMainMenuFlyout;
+
+          // EVENT handlers
+
+          $rootScope.$on('$stateChangeStart', function (event, toState, toParams, fromState, fromParams) { // CAGAMMA-827
+            if (fromState && /dashboard/.test(fromState.name)) {
+              previousDashboardState = fromState.name;
+            }
+          });
+
+          // PRIVATE methods
+
+          /**
+           * Show the overlay, then show the flyout.
+           */
+          function show() {
+            var deferred = $q.defer();
+
+            if (tabIndex) { // restore tabindex settings
+              flyout.$('[tabindex]').attr('tabindex', tabIndex);
+            }
+
+            trigger.addClass('flyout-visible'); // expand search box
+
+            $rootScope.$broadcast('main-menu-flyout', { active: true,  overlayName:  overlayName });
+
+            triggerLink.attr('aria-expanded', true);
+
+            $timeout(function() { // wait for search menu to expand
+              flyout.addClass('active'); //.addClass('flyout-visible');
+
+              if (focusField) {
+                focusField.val('')[0].focus();
+              }
+              animating = false;
+              deferred.resolve();
+            }, Accela.animationDelay);
+
+            return deferred.promise;
+          }
+
+          /**
+           * Hide the flyout, then hide the overlay.
+           */
+          function hide() {
+            var deferred = $q.defer();
+
+            flyout.removeClass('active'); //.removeClass('flyout-visible');
+
+            $rootScope.$broadcast('main-menu-flyout', { active: false,  overlayName:  overlayName });
+
+            if (tabIndex) { // remove tabindex settings
+              flyout.$('[tabindex]').attr('tabindex', null);
+            }
+
+            $timeout(function() { // wait for fly-in, then collapse search menu
+              trigger.removeClass('flyout-visible');
+
+              triggerLink.attr('aria-expanded', false);
+              animating = false;
+
+              deferred.resolve();
+
+            }, Accela.animationDelay, false);
+
+            return deferred.promise;
+          }
+
+          /**
+           * Toggle the menu.
+           */
+          function toggle(evt) {
+            var parent;
+            var element = angular.element(evt.target);
+            var action = trigger.hasClass('flyout-visible') ? 'hide' : 'show';
+
+            if (overlayName === 'globalsearch') {
+              if ($state.is('spaces.globalSearch')) {
+                // don't show the search flyout on the the search results page
+                return;
+              } else if (scope.hasGlobalSearchResults()) {
+                // already redirected to the sticky search results
+                // but we may still need to clear the state
+                $rootScope.$broadcast('globalsearch.showCachedResults');
+                return;
+              }
+            } else if (overlayName === 'dashboard') { // CAGAMMA-827
+              parent = angular.element(evt.target.parentNode);
+              if (parent.hasClass('dashboard-tile')) {
+                if (!parent.hasClass('active')) {
+                  if (previousDashboardState) {
+                    return $state.go(previousDashboardState);
+                  }
+                }
+              }
+            }
+
+            if (!animating) { // prevent double click
+              animating = true;
+              if (action === 'hide') {
+                OverlayService.hide(evt, overlayName);
+              } else {
+                OverlayService.show(evt, overlayName);
+              }
+            }
+          }
+
+          /**
+           * Toggle the menu on keypress.
+           */
+          function keyToggle(evt) {
+            if (evt.key === 'Enter') {
+              evt.stopPropagation();
+              toggle(evt);
+            }
+          }
+
+          // INITIALIZE
+
+          $timeout(function() {
+            switch (overlayName) {
+              case 'dashboard':
+                flyout = $('#dashboard-flyout');
+                break;
+              case 'globalsearch':
+                flyout = $('#search-flyout');
+                focusField = flyout.$('input');
+                break;
+              case 'launchpad':
+                flyout = $('#launchpad-flyout');
+                break;
+              default:
+                $log.error('unhandled overlayName: ' + overlayName);
+                break;
+            }
+
+            if (Accela.Util.isEmpty(flyout)) {
+              $log.error('flyout is undefined for overlayName: ' + overlayName);
+            }
+
+            if (flyout.$('[tabindex]')) { // need to fix "Unable to get property '$' of undefined or null reference"
+              // capture current tabindex (assumes that all are the same)
+              tabIndex = flyout.$('[tabindex]').attr('tabindex');
+
+              // remove any explicit tabindex settings
+              flyout.$('[tabindex]').attr('tabindex', null);
+            }
+
+            trigger = mainMenu.$(sprintf('.%s-tile', overlayName));
+
+            triggerLink = trigger.$('a[aria-haspopup]');
+
+            OverlayService.register({
+              name: overlayName,
+              kind: 'main-menu-flyout',
+              show: show,
+              hide: hide
+            });
+
+            triggerLink.on('click', toggle);
+            triggerLink.on('keypress', keyToggle);
+
+            scope.$on('destroy', function() {
+              triggerLink.off('click', toggle);
+              triggerLink.off('keypress', keyToggle);
+            });
+          }, 2000); // HACK wait for DOM - fix this later
+        }
+      };
+    });
+})();

@@ -1,0 +1,288 @@
+(function (global) {
+  'use strict';
+
+  global.AccelaConfig = {
+    'APP_NAME': 'New Automation UX',
+    'APP_VERSION': '1.0.0',
+    'BUILD_SERVER': 'aa-inst',
+    'BUILD_TIMESTAMP': '08-01-17 19:59:27pm',
+    /* OPTIONS */
+    'USE_MOCK_SERVICES': false,
+    'LOG_CLIENT_ERRORS': true,
+    'CONSOLE_LOGGING_ENABLED': true,
+    /* LOGGING -- not currently used */
+    'LOG_URL': 'http://localhost:3000/mock/logs',
+    'LOG_ACCESS_KEY': 'qkU4zb64gQcin0CZhw/I1f0AtmNjBvE20h2cHvZgnftxiOvMcr8arkzbKXNqQ7XiZtCGiUsM+bbbb0iaG4zF0g==',
+    /* LINKS */
+    'APPLICATION_BAR_LINKS': [
+      { name: 'Help', helpID: 147, comment: 'using RoboHelp JS files' },
+      { name: 'Administration', state: 'admin', requiresAdmin: true },
+      { name: 'ClassicAdministration', state: 'classic-admin', requiresAdmin: true },
+      { name: 'SwitchToV360', url: '/portlets/switchV360AndNewUI.do?newui=N' },
+      { name: 'SignOut', url: '/security/signoff.do' }
+    ],
+    'TASK_SESSION_NAME': 'spaces.mytask-list',
+    'SESSION_TIMEOUT_MONITOR':{
+		Timeout:'',
+		AboutTimeout:'',
+		WarnTimeoutTime:'',
+		AutoLogout:'',
+		TimeoutMessage:'',
+		AboutTimeoutMsg:'',
+		MessageTitle:'',
+		OkLabel:'',
+		NoLabel:'',
+		CancelLabel:''
+    },
+    /* MAP API */
+    'MAP_API_URL': '//accela-aaqa.cloudapp.net/agis/api',
+    /* BACKEND API */
+    'API_URL': 'API_URL_DEFINED_IN_INDEX.JSP/',
+    'API_TOKEN': '82865296478037713813374737483020978260066718310551131219370433298895416936126584916880333995063769519815805188997568502535107688',
+    'SERVICES': {
+      'GLOBAL_SEARCH': {
+        'QUERY': {
+          endPoint: 'globalSearch/search.do',
+          mockEndPoint: 'mock-api/globalSearchNewLocationFormat.json'
+        }
+      },
+      'LAUNCHPAD': {
+        'CLEAR_RECENT_ACTIVITY': {
+          endPoint: 'console/consoleDailyAction.do?mode=clearHistory',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'GET_AVAILABLE_PAGES': {
+          endPoint: 'spa/launchPad.do?mode=getUserPages',
+          mockEndPoint: 'mock-api/launchpad.getAvailablePages.json'
+        },
+        'GET_FAVORITE_PAGES': {
+          endPoint: 'spa/favoritePages.do?mode=list',
+          mockEndPoint: 'mock-api/launchpad.getFavoritePages.json'
+        },
+        'GET_RECENT_ACTIVITY': {
+          endPoint: 'spa/recentlyViewed.do?mode=getRecentlyViewedItems',
+          mockEndPoint: 'mock-api/launchpad.getRecentlyViewed.json'
+        },
+        'GET_RECENT_ACTIVITY_ENTITY_PAGE': {
+          endPoint: 'spa/recentlyViewed.do?mode=getRecentlyViewedEntityPage',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'UPDATE_FAVORITE_PAGES': {
+          httpMethod: 'POST',
+          endPoint: 'spa/favoritePages.do?mode=save',
+          mockEndPoint: 'mock-api/empty.json'
+        }
+      },
+      'SPACES': {
+        'GET_SPACES': {
+          endPoint: 'spa/spacesMenu.do?mode=list',
+          mockEndPoint: 'mock-api/getUserSpaces.json'
+        },
+        'UPDATE_SPACES': {
+          httpMethod: 'POST',
+          endPoint: 'spa/spacesMenu.do?mode=save',
+          mockEndPoint: 'mock-api/empty.json'
+        }
+      },
+      'TASKS': {
+        'ASSIGN_TASK': {
+          endPoint: 'workflow/taskManagementWorkflowTasklist.do?mode=enterAssignForm',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'CLAIM_WORKFLOW': {
+          endPoint: 'workflow/taskManagementListClaim.do?mode=dashboardclaim',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'DELETE': {
+          notImplemented: true,
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'DUPLICATE': {
+          httpMethod: 'POST',
+          notImplemented: true,
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'GET_QUICK_QUERIES': {
+          endPoint: 'spa/dashboardTaskQuickQueries.do',
+          mockEndPoint: 'mock-api/getQuickQueries.json'
+        },
+        'GET_TASKS': {
+          endPoint: 'spa/dashboardTaskCards.do',
+          mockEndPoint: 'mock-api/getTasks-%s.json'
+        },
+        'GET_TASK_COUNTS': {
+          endPoint: 'spa/dashboardTaskCards.do?mode=multiAgencyTaskCounts&quickQueryId=',
+          mockEndPoint: 'mock-api/getTaskCounts.json'
+        },
+        'GET_TASK_FILTER_STATUS_LIST': {
+          notImplemented: true,
+          mockEndPoint: 'mock-api/getTaskFilterStatusList.json'
+        },
+        'REASSIGN': {
+          httpMethod: 'POST',
+          notImplemented: true,
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'REJECT_MEETING': {
+          endPoint: 'taskmanagement/taskManagementList.do?mode=rejectFromDashboard',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'RELEASE_WORKFLOW': {
+          endPoint: 'workflow/taskManagementListClaim.do?mode=dashboardrelease',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'REMOVE': {
+          httpMethod: 'POST',
+          notImplemented: true,
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'RESCHEDULE': {
+          httpMethod: 'POST',
+          notImplemented: true,
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'SET_AGENDA': {
+          httpMethod: 'POST',
+          notImplemented: true,
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'VALIDATE_REJECT_MEETING': {
+          endPoint: 'taskmanagement/taskManagementList.do?mode=validate4RejectFromDashboard',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'MANAGEMENT_INSPECTION':{
+          endPoint: 'inspection/workloadingInspectionList.do?chk_INSP=0',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'DELETE_INSPECTION_TASK':{
+          endPoint: 'taskmanagement/taskManagementInspectionList.do',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'ACCESS_ACTIVITY_DETAIL':{
+          endPoint: 'spa/dashboardActivityForm.do?value(mode)=taskActivityEdit',
+          mockEndPoint: 'mock-api/empty.json'
+        },
+        'DELETE_ACTIVITY':{
+          httpMethod: 'POST',
+          endPoint: 'spa/dashboardActivityList.do?value(mode)=taskActivityDelete',
+          mockEndPoint: 'mock-api/empty.json'
+        }
+      },
+      'USER': {
+        'GET_PROFILE': {
+          httpMethod: 'POST',
+          endPoint: 'user/userinfo.do?mode=userInfo',
+          mockEndPoint: 'mock-api/getUserProfile.json'
+        },
+        'GET_SECURITY_PROFILE': {
+          endPoint: 'spa/userSecurityProfile.do?mode=getSecurityProfileByModule',
+          mockEndPoint: 'mock-api/getUserSecurityProfile.json'
+        }
+      },
+      'RECORD': {
+        'CREATE_PARTIAL_RECORD': {
+          httpMethod: 'POST',
+          endPoint: 'intake/intakeRecordAction.do?mode=createPartialRecord',
+          mockEndPoint: 'mock-api/createPartialRecord.json'
+        },
+        'GET_ALL_STANDARD_CHOICES': {
+          endPoint: 'intake/intakeRecordAction.do?mode=getAllStandardChoices',
+          mockEndPoint: 'mock-api/empty.json',
+          comment: '&stdChoiceType=(SystemSwitch, ShareDropDown or EMSE), if no value will return all'
+        },
+        'GET_RECORD_DETAILS': {
+          endPoint: 'intake/intakeRecordAction.do?mode=getRecordDetails',
+          mockEndPoint: 'mock-api/loadPartialRecord.json'
+        },
+        'GET_RECORD_TYPE_DETAILS': {
+          endPoint: 'intake/intakeRecordAction.do?mode=getRecordTypeDetails',
+          mockEndPoint: 'mock-api/getRecordTypeDetails.json'
+        },
+        'GET_RECORD_TYPE_CONFIGURATION': {
+          endPoint: 'intake/newApplication.do',
+          mockEndPoint: 'mock-api/getRecordTypeConfiguration.json'
+        },
+        'SEARCH_INTAKE_GROUP': {
+          endPoint: 'intake/intakeGroup.do',
+          mockEndPoint: 'mock-api/searchIntakeGroup.json',
+          comment: 'called when selecting each "Choose from List" dropdown option'
+        },
+        'SEARCH_INTAKE_TYPE': {
+          endPoint: 'intake/intakeType.do',
+          mockEndPoint: 'mock-api/searchIntakeTypes.json',
+          comment: 'called when entering "Permit Name or Type"'
+        },
+        'UPDATE_PARTIAL_RECORD': {
+          httpMethod: 'POST',
+          endPoint: 'intake/intakeRecordAction.do?mode=updatePartialRecord',
+          mockEndPoint: 'mock-api/updatePartialRecord.json'
+        }
+      },
+      'LOCATION':{
+        'SEARCH':{
+          endPoint: 'intake/location.do',
+          mockEndPoint: 'mock-api/locationSearchResults.json',
+          comment: 'params: ?searchBy=GlobalAddress,GlobalParcel&queryString=foo&start=0'
+        },
+        'ADVANCE_SEARCH':{
+          httpMethod: 'POST',
+          endPoint: 'intake/location.do',
+          mockEndPoint: 'mock-api/locationSearchResults.json',
+          comment: 'params: ?mode=advancedSearch&searchBy=Address&recordType=???&start=0'
+        }
+      },
+      'AGIS':{
+        'GET_BUSINESS_DATA':{
+          httpMethod: 'POST',
+          endPoint: 'intake/intakeGISAction.do'
+        }
+      },
+      'PEOPLE':{
+      	'SEARCH':{
+      		endPoint: 'intake/intakePeopleAction.do',
+      		mockEndPoint: 'mock-api/peopleSearchResults.json',
+      		comment: 'params: ?searchBy=LicensedProfessionalArchitect,Contact&queryString=foo&start=1'
+      	},
+      	'ADVANCE_SEARCH':{
+      		httpMethod: 'POST',
+      		endPoint: 'intake/intakePeopleAction.do',
+      		mockEndPoint: 'mock-api/peopleSearchResults.json'
+      	}
+      },
+      'V360ADMIN':{
+        'SWITCH_UI':{
+          endPoint: 'switchV360AndNewUI.do',
+          mockEndPoint: 'mock-api/empty.json'
+        }
+      },
+      'I18N': {
+        'LOCALIZED_TEXT': {
+          httpMethod: 'POST',
+          endPoint: 'spa/text.do',
+          comment: 'params: ?mode=localizedText',
+          mockEndPoint: 'mock-api/localizedText.json'
+        }
+      },
+      'AGENCY': {
+        'TAB_LIST': {
+          endPoint: 'spa/switchAgency.do?mode=list',
+          mockEndPoint: 'mock-api/AgencyTabList.json'
+        },
+        'SWITCH_LIST': {
+          endPoint: 'spa/switchAgency.do?mode=init',
+          mockEndPoint: 'mock-api/AgencySwitchList.json'
+        },
+        'SWITCH_STATUS_CHECK': {
+          endPoint: '/userStatusCheck.do',
+          comment: 'params: ?switchAgency=agencyName',
+          mockEndPoint: 'mock-api/AgencySwitchStatusCheck.json'
+        },
+        'SWITCH_AGENCY': {
+          endPoint: 'spa/switchAgency.do',
+          comment: 'params: ?mode=setAgency&serviceProviderCode=DENVER',
+          mockEndPoint: 'mock-api/AgencySwitchContext.json'
+        }
+      }
+    }
+  };
+})(window);

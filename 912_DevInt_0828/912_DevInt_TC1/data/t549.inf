@@ -1,0 +1,11 @@
+[t549]
+FileName1=t549.xml
+URL1=https://outlook.office365.com/EWS/Exchange.asmx
+Total=1
+RequestHeaderFile=t549_RequestHeader.txt
+RequestBodyFile=t549_RequestBody.txt
+ResponseHeaderFile=t549_ResponseHeader.txt
+ContentType=text/xml
+SnapshotXmlFile=snapshot_549.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

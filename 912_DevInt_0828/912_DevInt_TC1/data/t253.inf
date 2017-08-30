@@ -1,0 +1,11 @@
+[t253]
+FileName1=t253_parser.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo1.4.3/dojo/parser.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_253.xml
+RequestHeaderFile=t253_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t253_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

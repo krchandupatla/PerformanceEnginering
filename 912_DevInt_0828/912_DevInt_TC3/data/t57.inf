@@ -1,0 +1,11 @@
+[t57]
+FileName1=t57_on-load.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/core/directives/on-load.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_57.xml
+RequestHeaderFile=t57_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t57_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

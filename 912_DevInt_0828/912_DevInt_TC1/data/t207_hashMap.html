@@ -1,0 +1,251 @@
+//Accela Automation
+//File: hashMap.js
+//Accela, Inc.
+//Copyright (C): 2011
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: hashMap.js 125874 2010-10-13 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+function HashMap(initialCapacity){
+	this.len = (typeof initialCapacity == 'undefined' ? 10 : initialCapacity);
+	this.table = new Array(),
+	this.length = 0;
+};
+
+function apply(o, c)
+{
+    if(o && c && typeof c == 'object'){
+        for(var p in c){
+            o[p] = c[p];
+        }
+    }
+    return o;
+};
+
+
+apply(HashMap.prototype, {
+	//find the index in table array
+	indexFor : function(h) {
+		var index = h & (this.len-1);
+		return index;
+	},
+
+	//hashmap length
+	size : function() {
+		return this.length;
+	},
+
+	//whether the hashmap is empty
+	isEmpty : function() {
+		return this.length == 0;
+	},
+
+	//put value
+	put : function(key,value) {
+		 var hash = BaseJS.hash(key);
+		 var i = this.indexFor(hash);
+		 
+		 for (var e = this.table[i]; e != null; e = e.next) {
+		  if (e.hash == hash && key == e.key) {
+		   var oldValue = e.value;
+		   e.value = value;
+		   return oldValue;
+		  }
+		 }
+	 
+		 this.addEntry(hash, key, value, i);
+		 return null;
+	},
+	
+	//add entry
+	addEntry : function(hash, key, value, bucketIndex) {
+		this.table[bucketIndex] = new this.Entry(hash, key, value, this.table[bucketIndex]);
+		this.length++;
+	},
+	
+	//whether the hash map contain the key
+	containsKey : function(key) {
+		var hash =BaseJS.hash(key);
+		var i = this.indexFor(hash);
+		var e = this.table[i]; 
+		 
+		while (e != null) {
+			if (e.hash == hash && key == e.key) 
+				return true;
+			e = e.next;
+		 }
+		 return false;
+	},
+	
+	//clear all item
+	clear : function() {
+		for (var i = 0; i < this.table.length; i++) 
+        this.table[i] = null;
+		this.length = 0;
+	},
+	
+	//remove by key
+	remove : function(key) {
+		var e = this.removeEntryForKey(key); 
+		return (e ==null ? null : e.value);
+	},
+	
+	//remove by key
+	removeEntryForKey : function(key) {
+		var hash = BaseJS.hash(key);
+		var i = this.indexFor(hash);
+		 
+		var prev = this.table[i];
+		var e = prev;
+		 
+		while (e != null) {
+			var next = e.next;
+			if (e.hash == hash && key == e.key) {
+				this.length--;
+				if (prev.equals(e)) 
+					this.table[i] = next;
+				else
+					prev.next = next;
+			   return e;
+			}
+		prev = e;
+		e = next;
+		}
+		return e;
+	},
+	
+	//get some object in hashmap
+	get : function(key) {
+		var hash =BaseJS.hash(key);
+		var i = this.indexFor(hash);
+		var e = this.table[i]; 
+
+		while (true) {
+			if (e ==null)
+				return null;
+			if (e.hash == hash && e.key == key) 
+				return e.value;
+			e = e.next;
+		}
+		return null;
+	},
+	
+	//map entry<k, v>
+	Entry : function(h,k,v,n){
+	   this.hash = h;
+	   this.value = v; 
+	   this.next = n;
+	   this.key = k;
+
+	   this.getKey=function(){
+			return this.key;
+	   }
+
+	   this.getValue=function() {
+			return this.value;
+	   }
+	   this.setValue=function(newValue) {
+			var oldValue = this.value;
+			this.value = newValue;
+			return oldValue;
+	   }
+	 
+	   this.equals=function(o){
+			var e = o;
+			var k1 = this.getKey();
+			var k2 = e.getKey();
+			var v1 = this.getValue();
+			var v2 = e.getValue();
+			return (k1 == k2 && v1 == v2);
+	   }
+
+	   this.hashCode=function() {
+			return this.key.hashCode() ^ this.value.hashCode();
+	   }
+
+	   this.toString=function() {
+			return this.getKey() + "=" + this.getValue();
+	   }
+	},
+	
+	//iterator
+	iterator : function(){
+		var i=this.table.length;
+		var next=null;
+		while(i>0 && next==null){
+			next=this.table[--i];
+		}
+
+		return new this.HashIterator(this.table,i,next);
+	},
+	
+	HashIterator : function(table,index,ne){
+		 this.table=table;
+		 this.ne=ne;                  
+		 this.index=index;
+		 this.current=null;
+		 
+		 this.hasNext=function() {
+		  return this.ne != null;
+		 }
+
+		 this.next=function() {
+		  
+		  var e = this.ne;
+		  if (e == null) 
+		   throw "No such Element";
+			
+		  var n = e.next;
+		  var t = this.table;
+		  var i = this.index;
+		  while (n == null && i > 0)
+		   n = t[--i];
+		  this.index = i;
+		  this.ne = n;
+		  this.current=e;
+
+		  return this.current;
+		}
+	},
+	
+	//put all
+	putAll : function (map){
+		var mod=false;
+		for(var it=map.iterator();it.hasNext();){
+			var e=it.next();
+			if(this.put(e.getKey(),e.getValue())) mod=true;
+		}
+		return mod;
+	},
+	
+	values : function() {
+		var next;
+		var values = [];
+		var i = 0;
+		for (var it = this.iterator(); it.hasNext();)
+		{
+			next = it.next();
+			values[i] = next.value;
+			i++;
+		}
+		return values;
+	},
+	
+	keys : function() {
+		var next;
+		var keys = [];
+		var i = 0;
+		for (var it = this.iterator(); it.hasNext();)
+		{
+			next = it.next();
+			keys[i] = next.key;
+			i++;
+		}
+		return keys;		
+	}
+});
+

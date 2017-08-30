@@ -1,0 +1,11 @@
+[t183]
+FileName1=t183.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building
+Total=1
+ContentType=text/html
+SnapshotXmlFile=snapshot_183.xml
+RequestHeaderFile=t183_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t183_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

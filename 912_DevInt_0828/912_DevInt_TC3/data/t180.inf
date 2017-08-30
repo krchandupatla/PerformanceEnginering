@@ -1,0 +1,11 @@
+[t180]
+FileName1=t180_portlet-iframe-content.css
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/styles/portlet-iframe-content.css
+Total=1
+ContentType=text/css
+SnapshotXmlFile=snapshot_180.xml
+RequestHeaderFile=t180_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t180_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

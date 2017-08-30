@@ -1,0 +1,11 @@
+[t678]
+FileName1=t678_white.gif
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/white.gif
+Total=1
+ContentType=image/gif
+SnapshotXmlFile=snapshot_678.xml
+RequestHeaderFile=t678_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t678_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

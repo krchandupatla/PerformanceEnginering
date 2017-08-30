@@ -1,0 +1,36 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.globalsearch')
+    .controller('ParcelPaginationController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($scope, GlobalSearchService) {
+
+    // PUBLIC methods
+
+    $scope.pageChanged = function (pageNum) {
+      var searchText = $scope.search.text;
+      var tabSearchResult = $scope.searchResult.parcel;
+      var start = (pageNum - 1) * tabSearchResult.limit;
+
+      tabSearchResult.currentPage = pageNum;
+
+      tabSearchResult.offset = start + 1;
+
+      tabSearchResult.to = start + tabSearchResult.limit;
+
+      if (tabSearchResult.to > tabSearchResult.totalCount) {
+        tabSearchResult.to = tabSearchResult.totalCount;
+      }
+
+      tabSearchResult.isLastPage = (tabSearchResult.to === tabSearchResult.totalCount);
+      GlobalSearchService.searchParcel(searchText, start).then(function (response) {
+    	  $scope.searchResult.parcel.items = response.data.parcelRecords;
+      });
+    };
+  }
+})();

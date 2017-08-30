@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Accept-Ranges: bytes
+ETag: W/"1406-1216444864000"
+Last-Modified: Sat, 19 Jul 2008 05:21:04 GMT
+Content-Length: 1406
+Date: Mon, 28 Aug 2017 18:13:18 GMT
+Connection: close
+

@@ -1,0 +1,11 @@
+[t670]
+FileName1=t670.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/i18n/ajax.do?mode=getDateFormat
+Total=1
+RequestHeaderFile=t670_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t670_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_670.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

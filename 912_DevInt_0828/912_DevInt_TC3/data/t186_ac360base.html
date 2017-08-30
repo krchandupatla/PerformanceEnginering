@@ -1,0 +1,2138 @@
+//Accela Automation
+//File: ac360base.js
+//Accela, Inc.
+//Copyright (C): 2010-2014
+if (typeof jQuery === "undefined")
+{
+	document.write("<script src='/portlets/framework/includes/javascript/jquery/jquery-1.11.0.min.js'></script>");  
+}
+document.write("<script src='/portlets/framework/includes/javascript/hashMap.js'></script>");
+document.write("<script src='/portlets/framework/includes/javascript/ac360ui.js'></script>");
+document.write("<script src='/portlets/framework/includes/javascript/ac360ScrollBar.js'></script>");
+document.write("<script src='/portlets/framework/includes/javascript/Ac360ToolManager.js'></script>");
+
+function getBaseURL()
+{
+	var root = location.protocol + '//' + location.host;
+	return root;
+}
+
+function isIEBrowser()
+{
+   return ("ActiveXObject" in window);	
+}
+
+var isFromFormReport = false;
+function openFormReport(reportID,printOnly)
+{
+	isFromFormReport = true;
+	var portletVarsValue = null;
+	var portletVars = document.getElementById("portletVars");
+	if (portletVars)
+	{
+		portletVarsValue = portletVars.value;
+	}
+	
+	var ids = null;
+	if (typeof getID != 'undefined') {
+		var ids = getID();
+	}
+	checkDocTemp(reportID,null,ids,printOnly,portletVarsValue, null);
+}
+
+//Get parameter value from query String
+function gup(name )
+{
+	 name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+	 var regexS = "[\\?&]"+name+"=([^&#]*)";
+	 var regex = new RegExp( regexS );
+	 var results = regex.exec( window.location.href );
+	 if( results == null )
+		return "";
+	 else
+		return results[1];
+}
+
+function getPortletVars(reportID,checkIDsStr)
+{
+	var serviceURL = window.location.href + "&getPortletVar=Y&ExportFileType=pagingCsv&reportID=" + reportID + "&IDs=" + checkIDsStr;
+	var form1 = document.getElementById(formName);
+	var ret = null;
+	AccelaDojo.xhrPost({
+			url: serviceURL,
+			sync:true,
+			handleAs:"json",
+			form: form1,
+			load: function(type, data, evt){
+				ret = type.msg;
+			},
+			error: function(type, error)
+			{
+				alert('error');
+			}
+	});
+	return ret;
+}
+
+function constructURL(urlString, portletID, formName, objectName, rowIndex, pageNo, pageSize)
+{
+	var ret = urlString + "&portletID=" + portletID + "&formName=" + formName;
+	ret = ret + "&objectName=" + objectName + "&rowIndex=" + rowIndex;
+	ret = ret + "&pageNo=" + pageNo + "&pageSize=" + pageSize;
+	return ret;
+
+}
+
+var checkIDs = null;
+function openListReport(reportID,singleWindow,IDs,printOnly,save2EDMS,hasPortletVar)
+{			
+	isFromFormReport = false;
+	if(IDs==""||IDs==null)
+	{
+		return false;
+	}
+	else
+	{
+		var IDsSplit=IDs+",null";
+		var Is=IDsSplit.split(",");
+		var lengthI=Is.length;		
+		var edmsString = '';
+		if(lengthI > 2)
+		{
+			edmsString = "&NotSaveToEDMS=Y";
+			if(save2EDMS !=null && save2EDMS=="1")
+			{
+				alert(canNotSaveReport);
+			}
+		}
+		var objectName = document.getElementById("objectName").value;
+		if (lengthI <= 2 && save2EDMS !=null && save2EDMS=="1")
+		{			
+			checkDocTemp(reportID,singleWindow,IDs,printOnly,hasPortletVar, edmsString);
+		}
+		else
+		{
+			var objectName = document.getElementById("objectName").value;
+			var pageSizeR = document.getElementById("pageSizeR");
+			var isDynaPaging = document.getElementById("isDynaPaging");
+			var viewID = getViewID();
+			var checkIDsStr = getCheckIDsStr(IDs);
+			popupReportAfterCheckDocTemp(reportID,singleWindow,IDs,printOnly,hasPortletVar,edmsString,objectName,viewID,pageSizeR,isDynaPaging,checkIDsStr,checkIDs,currModule)
+		}
+	}
+}
+
+function getCheckIDsStr(IDs)
+{
+	var rowIDs;
+	if(document.querySelectorAll)
+	{
+		rowIDs = document.querySelectorAll("input[id='ac360_list_id']");
+	}
+	else
+	{
+		rowIDs = document.getElementsByName("ac360_list_id");
+	}
+	var IDsSplit=IDs+",null";
+	var lengthI=IDsSplit.split(",").length;	
+	checkIDs = new Array(lengthI-1);
+	var checkIDsStr = "";
+	var isRaido = false;//Raido ids has no checkAll
+	var startIndex = 1;
+	if(rowIDs[0] != null && rowIDs[0].type=="radio")
+	{	
+		startIndex = 0;
+	}
+	var checkIndex = 0;
+	for(rowIndex=startIndex; rowIndex < rowIDs.length; rowIndex++)
+	{
+		if(rowIDs[rowIndex].checked)
+		{
+			checkIDs[checkIndex] = rowIndex - startIndex;
+			
+			if(checkIndex != 0)
+			{
+				checkIDsStr = checkIDsStr + ",";
+			}
+			checkIDsStr = checkIDsStr + "" + (rowIndex - startIndex);
+			
+			checkIndex++;
+		}
+	}
+	
+	return checkIDsStr;
+}
+
+function getViewID()
+{
+	var viewID = null;
+	var viewIDObject = document.getElementsByName("CurrentViewID")[0];
+	if (viewIDObject)
+	{
+		viewID = viewIDObject.value;
+	}
+	return viewID;
+}
+
+function checkDocTemp(reportId,singleWindow,IDs,printOnly,hasPortletVar, edmsString)
+{
+	var checkDocTempURL = getBaseURL() + "/portlets/reports/reportShow.do?mode=checkDocTemplate&reportId="+ reportId + "&module=" + currModule;
+	var returnData = sendHttpRequest(checkDocTempURL, null, false);
+	var data = eval("(" + returnData + ")");
+	var objectName = null;
+	if (document.getElementById("objectName"))
+	{
+		objectName = document.getElementById("objectName").value;		
+	}
+	var viewIDObject = document.getElementsByName("CurrentViewID")[0];
+	var pageSizeR = document.getElementById("pageSizeR");
+	var isDynaPaging = document.getElementById("isDynaPaging");
+	var checkIDsStr = getCheckIDsStr(IDs);
+	var viewID = getViewID();
+	
+	if (data.needShowDocTemp)
+	{
+		var url = "/portlets/reports/reportShowForDoc.do?mode=showDocTemplate&reportId=" + reportId + "&module=" + currModule
+						+ "&singleWindow=" + singleWindow + "&IDs=" + IDs + "&printOnly=" + printOnly 
+						+ "&hasPortletVar=" + hasPortletVar + "&edmsString=" + edmsString + "&objectName=" + objectName + "&portletID=" + viewID
+						+ "&pageSizeR=" + pageSizeR + "&isDynaPaging=" + isDynaPaging + "&checkIDsStr=" + checkIDsStr + "&checkIDs=" + checkIDs;
+		window.showModalDialog(url,window,'dialogWidth:700px;dialogHeight:400px;resizable:yes;scroll:yes;Minimize=yes;Maximize=yes');
+	}
+	else
+	{
+		popupReportAfterCheckDocTemp(reportId,singleWindow,IDs,printOnly,hasPortletVar,edmsString,objectName,viewID,pageSizeR,isDynaPaging,checkIDsStr,checkIDs,currModule);
+	}
+	return false;
+}
+
+
+function popupReportAfterCheckDocTemp(reportId,singleWindow,IDs,printOnly,hasPortletVar,edmsString,objectName,viewID,pageSizeR,isDynaPagingObject,checkIDsStr,checkIDs,currModule)
+{
+	var urlString = getBaseURL() + getReportURL() + "&reportId=" + reportId + "&module=" + currModule;
+	if (isFromFormReport)
+	{
+		var param = "";
+		if(viewID && viewID != null && viewID != 'null')
+		{
+			urlString = urlString + "&portletID=" + viewID;
+			if(hasPortletVar && hasPortletVar != null && hasPortletVar != 'null')
+			{
+				var jsonObj = AccelaDojo.fromJson(hasPortletVar);
+				var param = "";
+				if (jsonObj[reportId])//here need post since get query string can't have too many chars
+				{
+					param = AccelaDojo.toJson(jsonObj[reportId]);
+				}
+			}
+		}
+		
+		if (IDs != null) {
+			urlString += "&ID=" + IDs;
+		}
+		popupReport(urlString, 100, printOnly, reportId, param);
+	}
+	else
+	{
+		urlString = urlString + edmsString;
+		var pageSize = "";
+		if(pageSizeR)
+		{
+			pageSize = pageSizeR.value;
+		} 
+		
+		var isDynaPaging = false; 
+		if(isDynaPagingObject)
+		{
+			isDynaPaging = true;
+		} 
+		
+		var IDsSplit=IDs+",null";
+		var Is=IDsSplit.split(",");
+		var lengthI=Is.length;	
+		
+		var listUrl = window.location.href;
+		if(listUrl.indexOf("pageNo")== -1)
+		{
+			var pageNo = gup('page', listUrl);
+		}
+		else
+		{
+			var pageNo = gup('pageNo', listUrl);
+		}
+		var records = null;
+		var leftOffset = 100;
+		if(hasPortletVar == "Y" && isDynaPaging)
+		{
+			records = getPortletVars(reportId,checkIDsStr);
+		}
+
+		if(singleWindow=="Y")
+		{
+
+			var reportVarStr = "";
+			var parametersMap = {};
+			if(records != null)
+			{
+				//merge parameter array to one parameter 
+				fillParametersMap(parametersMap, records);
+				reportVarStr = AccelaDojo.toJson(parametersMap);
+			}
+			urlString = urlString + "&ID=" + IDs;
+			if(viewID && viewID != null && viewID != 'null')
+			{
+				urlString = constructURL(urlString, viewID, formName, objectName, checkIDsStr, pageNo, pageSize);
+			}
+			popupReport(urlString, 100, printOnly, "", reportVarStr);
+		}
+		else
+		{				
+			var reportVarStr = "";
+			if(checkIDs == null)
+			{
+				checkIDs = checkIDsStr.split(",");
+			}
+			for(var i=0;i<lengthI-1;i++)
+			{
+				if(records != null)
+				{
+					reportVarStr = AccelaDojo.toJson(records[i]);
+				}
+				leftOffset = leftOffset + i*40;
+				var reportURL = urlString + "&ID=" + Is[i];
+				if(viewID && viewID != null && viewID != 'null')
+				{
+					reportURL = constructURL(reportURL, viewID, formName, objectName, checkIDs[i], pageNo, pageSize);
+				}
+
+				popupReport(reportURL, leftOffset, printOnly, i, reportVarStr);
+			}
+			return false;
+		}
+	}
+}
+
+function getReportURL()
+{
+	return "/portlets/reports/reportShow.do?mode=show";
+}
+
+/**
+ * To popup report window, if the reportVarStr is not empty, then open one blank window, then create one form then submit it to
+ * avoid too many chars in query string for get
+ * **/
+function popupReport(urlString, leftOffset, printOnly, i, reportVarStr)
+{
+	leftOffset = getDirection() ? getScreenLeft(leftOffset,800) : leftOffset;
+	var win = window.open("/portlets/commons/report/reportFace.jsp?URL="+encodeURIComponent(urlString)+"&reportVarStr="+encodeURIComponent(reportVarStr), "reportWindow" + i, "height=600, width=800, top=75, left=" + leftOffset+",toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=yes")
+	if(printOnly=='Y')
+	{
+		window.focus();
+	}
+}
+
+function fillParametersMap(parametersMap, records)
+{
+	for(var i=0 ; i<records.length; i++)
+	{
+		if(i == 0)
+		{
+			for(var p in records[i])
+			{
+				parametersMap[p] = records[i][p];
+			}
+		}else
+		{
+			for(var p in records[i])
+			{
+				parametersMap[p] = parametersMap[p] + "," + records[i][p];
+			}
+		}
+	}
+}
+
+function getCurrentURL()
+{
+	var fieldName = "value(CurrentEntryURL)";
+	var path = document.getElementById(fieldName).value;
+	var ret = getBaseURL() + path + "&module=" + currModule;
+	return ret;
+}
+
+
+function getPortletVars(reportID,checkIDsStr)
+{
+	var serviceURL = getCurrentURL() + "&getPortletVar=Y&ExportFileType=pagingCsv&reportID=" + reportID + "&IDs=" + checkIDsStr;
+	var form1 = document.getElementById(formName);
+	var ret = null;
+	AccelaDojo.xhrPost({
+			url: serviceURL,
+			sync:true,
+			handleAs:"json",
+			form: form1,
+			load: function(type, data, evt){
+				ret = type.msg;
+			},
+			error: function(type, error)
+			{
+				alert('error == ' + error.description);
+			}
+	});
+	return ret;
+}
+
+
+function popWindowClose()
+{
+	if(window.parent)
+	{
+		if(window.top.window.frames['gbsearch'])
+		{
+			window.top.window.frames['gbsearch'].closeActiveTab();
+			
+		}
+		else
+		{
+			window.parent.close();
+		}
+		
+	} 
+	else 
+	{
+		window.close();
+	}
+	return false;
+}
+function openCapLog(urlString)
+{
+	windowOpen("/portlets"+urlString, "auditLogWindow", "height=600, width=800, top=75 ,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=yes,left="+getScreenLeft(100,800));
+}
+
+String.prototype.trim = function()
+{
+	return this.replace(/(^\s*)|(\s*$)/g,"");   
+}
+
+String.prototype.replaceAll = function(oldStr, newStr)
+{
+	return this.replace(new RegExp(oldStr,"gm"), newStr);	
+}
+
+String.prototype.unicodeAndUtf8Trim = function()
+{
+	var r = this.replace(/(^\s*)|(\s*$)/g, "");
+	r = lremoveblank(r);
+	r = rremoveblank(r);
+	return r;
+}
+
+function lremoveblank(s)
+{
+	if (s.length == 1 && s.charCodeAt(0) == 160)
+		return "";
+	if (s.charCodeAt(0) == 160)
+	{
+		s = s.substr(1, s.length - 1);
+		return lremoveblank(s);
+	}
+	else
+	{
+		return s;
+	}
+}
+
+function rremoveblank(s)
+{
+	if (s.length == 1 && s.charCodeAt(0) == 160)
+		return "";
+	if (s.charCodeAt(s.length-1) == 160)
+	{
+		s = s.substr(0, s.length - 1);
+		return rremoveblank(s);
+	}
+	else
+	{
+		return s;
+	}
+}
+
+BaseJS = {
+	
+	arrayContains : function(array, obj){
+		for(var i = 0; i < array.length; i++) {
+			if(array[i] == obj){
+				return true;
+			}
+		}
+		
+		return false;
+	},
+	
+	/**
+	 * Clone JS Object
+	 */
+	cloneAll: function (obj){
+		if(obj == null || typeof(obj) != 'object')  
+		{
+			return obj;
+		}
+			   
+		var temp = new obj.constructor();       
+		for(var key in obj)   
+		{
+			temp[key] = this.cloneAll(obj[key]); 
+		}
+	
+		return temp;  
+	},
+	
+	apply:function(o, c){
+		if(o && c && typeof c == 'object'){
+			for(var p in c){
+				if (c[p])
+					o[p] = c[p];
+			}
+		}
+		return o;
+	},
+	hashCode: function(str){
+        var h = 0;
+        var len = str.length;
+		var t=-2147483648*2;
+
+        for(var i = 0; i < len; i++){
+            h += str.charCodeAt(i);
+        }
+		
+		while(h>2147483647){
+			h+=t;
+		}
+        return ~h;
+    },
+	
+	//count the hash
+	hash : function(x){
+		var h = this.hashCode(x);
+		h += ~(h << 9);
+		h ^=  (h >>> 14);
+		h +=  (h << 4);
+		h ^=  (h >>> 10);
+		return h;
+	},
+
+	jsonToStr: function(obj){   
+		
+		var THIS = this;    
+		switch(typeof(obj)){   
+			case 'string':   
+				return '"' + obj.replace(/(["\\])/g, '\\$1') + '"';   
+			case 'array':   
+				return '[' + obj.map(THIS.jsonToStr).join(',') + ']';   
+			case 'object': 
+				 if(Object.prototype.toString.call(obj) === '[object Array]'){   
+					var strArr = [];   
+					var len = obj.length;   
+					for(var i=0; i<len; i++){   
+						strArr.push(THIS.jsonToStr(obj[i]));   
+					}   
+					return '[' + strArr.join(',') + ']';   
+				}else if(obj==null){   
+					return 'null';   	  
+				}else{   
+					var string = [];   
+					for (var property in obj) string.push(THIS.jsonToStr(property) + ':' + THIS.jsonToStr(obj[property]));   
+					return '{' + string.join(',') + '}';   
+				}   
+			case 'number':   
+				return obj;   
+			case false:   
+				return obj;   
+			 case 'boolean':
+                return obj;
+		}   
+	},
+
+	strToJson: function(str){
+		if(str != null && typeof str != 'undefined')
+		{
+			str = str.replace(/\r\n/g,"\\n"); 
+		}
+		return eval('(' + str + ')');   
+	},
+
+	createDelegate : function(object, method, args)
+    {
+        var delegate = function()
+        {
+            return method.apply(object, args);
+        }
+        return delegate;
+    },
+    
+    increase : (function(){
+		var id = 0;
+		return function(){return id++;};
+	})(),
+
+	decreaseFn : function()
+	{
+		var id = 0;
+		return function(){return --id;};
+	}(),
+	
+	addEventHandler : function (target, type, func)
+	{
+		var hasAttached = this.__addListeners(target, type, func);
+		
+		if(hasAttached)
+		{
+			return;
+		}
+		
+		if (target.addEventListener)
+		{
+		   target.addEventListener(type, this.getEventHandler(), false);
+		}
+		else if (target.attachEvent)
+		{
+		   target.attachEvent("on" + type, this.getEventHandler());
+		}
+		else
+		{
+		   target["on" + type] = this.getEventHandler();
+		}
+	},
+	
+	__addListeners: function(target, type, func)
+	{
+		var hasAttached = false;
+		if (!target.listener)
+		{
+			target.listener = {};
+		}
+		
+		if (!target.listener[type])
+		{
+			var fnArray = [func];
+			target.listener[type] = fnArray;
+		}
+		else
+		{
+			target.listener[type].push(func);
+			hasAttached = true;
+		}
+		
+		return hasAttached;
+	},
+
+//assure the listener execute sequence
+	getEventHandler: function()
+	{
+		if (this.templateListener)
+		{
+			return this.templateListener;
+		}
+		var templateListener = function(e){
+			var listener;
+			if (e.srcElement)
+			{
+				listener = e.srcElement.listener && e.srcElement.listener[e.type];	
+			}
+			else if (e.currentTarget)
+			{
+				listener = e.currentTarget.listener && e.currentTarget.listener[e.type];
+			}
+			
+			if(!listener)
+			{
+				return;
+			}
+			
+			for(var i = 0; i < listener.length; i++)
+			{
+				listener[i](e);
+			}
+		};
+		this.templateListener = templateListener;
+		return templateListener;
+	},
+
+ 	htmlEncode : function(value)
+ 	{
+		return Ac360.htmlEncode(value);
+    },
+    
+     htmlDecode : function(value)
+     {
+		return Ac360.htmlDecode(value);
+     }
+};
+
+//date check logic 
+var yearPartitioner=null;
+var yearPartitionerDefault=30; 
+//store the year partitioner for the date select 
+/**
+ * date format validate by mask
+ */
+function isValidDate( date) 
+{
+	if (date == null )
+	{
+		return false;
+	}
+	try {
+		return (validateNumberByRange( date.year, 0, 99 ) 
+				&&  validateNumberByRange( date.month, 1, 12 ) 
+				&&  validateNumberByRange( date.day, 1, 31 )
+				)
+	} catch (e) {
+		return false;
+	}
+}
+
+/**
+ * Get date object by date and date mask array.
+ * 
+ * @param dateArray
+ * @param maskArray
+ * @return date object.
+ */
+function getDateObject(dateArray, maskArray)
+{
+	if( dateArray.length != 3 || maskArray.length != 3 )
+	{
+		return null;
+	}
+	 
+	var date = {"year":-1, "yearPos":-1, "month":-1, "day": -1}; 
+	//get the index of month,day,year and use the index to get corresponding value;
+	for ( var i = 0; i < maskArray.length; i++) 
+	{
+		if (maskArray[i].indexOf("mm") >= 0) 
+		{
+			date.month = dateArray[i];
+		}
+		else if (maskArray[i].indexOf("dd") >= 0) 
+		{
+			date.day = dateArray[i];
+		}
+		else if (maskArray[i].indexOf("yy") >= 0) {
+			date.year = dateArray[i];
+			date.yearPos = i;
+		}
+	}
+	return date;
+}
+
+/**
+ * Validate Number by range.
+ *
+ * @param num - it should be a valid number
+ * @param minimum - the minimum value
+ * @param maximum - the maximum value
+ * @return
+ */
+function validateNumberByRange(num, minimum, maximum)
+{
+	return isNumber(num) &&  Number(num) >= minimum && Number(num) <= maximum;
+}
+
+/*
+* get the replace regex by the position year and slipChar
+**/
+function getYearReplacer(yearAt,slipChar,year)
+{
+	valueYear=Number(year);
+	if(yearAt==0)
+	{
+		if(valueYear>=yearPartitioner)
+		{
+			year="19"+year+slipChar;
+		}else
+		{
+			year="20"+year+slipChar;
+		}
+	}
+	else if(yearAt==2)
+	{
+		if(valueYear>=yearPartitioner)
+		{
+			year=slipChar+"19"+year;
+		}
+		else
+		{
+			year=slipChar+"20"+year;
+		}
+	}
+	if(profile.isEnabled508){
+		var alertMessage = getTextlable("error.js.dateformat.yearformat.label")+year;
+		alert(alertMessage);
+	}
+	return year;
+}
+/*
+* get the year partitioner from standard choices using ajax method
+**/
+function getYearPartitioner()
+{
+	
+	if(yearPartitioner==null||yearPartitioner=="")
+	{
+		try
+		{
+			var returnData = sendHttpRequest("/portlets/i18n/ajax.do?mode=getBizDomainByName&domainName=DATE_THRESHOLD", null, false);
+			var jsonObjs=new Array();
+			if(returnData!=null&&returnData!="")
+			{
+				jsonObjs=BaseJS.strToJson(returnData);
+				if(jsonObjs[0]['bizdomainValue']!=null&&typeof(jsonObjs[0]['bizdomainValue'])!='undefined')
+				{
+					//yearPartitioner=
+					yearPartitioner=Number(jsonObjs[0]['bizdomainValue']);
+				}
+			}
+		}
+		catch(e)
+		{
+			yearPartitioner=null;
+		}
+	}
+	return yearPartitioner;
+}
+/*
+* if user input double digital year,replace the year with the standard choices setting
+* @return true- ...; false-...
+**/
+function resetDoubleDigitalYear(dateInput,mask)
+{
+	//get the standard choice by ajax . if there is no standard choice it will use default value 30
+	
+	yearPartitioner=getYearPartitioner();
+	//check the yearPartitioner  valid
+	if(yearPartitioner == null || !isNumber(yearPartitioner) 
+			|| !validateNumberByRange(yearPartitioner , 0 , 100))
+	{
+		yearPartitioner=yearPartitionerDefault;
+	}
+	var dateStr = dateInput.value.replace(/(^\s*)|(\s*$)/ig,"");
+	var slipChar = "";
+	var year = "";
+	var dateArray = null;
+	var maskArray = null;
+	var replaceRegex = "";
+	try
+	{
+		//get the split char
+		var slipChars = new Array('-','/','\\');
+		for ( var i = 0; i < slipChars.length; i++) 
+		{
+			if(dateStr.indexOf(slipChars[i]) > 0)
+			{
+				slipChar = slipChars[i];
+				break;
+			}	
+		}
+		//hold back the invalid condition 
+		dateArray = dateStr.split(slipChar);
+		maskArray = mask.toLowerCase().split(slipChar);
+		
+		var dateObj = getDateObject(dateArray, maskArray);
+		
+		//Except day, month and year in the dateInput and date mask
+		if(mask.indexOf(slipChar) < 0 || slipChar == "" || dateObj == null
+				|| !isValidDate(dateObj))
+		{
+			//invalid input, return true.
+			return true;
+		}
+		//get the position of year in the input value, then build corresponding replaceRegex to replace the 2 digit to 4		
+		year = dateObj.year;
+		if(year.length > 2)//if user input year is 0012 or 011 or 0001
+		{
+			year = Number(year)+"";
+		}
+		if(year.length == 1 )
+		{
+			year = "0" + year;//if user input year less than 10, we will add char "0" before the year char
+		}
+		
+		//get the replace RegExp and 4 digit year 
+		if(dateObj.yearPos == 0) // yy/MM/dd 
+		{
+			replaceRegex = new RegExp("^"+dateObj.year+slipChar,"g");//get the replace regex 
+			year = getYearReplacer(dateObj.yearPos,slipChar,year);
+		}
+		else if (dateObj.yearPos == 2)   // dd/MM/yy or MM/dd/yy
+		{
+			replaceRegex = new RegExp(slipChar+dateObj.year+"$","g");//get the replace regex 
+			year = getYearReplacer(dateObj.yearPos,slipChar,year);
+		}
+		//replace the two digit year to four
+		dateStr = dateStr.replace(replaceRegex,year);
+		//fill back the 4 digit value to date input
+		dateInput.value = dateStr;
+		return false;
+	}
+	catch(e)
+	{
+		return true;
+	}	
+}
+
+/*
+*checkDate
+*/
+
+function checkDate(Input,i,currentDateStr)
+{
+	if(checkInput(Input)){
+		return;
+	}
+	if(typeof(Input) == 'string'){
+		Input=document.getElementById(Input);
+	}
+	if(checkInput(Input)){
+		return;
+	}
+	if(Input.initRealValue){
+		Input.initRealValue();
+	}
+	if(blured)
+	{
+		blured = false;
+		return;
+	}
+	var formName=document.forms[0].name;
+	var inputDateName = Input.name;
+	
+	if(userInputDate != "" && typeof(Input)!='undefined' && Input != null && Input.value != "")
+	{
+		if(inputDateName.indexOf("_value")!= -1)
+		{
+			var hidden_name = inputDateName.substring(0,inputDateName.indexOf("_value"))+"_maskformat"+inputDateName.substring((inputDateName.indexOf("_value")+7),(inputDateName.length-1));
+			var mask = eval("document."+formName+".elements[\'"+hidden_name+"\'].value");
+			if(mask.indexOf("yyyy")!=-1)
+			{
+				resetDoubleDigitalYear(Input,mask);
+			}
+			var userInputDate = (Input.value).replace(/(^\s*)|(\s*$)/ig,"");
+			var checkDateMethod = checkMask(mask);
+			
+			
+			
+			if(eval("\""+userInputDate+"\"."+checkDateMethod))
+			{
+				return true;
+			}
+			else
+			{
+				if(i == 0)
+				{	  
+					blured = true;
+				}		
+				
+				var currDate = getAgencyDateByPattern(mask);
+				Input.value = currDate;
+				if(Input.islamicValueChange){
+					Input.islamicValueChange();
+				}
+				return false;
+			
+			}
+		}
+		else
+		{
+			mask = getDateFormat();
+			if(mask.indexOf("yyyy")!=-1)
+			{
+				resetDoubleDigitalYear(Input,mask);
+			}
+			var userInputDate = (Input.value).replace(/(^\s*)|(\s*$)/ig,"");
+			
+			var checkDateMethod = "IsDate('"+mask+"')";
+			if(eval("\""+userInputDate+"\"."+checkDateMethod))
+			{
+				return true;
+			}
+			else
+			{
+				if(i==0)
+				{	           	  
+					blured = true;           	           	            	                        	 
+				}
+			
+				var currDate = getAgencyDateByPattern(mask);
+				if(profile.isEnabled508){
+					var alertMessage = getTextlable("error.js.dateformat.label")+currDate;
+					alert(alertMessage);
+				}
+				Input.value = currDate;	           	
+				Input.focus();
+				if(Input.islamicValueChange){
+					Input.islamicValueChange();
+				}
+				return false;
+			}
+		}
+	}
+}
+function checkInput(input){
+	if(typeof(input) == 'undefined' || input == null || input==''){
+		return true;
+	}
+	return false;
+}
+//add for FEIN/SSN MASK 2011-01-14
+function initMask(maskStyle, Id, hasFID)
+{
+	//Get the element who need add mask.
+	var obj = document.getElementById(Id);
+	if (!hasFID)//hasn't the fid then return;
+	{
+		if (obj)
+		{
+			var value = obj.value;
+			if (value)
+			{
+				obj.value = value.replace(new RegExp('-',"gm"),"");
+			}
+			obj.maxLength = "9";
+		}
+		return false;
+	}
+	mask(obj, maskStyle);
+}
+
+//add mask to obj
+function mask(obj, maskStyle)
+{
+	//Get mask style.
+	var mask = new AV360Mask(maskStyle);
+	   
+	if(obj != null)
+	{
+		//Attach mask.
+		mask.attach(obj);
+		mask.__matchMaskRule = function(value)
+		{
+			return true;
+		}
+	}
+}
+//add for FEIN/SSN MASK 2011-01-14	
+
+
+	/** hook using standards based prototype * */
+	function hijackStandard() {
+		XMLHttpRequest.prototype._open = XMLHttpRequest.prototype.open;
+		XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+			this.url = url;
+			
+			this._open.apply(this, arguments);
+		}
+		
+		XMLHttpRequest.prototype._send = XMLHttpRequest.prototype.send;
+		XMLHttpRequest.prototype.send = function(data) {
+			if(this.onsend != null) {
+				this.onsend.apply(this, arguments);
+			}
+			
+			this._send.apply(this, arguments);
+		}
+	}
+
+	/** ie does not properly support prototype - wrap completely * */
+	function hijackExplorer() {
+		var _XMLHttpRequest = window.XMLHttpRequest;
+		
+		function alloc_XMLHttpRequest() {
+			this.base = _XMLHttpRequest ? new _XMLHttpRequest : new window.ActiveXObject("Microsoft.XMLHTTP");
+		}
+		
+		function init_XMLHttpRequest() {
+			return new alloc_XMLHttpRequest;
+		}
+		var  stateChange = function(){
+			var args = Array.prototype.slice.call(arguments, 0);
+			var self = args[0];
+			
+			try { self.status = self.base.status; } catch (e) { }
+			try { self.statusText = self.base.statusText; } catch (e) { }
+			try { self.readyState = self.base.readyState; } catch (e) { }
+			try { self.responseText = self.base.responseText; } catch(e) { }
+			try { self.responseXML = self.base.responseXML; } catch(e) { }
+			
+			
+			//invoke proxy onreadstatechange method
+			if(self.onreadystatechange != null) {
+				self.onreadystatechange.apply(this, args[1]);
+			}
+			
+			//write token
+			token.writeToken(self.base);
+		}
+		;
+		
+		init_XMLHttpRequest.prototype = alloc_XMLHttpRequest.prototype;
+		
+		/** constants * */
+		init_XMLHttpRequest.UNSENT = 0;
+		init_XMLHttpRequest.OPENED = 1;
+		init_XMLHttpRequest.HEADERS_RECEIVED = 2;
+		init_XMLHttpRequest.LOADING = 3;
+		init_XMLHttpRequest.DONE = 4;
+		
+		/** properties * */
+		init_XMLHttpRequest.prototype.status = 0;
+		init_XMLHttpRequest.prototype.statusText = "";
+		init_XMLHttpRequest.prototype.readyState = init_XMLHttpRequest.UNSENT;
+		init_XMLHttpRequest.prototype.responseText = "";
+		init_XMLHttpRequest.prototype.responseXML = null;
+		init_XMLHttpRequest.prototype.onsend = null;
+		
+		init_XMLHttpRequest.url = null;
+		init_XMLHttpRequest.onreadystatechange = null;
+
+		/** methods * */
+		init_XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+			var self = this;
+			
+			//append token to url.
+			url = token.dealWithUrl(url, method);
+			
+			this.base.open(method, url, async, user, pass);
+			
+			this.base.onreadystatechange = function() {
+				stateChange(self, arguments);
+			}
+		};
+		
+		init_XMLHttpRequest.prototype.send = function(data) {
+			if(this.onsend != null) {
+				this.onsend.apply(this, arguments);
+			}
+			this.base.send(data);
+		}
+		
+		init_XMLHttpRequest.prototype.abort = function() {
+			this.base.abort();
+		}
+		
+		init_XMLHttpRequest.prototype.getAllResponseHeaders = function() {
+			return this.base.getAllResponseHeaders();
+		}
+		
+		init_XMLHttpRequest.prototype.getResponseHeader = function(name) {
+			return this.base.getResponseHeader(name);
+		}
+		
+		init_XMLHttpRequest.prototype.setRequestHeader = function(name, value) {
+			return this.base.setRequestHeader(name, value);
+		}
+		
+		/** hook * */
+		XMLHttpRequest = window.XMLHttpRequest = init_XMLHttpRequest;
+	}
+
+	function hijackAJAX()
+	{
+		if(!!window.ActiveXObject || "ActiveXObject" in window || navigator.userAgent.indexOf("Chrome")>=1) {
+			hijackExplorer();
+		} else {
+			hijackStandard();
+		}
+
+		XMLHttpRequest.prototype.onsend = function(data) {
+			this.setRequestHeader("X-Requested-With", "X_REQUESTED_WITH");
+		};
+	}
+	
+	
+	if (typeof(profile) != "undefined"
+		&& profile != null
+		&& profile.enableSecurityDefense)
+	{
+		hijackAJAX();		
+	}
+	
+
+	
+	
+//======================================below is use in sesstion time out===========================================	
+var bakTime = 0;
+var localLatestTime = new Date().getTime();
+var bChanged = false;
+var redirectURL = "";
+
+//utility function called by getCookie()
+function getCookieVal(offset)
+{
+	var endstr = document.cookie.indexOf(";", offset);
+	if(endstr == -1)
+	{
+		endstr = document.cookie.length;
+	}
+	return unescape(document.cookie.substring(offset, endstr));
+}
+
+// primary function to retrieve cookie by name
+function getCookie(name)
+{
+	var arg = name + "=";
+	var alen = arg.length;
+	var clen = document.cookie.length;
+	var i = 0;
+	while(i < clen)
+	{
+		var j = i + alen;
+		if (document.cookie.substring(i, j) == arg)
+		{
+			return getCookieVal(j);
+		}
+		i = document.cookie.indexOf(" ", i) + 1;
+		if(i == 0) break;
+	}
+	return null;
+}
+
+function timeoutTimer() 
+{
+	var latestTime = getCookie("LASTEST_REQUEST_TIME");
+	if (latestTime != null && latestTime != "")
+	{
+		latestTime = latestTime * 1;
+		if (latestTime != bakTime)
+		{
+			if (sessionTimeOutWarnObj.userHasCancelWork == false)
+			{
+				localLatestTime = new Date().getTime();
+				bakTime = latestTime;
+			}
+		}
+	}
+	
+	var tmpTime = new Date().getTime() - localLatestTime;
+
+	if (tmpTime > timeout || document.cookie.indexOf("ACSignoff") == -1)
+	{
+		logout();
+	}
+	else if (tmpTime > warnTimeoutTime && warnTimeoutTime > 0)//prompt warn window to user the session about time out.
+	{
+		sessionTimeOutWarnObj.warnTimeout();	
+	}
+}
+
+var sessionTimeOutWarnObj = {
+
+	//invoke remote refresh session update local time.
+	renewSession : function() {	
+		var url = "/portlets/framework/includes/error/empty.jsp";
+		var content = sendHttpRequest(url, "", false);
+		if (content)
+		{
+			sessionTimeOutWarnObj.renewAlertWin();
+		}
+	},
+
+	cancelAlertWin : function() {
+		this.userHasCancelWork = true;
+	},
+	
+	renewAlertWin : function() {
+		this.userHasCancelWork = false;
+	},
+	
+	//when child window close by customer.
+	closePopWindow : function() {
+		if (sessionTimeOutWarnObj.warnWindow)
+			sessionTimeOutWarnObj.warnWindow.closeWin();
+		top.clearInterval(top.refreshWarnMsgId);
+	},
+
+	warnTimeout : function(){
+		if (this.userHasCancelWork || this.getAboutTimeout() < 0)
+			return false;
+		this.cancelAlertWin();
+		sessionTimeOutWarnObj.tmpaboutTimeout = this.getAboutTimeout();
+		
+		this.warnWindow = window.showModalDialog("/portlets/framework/includes/error/timeoutwarn.jsp",window,'dialogWidth=550px;dialogHeight=100px;location=no;dependent=no;resizable=no;toolbar=no;status=no;directories=no;menubar=no;scrollbars=no',false);
+	
+	},
+	
+	updateMsg : function()
+	{
+		var message = sessionTimeOutWarnObj.getWarnMsg();
+		if (document.getElementById("_msgContent")){
+			document.getElementById("_msgContent").innerHTML = message;
+			scrollBarIssue.autoAdjustForErrorMsgDisplay();
+		}	
+	},	
+	//when use cancel, the warn window don't open.
+	userHasCancelWork: false,
+	
+	getAboutTimeout : function(){
+		return aboutTimeout
+	},
+	
+	getWarnMsg: function()
+	{
+		
+		if (sessionTimeOutWarnObj.tmpaboutTimeout <= 0)
+		{
+			sessionTimeOutWarnObj.closePopWindow();
+			var message = aboutTimeoutMsg.replace("{0}", 0);
+			return message;
+		}
+		var message = aboutTimeoutMsg.replace("{0}", sessionTimeOutWarnObj.tmpaboutTimeout);
+		sessionTimeOutWarnObj.tmpaboutTimeout = sessionTimeOutWarnObj.tmpaboutTimeout - 1;
+		return message;
+	}
+	
+}
+
+function setTimeoutTimer()
+{
+	var servProvCode = getCookie("ACAPersistLoginServProvCode");
+	var hostSignOn = getCookie("hostSignOn");
+	var ACSignOnModule = getCookie("ACSignOnModule");
+	redirectUrl = "/ssoAdapter/logoutAction.do?automaticLogout=true&hostSignOn=" + hostSignOn;
+	try 
+	{
+		if (typeof(top.timeout_watcher) != 'undefined')
+		{
+			top.clearInterval(top.timeout_watcher);
+		}
+		
+		if (timeout > 0)
+		{
+			top.timeout_watcher = top.setInterval(timeoutTimer, 1000);
+		}
+	}
+	catch (e) {}
+}
+
+function logout() 
+{
+	top.clearInterval(top.timeout_watcher);
+	if (autoLogout) 
+	{
+		window.top.location.href = redirectUrl;
+	}
+	else
+	{
+		sessionTimeOutWarnObj.closePopWindow();
+		alert(timeoutMessage);
+	}
+}
+/**
+ * 
+ * @param url the content url required!
+ * @param width required!
+ * @param height required!
+ * @param title required!
+ * @param contentType  required!
+ * @param scrollType 
+ * @param callDocument if do not need return dom to call document,the value must be null.
+ * 					   otherwise the callDocument must be the caller document. 
+ * 					   we can get in these ways:
+ * 					   parent.acPop.info.callDocument:get the caller document.
+ * 					   parent.acPop.info.callDocument.Script.window:get the window object of the caller.
+ * 					   then you can use parent.acPop.info.callDocument.Script.window instead of parent. 
+ * @return
+ */
+function createPopInApp(url,width,height,title,contentType,scrollType,callDocument,customMargin,callBack)
+{
+	var current = 'this.parent';
+	for(var i = 1;i<=10;i++)
+	{
+		if(typeof(eval(current + '.acPop')) == 'undefined')
+		{
+			current = current +'.parent';
+		}
+		else
+		{
+			break;
+		}
+	}
+	
+	var topPop = eval(current + '.acPop');
+	
+	if(typeof(topPop) == 'undefined')
+	{
+		var currentFrame = scrollBarIssue.getFrameElement(callDocument);
+		if(scrollBarIssue.judgeIsObj(currentFrame))
+		{
+			currentFrame.contentWindow.tempPop = topPop;
+		}
+		else if(scrollBarIssue.isPopUpWindow(callDocument))
+		{
+			window.tempPop = topPop;
+		}
+		topPop = new Popup({ contentType:1,scrollType:false,isReloadOnClose:false,width:500,height:330,layout:""});
+	}
+	//width = (width/window.screen.availWidth * document.body.clientWidth) > 200 ? (width/window.screen.availWidth * document.body.clientWidth) : 200;
+	//height = (height/(window.screen.availHeight - 120) * document.body.clientHeight) > 300 ? (height/window.screen.availHeight * document.body.clientHeight) : 300;
+	topPop.setContent("title",title);
+	topPop.setContent("width",width);
+	topPop.setContent("height",height);
+	topPop.setContent("scrollType",scrollType);
+	topPop.setContent("contentType",contentType);
+	topPop.setContent("contentUrl",url);
+	if(callBack)
+	{
+		topPop.setContent("callBackAfterClose",callBack);
+	}
+	else
+	{
+		topPop.setContent("callBackAfterClose", null);
+	}
+	if(callDocument != null)
+	{
+		topPop.setContent("callDocument",callDocument);
+	}
+	if(typeof customMargin != 'undefined')
+	{
+		topPop.setContent("customMargin",customMargin);
+	}
+	else
+	{
+		topPop.setContent("customMargin","0 10px"); // set default margin
+	}
+	topPop.build();
+	topPop.show();
+	return topPop;
+	//alert(this.parent.parent.parent.parent.parent.parent.acPop);
+}
+//======================================above is use in sesstion time out===========================================
+
+
+//======================================check the style is standard or simple begin===========================
+//use in new style
+function getTabTop()
+{
+	var _$mainContent = document.getElementById('_$mainContent');
+	if (_$mainContent)
+		return _$mainContent.offsetTop;
+	return 0;
+}
+
+function getThemeFolder()
+{
+	if (typeof(profile) != "undefined")
+		return profile.theme;
+	return 'sky_blue';
+}
+
+//define in default.vm, this should add in style
+var primaryAPOBackground = '#FFFFFF';
+
+//======================================check the style is standard or simple end===========================
+
+//====================================== Begin For Jetspeed ===========================
+
+function jetspeediframeResize()
+{// Need QA to test the SalesForce ID: 11ACC-01570 for the change.
+}
+
+function initPage()
+{
+	iframeResize();
+}
+
+function ajdustv360listdiv(winObj)
+{
+	
+}
+
+
+function refreshFrame(obj,framename)
+{
+	if(document.getElementById(framename)!=null)
+	{
+		if(framename == 'mytasks' || framename == 'gbsearch')
+		{
+			document.getElementById(framename).src = document.getElementById(framename).src;
+		}
+		else
+		{
+			  var targetURL=document.getElementById(framename).contentWindow.location+"";
+			  // If current domain come from third-part, e.g. http://www.yahoo.com, then use iframe.src as it url.
+			  if (!targetURL)
+			  {
+				  document.getElementById(framename).src = document.getElementById(framename).src;
+			  }
+			  else
+			  {
+				  if(targetURL.indexOf("refreshFrame")<0)
+				  {
+					  if(targetURL.indexOf("?")<0)
+					  {
+						  targetURL=targetURL+"?refreshFrame=Y";						  
+					  }
+					  else
+					  {
+						  targetURL=targetURL+"&refreshFrame=Y";						  						    
+					  }						    
+				  }
+				  document.getElementById(framename).contentWindow.location = targetURL;	
+			  }
+		}
+	}
+}
+function minimizeFrame(obj,framename, restoreAlt)
+{		
+	if(document.getElementById(framename)!=null && document.getElementById(framename).style.display != 'none')
+	{		
+		document.getElementById(framename).style.display = 'none';
+		iframeResize();
+		var   oParent   =   obj.parentNode;
+		var   pChild3   =   oParent.children[2];
+		var   minimizeAlt = obj.children[0].alt;
+		obj.onclick = function()
+		{
+			restoreMinFrame(obj,framename,minimizeAlt); 
+			return false;			
+		};
+		
+		//For new UI, it add below event to changed their icons as mouse move on them
+		obj.onmouseover = function()
+		{
+			obj.children[0].src =getReplacePic(obj.children[0].src,'btn_restore_hover.png');
+		}
+		
+		obj.onmouseout = function()
+		{
+			obj.children[0].src =getReplacePic(obj.children[0].src,'restore.gif');
+		}
+		
+		obj.children[0].src = getReplacePic(obj.children[0].src, 'restore.gif');
+		obj.children[0].alt = restoreAlt;
+		obj.title = 'restore';
+		if (pChild3) {
+			//pChild3.style.display = 'none';
+			pChild3.style.visibility = "hidden";
+		}					
+	}
+}
+
+function getReplacePic(srcPath,pic)
+{
+	var lastIndex = srcPath.lastIndexOf("/")
+	var allStr= '';
+	if(lastIndex != -1)
+	{
+		var beginSect = srcPath.substring(0,lastIndex);
+		allStr = beginSect +"/"+pic;
+	}
+	else
+	{
+		allStr = srcPath;
+	}
+	
+	return allStr;
+}
+
+function restoreMinFrame(obj,framename,minimizeAlt)
+{
+	if(document.getElementById(framename)!=null && document.getElementById(framename).style.display == 'none')
+	{		
+		document.getElementById(framename).style.display = 'block';
+		
+		var   oParent   =   obj.parentNode;
+		var   pChild3   =   oParent.children[2];
+		var   restoreAlt = obj.children[0].alt;
+		obj.onclick = function()
+		{
+			minimizeFrame(obj,framename,restoreAlt); 
+			return false;			
+		};
+		
+		//For new UI, it add below events to changed their icons as mouse move on them
+		obj.onmouseover = function()
+		{
+			obj.children[0].src = getReplacePic(obj.children[0].src,'btn_min_hover.png');
+		}
+		
+		obj.onmouseout = function()
+		{
+			obj.children[0].src = getReplacePic(obj.children[0].src,'minimize.gif');
+			}
+		
+		obj.children[0].src = getReplacePic(obj.children[0].src, 'minimize.gif');
+		obj.children[0].alt = minimizeAlt;
+		obj.title = 'minimize';
+		
+		if (pChild3) {
+			//pChild3.style.display = 'block';
+			pChild3.style.visibility = 'visible';
+		}
+		iframeResize();
+	}
+}
+
+function MM_swapImage4New(obj,destPic) 
+{ 
+	
+	if (obj!=null && !obj.disabled)
+	{
+		//Because it only have on child node
+		var childNode = obj.firstChild;
+		if(childNode)
+		{
+			if(!childNode.oSrc)
+			{
+				childNode.oSrc=childNode.src;
+			}
+			childNode.src=destPic;
+		}
+	}
+}
+
+function MM_swapImgRestore4New(obj)
+{
+	if (obj!=null && !obj.disabled)
+	{
+		//Because it only have on child node
+		var childNode = obj.firstChild;
+		if(childNode)
+		{
+			childNode.src=childNode.oSrc;
+		}
+	}
+}
+
+function getCookie(name) 
+{
+   var arrStr = document.cookie.split("; ");
+   for(var i = 0;i < arrStr.length;i ++)
+   {
+   		var temp = arrStr[i].split("=");
+    	if(temp[0] == name) return unescape(temp[1]);
+   }
+}
+function delCookie(name,cval)
+{
+    var exp = new Date();
+    exp.setTime(exp.getTime() - 1);
+	document.cookie = name+"="+escape(cval)+"; expires="+exp.toGMTString()+"; path=/";
+}
+
+var expiredDays = getCookie("LicenseExpiredDays");
+var expiredModules = getCookie("LicenseExpiredModules");
+if (expiredDays != null && expiredModules != null)
+{
+	delCookie("LicenseExpiredDays",expiredDays);
+	delCookie("LicenseExpiredModules",expiredModules);
+	window.open("/portlets/commons/productlicense/licenseExpire.jsp?LicenseExpiredDays=" + expiredDays + "&LicenseExpiredModules=" + expiredModules
+		,'','height=300, width=400, top=75, left=100,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=no');
+}
+
+function jetspeedOnLoad()
+{
+	MM_preloadImages('/jetspeed/accela/images/nav_bar_home-over.jpg');
+
+	if(typeof setGlobalFocus != 'undefined' && setGlobalFocus) return;
+	var objFrames = document.getElementsByTagName('IFRAME');
+	var focused = false;
+	for(var i=0; i<objFrames.length; i++)
+	{
+		var getFocus = focusToIframe(objFrames[i]);
+		focused = (getFocus == 1);
+		if(getFocus != 0)
+		{
+			break;
+		}
+
+	}
+	if(focused)
+	{
+		setGlobalFocus = true;
+	}
+	finishLoading = true;
+}
+
+function focusToIframe(subIframe)
+{
+	var ret = 0;
+	try{
+		if( subIframe.contentWindow.document.forms && subIframe.contentWindow.document.forms.length > 0)
+		{
+			ret = focusFirstFormElement(subIframe.contentWindow.document.forms[0]);
+			if(ret) 
+				return 1
+			else
+				return 0;
+		}
+
+		var objFrames = subIframe.contentWindow.document.getElementsByTagName('IFRAME');
+		for(var j=0; j < objFrames.length; j++)
+		{
+			if(objFrames[j].readyState == "complete")
+			{
+				if(focusFirstFormElement(objFrames[j].contentWindow.document.forms[0]))
+				{
+					ret = 1;
+					break;
+				}
+			}else
+			{
+				finishLoading = false;
+				ret = -1;
+				break;
+			}
+
+		}
+	}catch(e){}
+	return ret;
+}
+
+//Get parameter value from query String
+function gup(name, urlJudge)
+{
+	 name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+	 var regexS = "[\\?&]"+name+"=([^&#]*)";
+	 var regex = new RegExp( regexS );
+	 var results = regex.exec(urlJudge);
+	 if( results == null )
+		return "";
+	 else
+		return results[1];
+}
+
+function isFromJetspeed()
+{
+	var refer = document.referrer;
+	var isfromjet = false;
+	if(refer)
+	{
+		if (refer.indexOf("isFromPortlet=Y") > -1)
+		{
+			isfromjet = true;
+		}
+	}
+	return isfromjet;
+}
+
+//====================================== End For Jetspeed ===========================
+
+
+//get accela main table in nodes.
+function getMainTable()
+{
+	return document.getElementById('AccelaMainTable');
+}
+
+//date picker selected
+/**
+ * function to get inspection date    
+ */
+function selectDate(dateName, num, fn)
+{
+	var strToday = getAgencyDate(); 
+	//alert(dateName+"|"+num);
+	var formName = document.forms[0].name;
+	var readOnly = document.forms[0].elements[dateName].getAttribute('readonly') + "";
+	if (readOnly == "true")
+	{
+		return false;
+	}
+	// Yan Xiao - Support Netscape and Firefox (SAN# 06ACT-00000-00235): 
+	// Original code assumed that window.event is the current event.
+	// However, Firefox does not define window.event at all. As result, we need to use "this.even" instead of "even".
+	var event = (window.event) ? window.event : this.event;
+	
+	if (event)
+	{
+		var left1 = event.screenX;
+		var top1 = event.screenY;
+	}
+	
+	/*
+	if(left1+227>screen.width){
+		left1 =left1-227;
+	}
+	if(top1+175>screen.height){
+		top1 =top1-175;
+	}
+	*/
+	
+	//FixBug 57178:Calendar Widget Pop Up Window Appears Off Screen 
+	if(left1+320+20>window.screen.availWidth){
+		left1 =left1-320-20;
+	}
+	var xHeight=65;
+	if(top1+300+xHeight>window.screen.availHeight){	
+		top1=top1-300-xHeight;
+	}
+	
+	var settings = "width=320,height=300,top="+top1+",left="+left1;
+	settings += ",scrollbars=yes,resizable=no,toolbar=no,status=no,menubar=no,scrollbars=no";
+	
+	/**
+	 *  the "/portlets/commons/datapicker/dateView.jsp?" do not need sso authenticate
+	 *  the sso session id will add in cookie , to pass sso authenticate
+     */
+	var targetURL="/portlets/picker/DatePicker.do?curDate="+strToday+"&form=" + encodeURIComponent(formName) + "&inputDate=" + encodeURIComponent(dateName) + "&userInputDate=" + userInputDate;
+	
+	var userInputDate = eval("document."+formName+".elements['"+dateName+"'].value");
+	// Yan Xiao - Support Netscape and Firefox (SAN# 06ACT-00000-00235): 
+	// account for "document.getElementById('date(capModel*fileDate)) has no properties" causing date picker not working in Firefox and Netscape.
+	var inputDateName;
+	if( document.getElementsByName(dateName)[0] != undefined && document.getElementsByName(dateName)[0] != null)
+		inputDateName = eval("document.getElementsByName('"+dateName+"')[0].name");
+	else
+		inputDateName = document.getElementById(dateName).name;
+	if(inputDateName.indexOf("_value")!= -1)
+	{
+		var hidden_name = inputDateName.substring(0,inputDateName.indexOf("_value"))+"_maskformat"+inputDateName.substring((inputDateName.indexOf("_value")+7),(inputDateName.length-1));                                
+		var mask = eval("document."+formName+".elements[\'"+hidden_name+"\'].value");
+		targetURL=targetURL+"&mask=" + encodeURIComponent(mask);
+	}
+	
+	
+	if(num!=null && num.length>0)
+	{
+		targetURL=targetURL+ "&num=" + num;
+	}
+	if (typeof (fn) != 'undefined')
+	{
+		var arg = fn.call(this);
+		targetURL += ("&"+arg);
+	}
+	return openSubWindow(settings,targetURL,"DataPicker");
+}
+
+/**
+ * function to get inspection date for auto assign function.
+ */
+function selectDateForAutoAssign(dateName)
+{
+	return selectDate(dateName, '');
+}
+
+/**
+ * function to get workflow calendar.
+ * 
+ */
+function selectWorkflowDate(dateName, calendarID)
+{
+	if (calendarID == '' || calendarID == '0')
+		selectDate(dateName, '');
+	else
+		selectDate(dateName, '', function(){return "calendarID="+calendarID+"&calendarType=workflow";});
+	
+
+}
+
+//move from ac360.js
+function adjustListContainer()
+{
+	if(this.___setDHTML)
+	{
+		___setDHTML();
+	}
+}
+
+TableHelper = {
+	insertRow: function(table)
+	{	
+		var ie = isIEBrowser();
+		var row;
+		if(ie)
+		{
+			row=table.insertRow();
+		}else
+		{
+			row=table.insertRow(-1);		  
+		}	
+		return row;
+	},
+	
+	insertCell:function(row)
+	{
+		var ie = isIEBrowser();
+		var cell;
+		if(ie)
+		{
+			cell=row.insertCell();
+		}else
+		{
+			cell=row.insertCell(-1);  
+		}	
+		return cell;
+	}
+}
+
+MenuBarCorner = {
+		addUpCorner : function(width){
+			var str="";
+			str="<table id='menubar_corner_up' border='0' cellpadding='0' cellspacing='0' width='"+width+"'>";
+			str+="	<tr>";
+			str+="		<td>";
+			str+="			<table class='section-header-up'>";
+			str+="				<tr>";
+			str+="					<td class='section-header-up-left'><span style='font-size: 0px;'>&nbsp;</span></td>";
+			str+="					<td class='section-header-up-center' colSpan='10'><span style='font-size: 0px;'>&nbsp;</span></td>";
+			str+="					<td class='section-header-up-right' ><span style='font-size: 0px;'>&nbsp;</span></td>";
+			str+="				</tr>";
+			str+="			</table>";
+			str+="		</td>";
+			str+="	</tr>";
+			str+="</table>";
+			return str;
+		},
+		addDownCorner : function(width){
+			var str="";
+			str="<table id='menubar_corner_down' style='margin-bottom: 0px;' border='0' cellpadding='0' cellspacing='0' width='"+width+"'>";
+			str+="	<tr>";
+			str+="		<td>";
+			str+="			<table class='section-header-up'>";
+			str+="				<tr>";
+			str+="					<td class='section-header-down-left'><span style='font-size: 0px;'>&nbsp;</span></td>";
+			str+="					<td class='section-header-down-center' colSpan='10'><span style='font-size: 0px;'>&nbsp;</span></td>";
+			str+="					<td class='section-header-down-right'><span style='font-size: 0px;'>&nbsp;</span></td>";
+			str+="				</tr>";
+			str+="			</table>";
+			str+="		</td>";
+			str+="	</tr>";
+			str+="</table>";
+			return str;
+		},
+		addCorner : function(targetId,isLayOut){
+			var target = document.getElementById(targetId);
+			if(typeof(target)=='object'){
+				if(scrollBarIssue.judgeIsObj(target.previousSibling) && target.previousSibling.id == "menubar_corner_up"){
+					return;
+				}
+				var width = target.width!=0 ? target.width : target.offsetWidth;
+				if(width==0){
+					width="100%";
+				}
+				target.className+="menu-bar-style";
+				target.insertAdjacentHTML('beforeBegin', this.addUpCorner(width));
+				target.insertAdjacentHTML('afterEnd', this.addDownCorner(width));
+			}
+		}
+}
+
+//get element's absolutly position.
+function getAbsolutlyPosition(eleId){
+	var srcObj = document.getElementById(eleId);
+	if(srcObj==null){
+		return {"top":0,"left":0};
+	}
+	var t=srcObj.offsetTop; 
+	var l=srcObj.offsetLeft; 
+	while((srcObj = srcObj.offsetParent)){ 
+		if(srcObj.id=="_$mainContent"){
+			break;
+		}
+		t+=srcObj.offsetTop; l+=srcObj.offsetLeft; 
+	}
+	return {"top":t,"left":l};
+}
+
+tabHandle = {
+		
+	resizeTab : function()
+	{
+		var _$mainContent = document.getElementById('_$mainContent');
+		if (_$mainContent && _$mainContent.offsetHeight < 150)
+		{
+			_$mainContent.style.height = '260px';
+		}
+		if (_$mainContent)
+		{
+			_$mainContent.onresize = function(){
+			
+				var _$mainContent_top = document.getElementById('_$mainContent_top');
+				var _$mainContent_bottom = document.getElementById('_$mainContent_bottom');
+				_$mainContent_top.style.width = this.offsetWidth + 'px';
+				_$mainContent_bottom.style.width = this.offsetWidth + 'px';
+				
+			}
+		}
+	},
+		
+	setTabHeight: function()
+	{
+		var _$mainContent = document.getElementById('_$mainContent');
+		if (_$mainContent && _$mainContent.offsetHeight < 150)
+		{
+			_$mainContent.style.height = '260px';
+		}
+	}
+}
+
+
+//IE bug. when div.innerHTML="", but div height not equal 0.
+function setMsgDivHtml(msgDivId, text)
+{
+	var msgDivObj = document.getElementById(msgDivId);		
+	if(!msgDivObj || text == undefined)
+	{
+		return;
+	}
+	msgDivObj.innerHTML = text;
+
+	if(text.trim() == "")
+	{
+		if(msgDivObj.style.display != "none")
+		{
+			msgDivObj.style.display = "none";
+		}
+	} else 
+	{
+		if(msgDivObj.style.display == "none")
+		{
+			msgDivObj.style.display = "";
+		}
+	}
+}
+function getAGISWindowless()
+{
+	return true;
+}
+function setBodyColor(styleFlag,color)
+{
+	if(!styleFlag)
+	{
+		document.body.style.background = color;
+	}
+}
+
+
+/**send HttpRequest, this method move from ac360*/
+function sendHttpRequest(url, param, sync, callFn)
+{
+	var returnData = "";
+	if (Ac360.validator.isEmpty(callFn))
+	{
+		callFn = function callBack(returnTxt)
+		{
+			returnData = returnTxt;
+		}; 
+	}
+	
+	if (!Ac360)
+		return;
+	
+	var ajax = new Ac360.ajax();
+    ajax.send(url, param, callFn, sync);
+    return returnData;
+}
+
+/**send HttpRequest, this method move from ac360*/
+
+/**
+ * Get maximum display width of specified labels.
+ * 
+ * labelTextArray {String[]} an array of label text.
+ * parentEle {Html Element} Html element which the labels display in.
+ * 
+ * return {Integer) max width
+ */
+function getMaxDisplayWidth(labelTextArray, parentEle)
+{
+	if(!labelTextArray)	{
+		return 0;
+	}
+	if(labelTextArray.constructor != Array) {
+		arrText = [labelTextArray];
+	} else {
+		arrText = labelTextArray;
+	}
+
+	var odiv = document.createElement("div"),
+		maxWidth = 0, width;
+		odiv.style.position = "absolute";
+		odiv.style.left = "-1000px";
+		odiv.style.margin = "0px";
+		odiv.style.padding = "0px";
+		if(parentEle) {
+			odiv.style.fontSize = $(parentEle).css('font-size');
+			odiv.style.fontFamily = $(parentEle).css('font-family');
+			odiv.style.fontStyle = $(parentEle).css('font-style');
+		}
+		document.body.appendChild(odiv);
+
+	for(var i = 0, len = arrText.length; i < len; i++) {
+		var labelText = arrText[i];
+		if(labelText) {
+			odiv.innerHTML = labelText;
+			width = odiv.offsetWidth;
+		} else {
+			width = 0;
+		}
+		maxWidth = Math.max(width, maxWidth);
+	}
+	document.body.removeChild(odiv);
+
+	return maxWidth;
+}
+
+var ac360base = {
+	
+	stopPropagation : function(e)
+	{
+		if(scrollBarIssue.getBrowserType() == "Firefox")
+		{
+			e.stopPropagation(); 	
+		}
+	},
+	
+	getTextWidth : function(ele, str)
+	{
+		if(scrollBarIssue.judgeIsNull(str))
+		{
+			return 0;
+		}
+		var textWidth = 0;
+		if(scrollBarIssue.getBrowserType() == "IE")
+		{
+			var textRange = ele.createTextRange();
+			textWidth = textRange.boundingWidth;
+		}
+		else 
+		{
+			var span = document.createElement("DIV");  
+			document.body.appendChild(span);  
+			span.style.visibility = "hidden";  
+			span.style.whiteSpace = "nowrap";  
+			if(scrollBarIssue.judgeIsObj(ele))
+			{
+				var eleStyle = scrollBarIssue.getCurrentStyle(document, ele);
+				span.style.fontStyle = eleStyle.fontStyle;
+				span.style.fontVariant = eleStyle.fontVariant;
+				span.style.fontWeight = eleStyle.fontWeight;
+				span.style.fontSize = eleStyle.fontSize;
+				span.style.lineHeight = eleStyle.lineHeight;
+				span.style.fontFamily = eleStyle.fontFamily;
+			}
+			span.innerText = str;  
+			textWidth = span.offsetWidth;
+			scrollBarIssue.removeNode(span);
+		}
+		return textWidth;  
+	},
+	
+	//This method just be used to solve special case. Please don't use it to other places.
+	getElements : function(specialName, name, number)
+	{
+		var eles = document.getElementsByName(specialName);
+		if(scrollBarIssue.judgeIsNotNull(eles) && eles.length > 0)
+		{
+			return eles;
+		}
+		eles = document.getElementsByName(name);
+		if(scrollBarIssue.judgeIsNotNull(eles) && eles.length > 0)
+		{
+			var propertyVal = scrollBarIssue.getAttribute(eles[number], "property");
+			if(specialName == propertyVal)
+			{
+				return new Array(eles[number]);
+			}
+		}		
+	}
+};

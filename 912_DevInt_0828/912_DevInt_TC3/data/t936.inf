@@ -1,0 +1,11 @@
+[t936]
+FileName1=t936.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/security/hostSignon.do?signOff=true
+Total=1
+RequestHeaderFile=t936_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t936_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_936.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

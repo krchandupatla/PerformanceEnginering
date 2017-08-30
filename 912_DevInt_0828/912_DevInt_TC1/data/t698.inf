@@ -1,0 +1,11 @@
+[t698]
+FileName1=t698_tabRecordCount.xml
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/cap/tabRecordCount.do?module=Building&ID1=17BLD&ID2=00000&ID3=00100&xmlin=%3Croot%3E%3CcountID%3E5%3C/countID%3E%3CcountID%3E6%3C/countID%3E%3CcountID%3E2%3C/countID%3E%3CcountID%3E134%3C/countID%3E%3CcountID%3E133%3C/countID%3E%3CcountID%3E16%3C/countID%3E%3CcountID%3E15%3C/countID%3E%3CcountID%3E23%3C/countID%3E%3CcountID%3E415%3C/countID%3E%3CcountID%3E17%3C/countID%3E%3CcountID%3E397%3C/countID%3E%3CcountID%3E456%3C/countID%3E%3CcountID%3E1%3C/countID%3E%3CcountID%3E378%3C/countID%3E%3CcountID%3E21%3C/countID%3E%3CcountID%3E226%3C/countID%3E%3CcountID%3E372%3C/countID%3E%3CcountID%3E24%3C/countID%3E%3CcountID%3E379%3C/countID%3E%3CcountID%3E10%3C/countID%3E%3CcountID%3E8%3C/countID%3E%3CcountID%3E19%3C/countID%3E%3CcountID%3E373%3C/countID%3E%3CcountID%3E14%3C/countID%3E%3CcountID%3E12%3C/countID%3E%3CcountID%3E20%3C/countID%3E%3CcountID%3E13%3C/countID%3E%3CcountID%3E371%3C/countID%3E%3CcountID%3E27%3C/countID%3E%3CcountID%3E360%3C/countID%3E%3CcountID%3E3%3C/countID%3E%3CcountID%3E152%3C/countID%3E%3CcountID%3E303%3C/countID%3E%3CcountID%3E4%3C/countID%3E%3C/root%3E
+Total=1
+ContentType=text/xml
+SnapshotXmlFile=snapshot_698.xml
+RequestHeaderFile=t698_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t698_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

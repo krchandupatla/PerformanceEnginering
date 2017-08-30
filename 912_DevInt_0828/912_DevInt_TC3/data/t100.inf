@@ -1,0 +1,11 @@
+[t100]
+FileName1=t100_favorite-pages-toggle.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/automation/dashboard/launchpad/directives/favorite-pages-toggle.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_100.xml
+RequestHeaderFile=t100_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t100_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,11 @@
+[t814]
+FileName1=t814_AAHELP.html
+URL1=https://aa-pt6245.dev.accela.com:5443/docs/AAHELP.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_814.xml
+RequestHeaderFile=t814_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t814_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

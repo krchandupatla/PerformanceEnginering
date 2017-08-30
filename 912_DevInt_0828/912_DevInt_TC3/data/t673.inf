@@ -1,0 +1,11 @@
+[t673]
+FileName1=t673_base64.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/base64.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_673.xml
+RequestHeaderFile=t673_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t673_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

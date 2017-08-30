@@ -1,0 +1,11 @@
+[t124]
+FileName1=t124_ng-sortable.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/lib/custom/ng-sortable.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_124.xml
+RequestHeaderFile=t124_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t124_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

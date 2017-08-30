@@ -1,0 +1,473 @@
+//Copyright (C):2008-2009
+document.write("<script src='/portlets/framework/includes/javascript/I18N.js'></script>");
+function getAvaiable()
+{
+	try{
+		if(cashdrawer==undefined 
+		   ||receiptprinter==undefined)
+			return false;
+	}
+	catch(e)
+	{
+		return false;
+	}
+	return true;
+}
+
+function getAvaiable(deviceType)
+{
+	try{
+		if(deviceType=="cashdrawer")
+		{
+			if(cashdrawer==undefined)
+			{
+				return false;
+			}
+		}
+		else if(deviceType=="receiptprinter")
+		{
+			if(receiptprinter==undefined)
+			{
+				return false;
+			}	
+		}
+		else
+		{
+			return false;
+		}
+	}
+	catch(e)
+	{
+		return false;
+	}
+	return true;
+}
+
+function getPowerState(deviceType,logicDeviceName) 
+{
+ try{
+		var ret = true;
+		var control ;
+		var ldn;
+		if(deviceType=="cashdrawer")
+		{
+		  control = cashdrawer;
+		  if(logicDeviceName==null)
+		   ldn = "cashdrawer";
+		  else
+		   ldn = logicDeviceName;
+		}
+		else if(deviceType=="receiptprinter")
+		{
+			control = receiptprinter;
+		  if(logicDeviceName==null)
+	     ldn = "receiptprinter";
+		  else
+	     ldn = logicDeviceName;
+		}
+		else
+			return false;
+	
+		try{
+			control.Open(ldn);
+			control.ClaimDevice( 1000 )
+		}
+		catch(e)
+		{
+			//alert(e.description);
+			return false;
+		}
+	
+		if( control.ResultCode != 0) 
+		  ret = false;		
+		else
+		{
+	    	if( control.PowerState == 2002 ||
+		    	control.PowerState == 2003 ||
+	            control.PowerState == 2004)
+		      ret = false;
+		}
+		control.DeviceEnabled = false;
+		control.ReleaseDevice();
+		control.Close();
+	}
+	catch(e)
+	{
+	   return false;
+	}
+	return ret;
+}
+
+// return true if drawer opened or encounters errors
+function getDrawerOpened(logicDeviceName) 
+{
+try
+{
+		var ldn;
+	  if(logicDeviceName==null)
+		   ldn = "cashdrawer";
+	  else
+		   ldn = logicDeviceName;
+		var ret = false;
+	
+		try{
+			cashdrawer.Open(ldn);
+		}
+		catch(e)
+		{
+			return true;
+		}
+	
+		if( cashdrawer.ResultCode != 0 ) 
+		  ret = true;		
+		else
+		{
+		  cashdrawer.ClaimDevice( 1000 );
+	    	  if( cashdrawer.ResultCode != 0 ) 
+	  	  	ret = true;
+	  	  else
+	 	  {
+		    	cashdrawer.DeviceEnabled = true;
+		    	if (cashdrawer.DrawerOpened)
+		    	{
+				ret = true;
+	 	    	}
+		  }
+		}
+		cashdrawer.DeviceEnabled = false;
+		cashdrawer.ReleaseDevice();
+		cashdrawer.Close();
+	}
+	catch(e)
+	{
+	 	return true;
+	}
+	return ret;
+}
+function OpenDrawer(logicDeviceName) 
+{
+ try{
+		var ldn;
+	  if(logicDeviceName==null)
+		   ldn = "cashdrawer";
+	  else
+		   ldn = logicDeviceName;
+		var ret = true;
+	
+		try{
+			cashdrawer.Open(ldn);
+		}
+		catch(e)
+		{
+			return false;
+		}
+	
+		if( cashdrawer.ResultCode != 0 ) 
+		  ret = false;		
+		else
+		{
+		  cashdrawer.ClaimDevice( 1000 );
+	    if( cashdrawer.ResultCode != 0 ) 
+	  	  ret = false;
+	  	else
+	 		{
+		    cashdrawer.DeviceEnabled = true;
+	    	if(cashdrawer.OpenDrawer()!=0)
+		      ret = false;
+	 		}
+		}
+		cashdrawer.DeviceEnabled = false;
+		cashdrawer.ReleaseDevice();
+		cashdrawer.Close();
+	}
+	catch(e)
+	{
+		return false;
+	}
+	return ret;
+}
+
+function printreceipt(pdata ,logicDeviceName)
+{
+	var ldn;
+	var ret = true;
+	//var PTR_S_RECEIPT = new Number(2);
+	if(pdata == null)
+		return false;
+  if(logicDeviceName==null)
+	   ldn = "receiptprinter";
+  else
+	   ldn = logicDeviceName;
+
+	try{
+		receiptprinter.Open(ldn);
+	}
+	catch(e)
+	{
+		return false;
+	}
+
+
+	if( receiptprinter.ResultCode != 0 ) 
+	  ret = false;
+	else
+	{
+	  receiptprinter.ClaimDevice( 1000 );
+    if( receiptprinter.ResultCode != 0 ) 
+  	  ret = false;
+  	else
+ 		{
+	    receiptprinter.DeviceEnabled = true;
+
+			receiptprinter.AsyncMode = false;
+
+			// start to print
+			receiptprinter.PrintNormal(2,pdata);
+			//receiptprinter.PrintNormal(PTR_S_RECEIPT,pdata);
+ 		}
+	}
+
+	receiptprinter.AsyncMode = false;
+	receiptprinter.DeviceEnabled = false;
+	receiptprinter.ReleaseDevice();
+	receiptprinter.Close();
+	return ret;
+}
+
+function printslip(pdata ,logicDeviceName)
+{
+	var ldn;
+	var ret = true;
+	if(pdata==null)
+		return false;
+  if(logicDeviceName==null)
+	   ldn = "receiptprinter";
+  else
+	   ldn = logicDeviceName;
+
+	try{
+		receiptprinter.Open(ldn);
+	}
+	catch(e)
+	{
+		return false;
+	}
+
+	if( receiptprinter.ResultCode != 0 ) 
+	  ret = false;		
+	else
+	{
+	  receiptprinter.ClaimDevice( 1000 );
+    if( receiptprinter.ResultCode != 0 ) 
+  	  ret = false;
+  	else
+ 		{
+	    receiptprinter.DeviceEnabled = true;
+
+	    if(!SlpInsertion(receiptprinter,ldn))
+	    {
+        return false;
+	    }
+			// start to print
+			receiptprinter.PrintNormal(4,pdata);
+ 		}
+			SlpRemoval(receiptprinter);
+	}
+
+	receiptprinter.DeviceEnabled = false;
+	receiptprinter.ReleaseDevice();
+	receiptprinter.Close();
+	return ret;
+}
+
+function SlpInsertion(receiptprinter,ldn)
+{
+	//Insert sheet
+	bEndInsert = false;
+	SlpPrintable = 1;
+
+	while( SlpPrintable ) 
+	{
+		receiptprinter.BeginInsertion( 500 );
+		//Check a sheet/Error check
+		if( receiptprinter.ResultCode != 0 ) 
+		{
+			switch( receiptprinter.ResultCode) 
+			{
+			case 112: //OPOS_E_TIMEOUT
+				pMSG = getTextlable("error.js.opos.insertEndorsement");
+				break;
+			case 106: //OPOS_E_ILLEGAL
+				if(receiptprinter.SlpEmpty) 
+				{
+					pMSG = getTextlable("error.js.opos.removeEndorsement");
+					bEndInsert = true;
+					receiptprinter.EndInsertion();
+				}
+				else {
+					pMSG = getTextlable("error.js.opos.printerError2");
+					receiptprinter.BeginRemoval( -1 );
+				}
+				break;
+			default:
+				pMSG = getTextlable("error.js.opos.printerError2");
+			}
+        
+			lRet = confirm(pMSG + getTextlable("error.js.opos.confirm"));
+			if( bEndInsert ) 
+			{
+				receiptprinter.EndInsertion();
+				bEndInsert = false;
+			}
+			// Cancel
+			if(!lRet) 
+			{
+				receiptprinter.EndInsertion();
+				receiptprinter.BeginRemoval( -1 );
+				receiptprinter.EndRemoval();
+				return false;
+			}
+		}
+		else 
+		{
+			receiptprinter.EndInsertion();
+			pMSG = "";
+			switch( receiptprinter.ResultCode) 
+			{
+			case 114: //OPOS_E_EXTENDED
+				if( receiptprinter.ResultCodeExtended == 204 ) //OPOS_EPTR_SLP_EMPTY
+				{
+					pMSG = getTextlable("error.js.opos.insertEndorsement");
+				}
+				break;
+			case 0: //OPOS_SUCCESS
+				//Slip is removed.
+				if( receiptprinter.SlpNearEnd == true ) 
+				{
+					receiptprinter.BeginRemoval( -1 );
+					pMSG = getTextlable("error.js.opos.insertEndorsement");
+				}
+				//Cover is open.
+				else if( receiptprinter.CoverOpen) 
+				{
+					pMSG = getTextlable("error.js.opos.closeCover");
+				}
+				else {
+					// quit from while-cycle
+					SlpPrintable = 0;
+				}
+				break;
+			case 106: //OPOS_E_ILLEGAL
+				if(( receiptprinter.CoverOpen)&&( receiptprinter.SlpEmpty)) 
+				{
+					pMSG = getTextlable("error.js.opos.insertEndorsement");
+					// quit from while-cycle
+					SlpPrintable = 0;
+				}
+				else 
+				{
+					pMSG = getTextlable("error.js.opos.insertEndorsement");
+					receiptprinter.Close();
+					try{
+						receiptprinter.Open(ldn);
+					}
+					catch(e)
+					{
+						return false;
+					}
+					
+					receiptprinter.ClaimDevice( -1 );
+					receiptprinter.SetDeviceEnabled( true );
+				}
+			}
+                
+			if( pMSG != "" ) 
+			{
+				lRet = confirm(pMSG + getTextlable("error.js.opos.confirm"));
+				if(!lRet) 
+				{
+					receiptprinter.EndInsertion();
+					receiptprinter.BeginRemoval(-1);
+					receiptprinter.EndRemoval();
+					return false;
+				}
+			}
+		}
+	} // while
+	return true;
+}
+
+function SlpRemoval(receiptprinter)
+{
+	RecPrintable = 1;
+	while( RecPrintable ) 
+	{
+		receiptprinter.BeginRemoval( 5000 );
+		if( receiptprinter.ResultCode != 112 ) //OPOS_E_TIMEOUT
+			RecPrintable = 0;
+		else
+			alert(getTextlable("error.js.opos.removeSplit"));
+	}
+
+	if( receiptprinter.ResultCode != 106 ) // OPOS_E_ILLEGAL
+	{
+		RecPrintable = 1;
+		while( RecPrintable ) 
+		{
+			receiptprinter.EndRemoval();
+			if( receiptprinter.ResultCode == 0 ) //OPOS_SUCCESS
+			{
+				RecPrintable = 0;
+			}
+			else if(receiptprinter.ResultCode == 114)
+			{
+				alert(getTextlable("error.js.opos.redefineEndorsement"));
+				RecPrintable = 0;
+			}
+			else 
+			{
+				if( receiptprinter.ResultCode != 106 )
+				{
+					lRet = confirm(getTextlable("error.js.opos.printerError"));
+				}
+				//Canceled
+				if(!lRet) 
+				{
+					return false;
+				}
+			}
+		} // while
+	}
+	else 
+	{
+		receiptprinter.EndRemoval();
+	}
+
+	return true;
+}
+
+function PrePadString(str, padchar, padsize)
+{
+	var ret = str;
+
+	while (ret.length < padsize)
+	{
+		ret = padchar + ret;
+	}
+
+	return ret;
+
+}
+
+function PostPadString(str, padchar, padsize)
+{
+	var ret = str;
+
+	while (ret.length < padsize)
+	{
+		ret += padchar;
+	}
+
+	return ret;
+
+}

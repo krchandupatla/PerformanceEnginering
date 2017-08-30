@@ -1,0 +1,185 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .factory('PortletSessionStateService', service);
+
+  angular
+    .module('accela.automation')
+    .factory('UrlParsingService', urlParsingService);
+
+  /**
+   * @ngInject
+   **/
+  function service($q, $http, UrlParsingService) {
+
+    function urlContains(url, key) {
+      return url.indexOf(key) >= 0;
+    }
+
+    function getParamValueByKey(params, key) {
+      var param = _.chain(params)
+        .filter(function (item) {
+          return item.indexOf(key) >= 0;
+        })
+        .first()
+        .value();
+
+      if (!param) {
+        return null;
+      }
+
+      return param.replace(key, '');
+    }
+
+    function getParamValueByKeys(params, keys) {
+      for (var i = 0; i < keys.length; i++) {
+        var value = getParamValueByKey(params, keys[i]);
+
+        if (value) {
+          return value;
+        }
+      }
+
+      return null;
+    }
+
+    function getContactUpdateUrl(params) {
+      var contactId = getParamValueByKeys(params, ['value(contactSeqNumber)=', 'contactSequenceNumber=']);
+
+      if (!contactId || contactId === 'null') {
+        return null;
+      }
+
+      return '/portlets/spa/session.do?mode=updateRefContactID&module=' + getParamValueByKey(params, 'module=') + '&contactSeqNumber=' + contactId;
+    }
+
+    function getLicenseProfessionalUpdateUrl(params) {
+      return '/portlets/spa/session.do?mode=updateProfessionalID&module=' + getParamValueByKey(params, 'module=') + '&licSeqNbr=' + getParamValueByKey(params, 'value%28licSeqNbr%29=');
+    }
+
+    function getAddressUpdateUrl(params) {
+      var addressId = getParamValueByKeys(params, ['refAddressId=', 'value%28addressId%29=']);
+      var sourceNumber = getParamValueByKey(params, 'sourceNumber=');
+      var url = '/portlets/spa/session.do?mode=updateAddressID&module=' + getParamValueByKey(params, 'module=') + '&refAddressId=' + addressId;
+
+      if(!sourceNumber) {
+        return url;
+      }
+
+      return url + '&sourceNumber=' + sourceNumber;
+    }
+
+    function getParcelUpdateUrl(params) {
+      var parcelId = getParamValueByKeys(params, ['value%28refParcelNumber%29=', 'value%28parcelId%29=']);
+      return '/portlets/spa/session.do?mode=updateParcelID&module=' + getParamValueByKey(params, 'module=') + '&refParcelNumber=' + parcelId;
+    }
+
+    function getOwnerUpdateUrl(params) {
+      return '/portlets/spa/session.do?mode=updateOwnerID&module=' + getParamValueByKey(params, 'module=') + '&refOwnerNumber=' + getParamValueByKey(params, 'value%28refOwnerNumber%29=');
+    }
+
+    function getAssetUpdateUrl(params) {
+      return '/portlets/spa/session.do?mode=updateAssetsID&module=' + getParamValueByKey(params, 'module=') + '&g1AssetSequenceNumber=' + getParamValueByKeys(params, ['value%28g1AssetSequenceNumber%29=','g1AssetSequenceNumber=']);
+    }
+
+    function getStructuresAndEstablishmentsUpdateUrl(params) {
+      return null;
+    }
+
+    function getRecordUpdateUrl(params) {
+      var id1 = getParamValueByKey(params, 'ID1=');
+      var id2 = getParamValueByKey(params, 'ID2=');
+      var id3 = getParamValueByKey(params, 'ID3=');
+
+      if (!id1 || !id2 || !id3) {
+        return null;
+      }
+
+      return '/portlets/spa/session.do?mode=updateCapID&module=' + getParamValueByKey(params, 'module=') + '&ID1=' + id1 + '&ID2=' + id2 + '&ID3=' + id3;
+    }
+
+    function getUpdateInfo(space, url) {
+      var params = UrlParsingService.getParamaters(url);
+
+      if (urlContains(url, '/portlets/address/addressForm.do?')) {
+        return getAddressUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/refAddressForm.do?')) {
+        return getAddressUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/portlets/ams/asset/dataForm.do?')) {
+        return getAssetUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/portlets/cap/capsummary/CapTabSummary.do?')) {
+        return getRecordUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/portlets/cap/capDetail.do?')) {
+        return getRecordUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/portlets/contact/ref/refContactDetail.do?')) {
+        return getContactUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/refOwnerForm.do?')) {
+        return getOwnerUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/refParcelForm.do?')) {
+        return getParcelUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/portlets/parcel/parcelForm.do?')) {
+        return getParcelUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/portlets/professional/ref/refProfessionalDetail.do?')) {
+        return getLicenseProfessionalUpdateUrl(params);
+      }
+
+      if (urlContains(url, '/portlets/structureestablishment/refStructureForm.do')) {
+        return getStructuresAndEstablishmentsUpdateUrl(params);
+      }
+
+      return null;
+    }
+
+    function update(url) {
+      var deferred = $q.defer();
+
+      $http.get(url).then(function () {
+        return deferred.resolve(null);
+      }, function () {
+        return deferred.reject();
+      });
+
+      return deferred.promise;
+    }
+
+    return {
+      getUpdateInfo: getUpdateInfo,
+      update: update
+    };
+  }
+
+  /**
+   * @ngInject
+   **/
+  function urlParsingService() {
+
+    return {
+      getParamaters: function (url) {
+        var parser = document.createElement('a');
+        parser.href = url;
+        return parser.search.replace('?', '').split('&');
+      }
+    };
+  }
+
+})();

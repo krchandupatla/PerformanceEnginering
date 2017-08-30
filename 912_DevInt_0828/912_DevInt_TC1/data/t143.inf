@@ -1,0 +1,11 @@
+[t143]
+FileName1=t143.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/user/userinfo.do?mode=userInfo
+Total=1
+RequestHeaderFile=t143_RequestHeader.txt
+RequestBodyFile=t143_RequestBody.txt
+ResponseHeaderFile=t143_ResponseHeader.txt
+ContentType=application/x-json
+SnapshotXmlFile=snapshot_143.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,2108 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<!doctype html>
+    <html class="no-js" lang="en" dir="ltr" id="ng-app" ng-app="accela.automation" ng-strict-di="" xmlns:ng="http://angularjs.org">
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+	
+    <!--<link rel="stylesheet" href="/portlets/spa/styles/bootstrap/bootstrap.css" media="screen" />-->
+    <!--<link rel="stylesheet" href="styles/bootstrap/bootstrap-rtl.css" />-->
+    <script src="/portlets/spa/js/lib/showModalDialog.js"></script> 	
+    <script src="/portlets/spa/js/lib/windowCloseOverride.js"></script>
+
+<script language="JavaScript">
+var oldUI = false;
+var profile=new Object();
+profile.agency='FLAGSTAFF';
+profile.isEnabled508=false;
+profile.language='en_US';
+profile.theme='sky_blue';
+profile.enableSecurityDefense=false;
+profile.disableExpressionSection508=false;
+
+
+  //
+  // added by dbalmer@accela.com
+  //
+  function getDocumentIFrameById(doc, id) {
+    var listIFrame = doc.frames[id] || doc.getElementById(id);
+  }
+
+</script>
+
+
+
+
+
+
+<script language="JavaScript">
+
+var toDoNav = false;
+var navFrames = new Array();
+var doNavigation;
+var navScript;
+var isClear= true;
+var lastCapModule = 'Building';
+var currModule ='Building';
+var param="";
+var runOrder ;
+
+var isAjaxRefreshNavScript = false;
+
+function clearNavigation()
+{
+	parent.navFrames = new Array();
+	parent.toDoNav = false;
+	doNavigation=undefined;	
+}
+
+
+	if(parent)
+	{
+		if(parent.toDoNav&&parent.navFrames.length>0)
+		{
+			if(frameElement&&frameElement.id)
+			{
+				if(frameElement.id==parent.navFrames[0])
+				{
+					toDoNav = true;
+					runOrder = parent.runOrder;
+					if(parent.navFrames.length==1)
+					{
+						eval('doNavigation=function(){'+parent.navScript+'}');
+					}
+					else
+					{
+						for(var i=1;i<parent.navFrames.length;i++)
+						{
+							navFrames.push(parent.navFrames[i]);
+						}
+						navScript = parent.navScript;						
+					}
+				}
+			}
+			if(frameElement&&frameElement.id&&frameElement.id=='capForm'&&top.switchModule)
+			{
+				top.switchModule(lastCapModule);
+			}
+		}
+		if(parent.param && parent.param.length>0)
+		{
+			param = parent.param;
+		}
+	}
+	
+	if(runOrder=='before')
+	{
+		if(doNavigation)
+		{
+			doNavigation();
+			if(isClear)
+			{
+				clearNavigation();
+				frameElement.scrollIntoView(true);
+			}		
+		}
+	}
+</script>
+
+
+<script type="text/javascript" src="/portlets/framework/includes/javascript/jquery/jquery-1.11.0.min.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/Ac360ToolManager.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360base.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/widget/widget.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/memoryLeakPatch.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360InputBoxHotKey.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/popup/popup.js"></script>
+
+
+
+<script type="text/javascript">
+<!--
+var pageLoadingCircle = false;
+//-->
+</script>
+
+		<script language="JavaScript">
+			var currModule = 'Building';
+			var formName = 'refContactListActionForm';
+		</script>
+	
+
+<!--[if gte IE 8]>
+   <script type="text/javascript">
+      IEVersion = 8;
+   </script>
+<![endif]-->
+<!--[if IE 7]>
+   <script type="text/javascript">
+      IEVersion = 7;
+   </script>
+<![endif]-->
+
+
+	
+		<title>
+			Contact List
+		</title>
+		
+			<link rel="stylesheet" href="/portlets/spa/styles/bootstrap/bootstrap.css" media="screen" />
+		
+		
+		<link rel="stylesheet" type="text/css" href="/portlets/images/sky_blue/styles.css" id="stylesId"/>
+		<link rel="stylesheet" type="text/css" href="/portlets/images/sky_blue/print-styles.css" media="print"/>
+
+		<link rel="stylesheet" type="text/css" href="/portlets/spa/styles/re-skin-v2.css" id="stylesId" media="screen" />
+<script type="text/javascript" src="/portlets/framework/includes/javascript/opos.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/masked.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/myTask.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/menubar.js"></script><script type="text/javascript" src="/docs/AAHELP.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/watermark.js"></script>
+		
+
+<script type="text/javascript">
+
+/**
+ * Support open window in IE8.
+ * If user's browser is IE 8, pass the session cookie to the child window.
+ */
+function windowOpen(targetURL,name,parameters,jsessionid,path,secure)
+{	
+    var newURL = targetURL;
+	if (isIE8())
+	{	   
+	   var newtargetURL = encodeURIComponent(targetURL);	
+	   newURL = "/portlets/datapicker/popupWindow.jsp?&targetURL=" + newtargetURL;
+	   
+	   var _jsessionid = "40koDSz+4p2d-oZqzIsdKP+0";
+	   var _path = "/portlets";
+	   var _secure = "true";
+	   
+	   if (typeof(jsessionid) != 'undefined')
+	   {
+	   		_jsessionid = jsessionid;
+	   }
+	   if (typeof(path) != 'undefined')
+	   {
+	   		_path = path;
+	   }
+	   if (typeof(secure) != 'undefined')
+	   {
+	   		_secure = secure;
+	   }	   
+	   newURL = newURL + "&jsessionid=" + _jsessionid + "&path=" + _path + "&secure=" + _secure;	  
+	}	
+	return window.open(newURL, name, parameters);	
+}
+</script>
+
+		<script type="text/javascript">
+		if(!pageLoadingCircle)
+		{
+			var processBarObj = new UI.ProcessBar();
+			processBarObj.forceDestroyExceptPageLoading(processBarObj.getTargetDoc().targetDoc);
+		}
+
+		function isIE8()
+		{
+		    var ie8 = false;
+			// In firefox, we cannot get the variable 'IEVersion' defined in layoutTab.jsp
+			if (typeof(IEVersion) != 'undefined' && IEVersion == 8) 
+			{		
+				ie8 = true;
+			}	
+			return ie8;
+		}
+		<!--
+		
+		//-->
+		</script>
+
+			<script language="JavaScript">
+			var pendoOptions = '{"product":"Accela Core","userID":"e9af1fa5171aed0adbee00284a455086465aa31fc36563edabf646e11d55a6088095a23efeee0ca56703d10969d3ac54e979ab211892ee56defc91c468476a08","module":"Building","environment":"INTERNAL","serviceURL":"https://d3accju1t3mngt.cloudfront.net/js/pa.min.js","serviceID":"567a146e-65ac-46a5-7a13-b32474a4f67b","userGroup":"BuildingAdmin","agency":"FLAGSTAFF","version":"av.9.1.3.170801"}';
+			if(pendoOptions!= undefined && pendoOptions!= null && pendoOptions.length!=0){
+				var pendoData = JSON.parse(pendoOptions);
+				if(pendoData.serviceID != undefined && pendoData.serviceID != null && pendoData.serviceID.length != 0){
+					window.pendo_options = {
+					apiKey: pendoData.serviceID,
+					usePendoAgentAPI: false,
+					visitor: {
+					id: pendoData.userID,
+					userGroup: pendoData.userGroup,
+					userId: pendoData.userID
+					},
+					account: {
+					id: pendoData.agency,
+					productId: pendoData.product,
+					productVersion: pendoData.version,
+					environment: pendoData.environment,
+					module: pendoData.module
+					}
+					};
+					(function() {
+					var script = document.createElement('script');
+					script.type = 'text/javascript';
+					script.async = true;
+					script.src = pendoData.serviceURL;
+					var firstScript = document.getElementsByTagName('script')[0];
+					firstScript.parentNode.insertBefore(script, firstScript);
+					})();
+				}
+			}
+			</script>
+
+
+		<script language="JavaScript">
+						
+			var jetspeedTop = getTopIframe(this);			
+			function doPageInit()
+			{
+				try{
+					InitializeEbaCombos();
+				}catch(error){}				
+				resizePictureIFrame();
+				setFocusElement();
+				scrollBarIssue.resizeIframeNoScrollBar(scrollBarIssue.getFrameElement(document));
+			}
+						
+			var starttime = 0;
+			var showTimerID;
+			var menuheadout = true;
+			var menuentryout = true;
+
+			function delaymenu(divID, srcId)
+			{
+				if (divID == null || divID == 'undefined')
+				{
+					divID = 'Spacer';
+				}
+				//showTimerID = setInterval("showmenu('"+divID+"', '" + srcId + "')", 10);				
+				document.getElementById(divID).style.visibility = "";
+				document.getElementById(divID).style.display = "";
+				UI.positionMgr.show(srcId, divID);
+			}
+			
+			function cancelmenu()
+			{
+				clearInterval(showTimerID);
+			}
+			function hidemenu(divID)
+			{
+				if (menuheadout && menuentryout) {
+					obj = MM_findObj(divID);
+					if(obj)
+					{
+						if(obj.style.display == "none")
+						{
+							return;
+						}
+						obj.style.display = "none";
+					}					
+					MM_showHideLayers(divID,'','hidden');
+				}
+			}
+
+			function updatetime()
+			{
+				now = new Date();
+				starttime = now.getMilliseconds();
+			}
+			function hidenAsContactFloatMenu(divID)
+			{
+				if(menuentryout)
+				{
+					MM_showHideLayers(divID,'','hidden');
+				}				
+			}
+			
+		</script>
+
+	</head>
+	<body class="MarginLRXY0px srbgcolor srbgcolor" onLoad="doPageInit()">
+		<script type="text/javascript">
+			$(document).ready(function () {
+				function hideLoadingMask(){
+					window.top.$('.spinner').addClass("ng-hide");
+				}
+				try{try{
+					if(isWorkflowPage==undefined || isWorkflowPage==null || isWorkflowPage==false)
+					hideLoadingMask();
+				}catch(errtext){hideLoadingMask();}}catch(err){}
+			});
+			$(document).on("click", "#dTabsTable a", function(e){
+				try{
+					window.top.$('.spinner').removeClass("ng-hide");
+				}catch(err){}
+			});
+
+			$(window).focus(function() {
+				$.ajax({
+				type: "GET",
+				url: "/portlets/spa/session.do?mode=activateSpace&spaceName=" + 'spaces.14045',
+				success: function (data) {}
+				});
+			});
+
+			new UI.ProcessBar({"pageLoadingCircle" : pageLoadingCircle}).pageLoadingCircle();
+		</script>
+		<form id="refContactListActionForm" name="refContactListActionForm" method="post" action="/portlets/contact/ref/refContactList.do?module=Building" onsubmit="enableAllSelect" enctype="application/x-www-form-urlencoded" target="_self"><input type="hidden" name="TRANSACTION_TOKEN_KEY_FOR_REFCONTACTLISTACTIONFORM" value="4ce8676f869abe8d9b0c9efc57418636">
+		<input type="hidden" name="value(FirstEntryURL)" value="/portlets/contact/ref/refContactList.do?value(mode)=search&amp;value(lookup)=false&amp;value(usedQueryInfo)=Y&amp;module=Building">
+		<input type="hidden" name="value(CurrentEntryURL)" value="/portlets/contact/ref/refContactList.do?module=Building&amp;value(usedQueryInfo)=Y">
+		<input type="hidden" id="portlet_language" name="portlet_language" value="en_US">
+		<input type="hidden" id="refresh_target" name="refresh_target" value=""/>
+		<input type="hidden" id="refresh_url" name="refresh_url" value=""/>
+		<input type="hidden" id="buttonName" name="buttonName" value="submit"/>
+		<input type="hidden" id="modeName" name="modeName" value=""/>
+		<input type="hidden" id="module" name="module" value="Building"/>
+		<input type="hidden" name="accelasubmitbuttonname" id="accelasubmitbuttonname" value=""/>
+		<input type="hidden" name="itemName" id="itemName" value=""/>
+		<input type="hidden" id="CurrentViewID" name="CurrentViewID" value="11"/>
+		<input type="hidden" id="exceptionLogID" name="exceptionLogID" value=""/>
+
+
+		<script>
+			var pageTitle = '' === 'null' ? null : '';
+			var spaceTitle = (parent && parent.frameElement && parent.frameElement.dataset) ? parent.frameElement.dataset.spaceTitle : undefined;
+			var titleToUse = pageTitle || spaceTitle;
+			if(titleToUse) {
+				document.write('<header class="header"><h1><a href="#" onclick="returnListView()"><i class="arrow-back"></i></a><span>');
+				document.write(titleToUse + ('null' === 'null' ? '': ' - null'));
+				document.write('</span></h1><a class="refresh" href="javascript: location.reload();"></a></header>');
+			}
+		</script>
+			
+		<div class="work-space">
+	    
+		<!--<div id="work-spaces" style="height:680px">-->
+		<div class="workspace-no-utility-menu">
+		
+		<table border="0" cellpadding="0" cellspacing="0" width="100%"  ignore="all" id="top-menu-bar">
+		<tr>
+			<td>
+			<table border="0" cellpadding="0" cellspacing="0" width="100%" id="menu_bar_">
+					
+					<tr id="tr_menubar">
+						<td class="portlet-menu2">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="JavaScript">
+
+	var canNotSaveReport = 'Cannot save multiple records to EDMS. Select one record and save.';
+	var messageNoLess = "Please select at least one record."
+	var messageOnlyOne = "Please select only one record."
+	var dispIconText = true;
+	var isGeneralCAP = false;
+</script>
+
+
+
+<input type="hidden" name="generalCAPSearch" value=""  id="generalCAPSearch"/>
+<table border="0" cellspacing="0" cellpadding="0" id="menu_Bar">
+	<tr>
+	
+			
+			
+
+
+
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+				<script type="text/javascript">
+				<!--
+					var containId = "menuContain-" + Util.increase();
+					document.write("<td id='"+containId+"' nowrap>");
+					//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+					function createDropMenu(dropMenuButonObj)
+					{
+						var displayText = "true";
+						dropMenuButonObj.displayText = displayText; 
+						var dropMenuButton = new UI.DropMenuButton(dropMenuButonObj);	
+						
+							var itemId = "drop_customize";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Customize Content";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/genericview/genericviewFormSetup.do?viewID=11&dynamicPaging=true&refreshAfterCustView=false&currentMenuItem=customize&currentURl=%2Fportlets%2Fcontact%2Fref%2FrefContactList.do%3Fmodule%3DBuilding%26value%28usedQueryInfo%29%3DY&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_csv";
+							var target = "_parent";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "CSV Export";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "#";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = " SimulateClick('1', 'accelasubmitbuttonname','submit', 'target', '_parent', 'action', '/portlets/contact/ref/refContactList.do?objectName=contactList&fileName=refContactList&ExportFileType=pagingCsv&CurrentViewID=11&module=Building', 'buttonToken', '');";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_accelaPortletPagingResize";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Expand List";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "#";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = " SimulateClick('1', 'accelasubmitbuttonname','submit','itemName','accelaPortletPagingResize','refresh_target','','refresh_url','', 'target', '', 'action', '', 'presubmit', '', 'buttonToken', '');";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_quickquery";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "My Filters";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/datafilter/quickQueryList.do?viewID=11&currentURl=%2Fportlets%2Fcontact%2Fref%2FrefContactList.do%3Fmodule%3DBuilding%26value%28usedQueryInfo%29%3DY&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_viewedit";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Edit View";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/genericview/genericviewDailyAdminSetup.do?viewID=11&dynamicPaging=true&refreshAfterCustView=false&currentMenuItem=viewEdit&currentPosition=enterDailyAdmin&isList=true&currentURl=%2Fportlets%2Fcontact%2Fref%2FrefContactList.do%3Fmodule%3DBuilding%26value%28usedQueryInfo%29%3DY&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_printportlet";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Print Page";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "javascript:IEprint()";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+						
+						dropMenuButton.setSwapImg(swapImg);
+						dropMenuButton.render();	
+					}
+				
+				document.write("</td>");
+				//-->
+				</script>
+
+		</tr>
+	</table>
+</td>
+
+			<script type="text/javascript">
+				var menuValue = 'Menu';
+				var encodeMenuValue =encodeURI(menuValue);
+				var menu_item_tip = "Menu";
+				var menu_item_img = "/portlets/images/sky_blue/menu/menu_button.gif";
+				var swapImg = "/portlets/images/sky_blue/menu/menu_on.gif";
+				var menu_item_id = "menu1Link";
+				var menu_item_imgId = "menu1";
+				createDropMenu({text: menuValue, tip : menu_item_tip, img : menu_item_img, containId : containId, id : menu_item_id, imgId : menu_item_imgId});						
+			</script>
+	
+	
+
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Search';
+					var img = "/portlets/images/sky_blue/menu/search_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/search_on.gif";
+					var tip = 'Search';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="g";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/contact/ref/refContactList.do?value(mode)=search&value(lookup)=false&value(usedQueryInfo)=Y&module=Building";
+					var isImgButton = "false";
+					var id = "search";
+					var imgId = "search";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Close Matches';
+					var img = "/portlets/images/sky_blue/menu/spacer.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/spacer.gif";
+					var tip = 'Close Matches';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/contact/ref/refContactList.do?value(mode)=submit&value(lookup)=false&closeMatch=Y&value(usedQueryInfo)=Y&module=Building";
+					var isImgButton = "false";
+					var id = "closeMatch";
+					var imgId = "closeMatch";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Reset';
+					var img = "/portlets/images/sky_blue/menu/reset_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/reset_on.gif";
+					var tip = 'Reset';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="q";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/contact/ref/refContactList.do?value(mode)=listReset&newInReference=N&closeMatch=N&value(usedQueryInfo)=Y&module=Building";
+					var isImgButton = "false";
+					var id = "listReset";
+					var imgId = "listReset";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'New';
+					var img = "/portlets/images/sky_blue/menu/spacer.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/spacer.gif";
+					var tip = 'Create new contact';
+					
+					var target = "contactForm";
+					var click = "";
+					
+					var accesskey="n";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/contact/ref/refContactDetail.do?mode=new&listmode=list&newInReference=Y&refCreate=Y&module=Building";
+					var isImgButton = "false";
+					var id = "newInReference";
+					var imgId = "newInReference";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Merge';
+					var img = "/portlets/images/sky_blue/menu/arrow_merge.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/arrow_merge-on.gif";
+					var tip = 'Merge';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "javascript: selectSrcContacts()";
+					var isImgButton = "false";
+					var id = "selectTarget";
+					var imgId = "selectTarget";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+
+
+
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+				<script type="text/javascript">
+				<!--
+					var containId = "menuContain-" + Util.increase();
+					document.write("<td id='"+containId+"' nowrap>");
+					//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+					function createDropMenu(dropMenuButonObj)
+					{
+						var displayText = "true";
+						dropMenuButonObj.displayText = displayText; 
+						var dropMenuButton = new UI.DropMenuButton(dropMenuButonObj);	
+						
+							var itemId = "drop_null";
+							var target = "";
+							var isGrayout = false;
+							var circle = "null";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Contact Condition Log";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "null";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "showAudit();";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_null";
+							var target = "";
+							var isGrayout = false;
+							var circle = "null";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Contact Log";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "null";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "showContactMerge();";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+						
+						dropMenuButton.setSwapImg(swapImg);
+						dropMenuButton.render();	
+					}
+				
+				document.write("</td>");
+				//-->
+				</script>
+
+		</tr>
+	</table>
+</td>
+
+				<script type="text/javascript">
+					var menuValue = "View Log";
+					var encodeMenuValue =encodeURI(menuValue);
+					var menu_item_tip = "View Log";
+					var menu_item_img = "/portlets/images/sky_blue/menu/button_ViewHistory_normal.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/button_ViewHistory_over.gif";
+					var menu_item_name = "conditionLog";
+					var menu_item_id = menu_item_name+"Menu1Link";
+					var menu_item_imgId = menu_item_name+"Menu";
+					createDropMenu({text: menuValue, tip : menu_item_tip, img : menu_item_img, containId : containId, name : menu_item_name, id : menu_item_id, imgId : menu_item_imgId});
+				</script>
+	
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Help';
+					var img = "/portlets/images/sky_blue/menu/help_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/help_on.gif";
+					var tip = 'Help';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="z";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "javascript:ShowI18NHelp(2042)";
+					var isImgButton = "false";
+					var id = "Help";
+					var imgId = "Help";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+
+
+
+			<td nowrap style="line-height:20px">&nbsp;<LABEL FOR="">My Filters</LABEL>&nbsp;</td>
+			<td>
+				<select name="value(selectedQuickQuery)"  onchange="resetRefreshTarget();return SimulateClick('1','accelasubmitbuttonname','selectQuickQuery');" class="portlet-form-field" id="value(selectedQuickQuery)" title="Select my filters"><option value="" >--Select--</option>
+					<option value="13612" title="Main List">Main List</option></select>
+			</td>
+
+	
+	
+	
+	
+	
+	
+		
+	
+
+	
+	
+</tr>
+
+</table>
+	
+
+<input name="objectName" id="objectName" type="hidden" value="contactList">
+<input name="CheckBoxName" type="hidden" value="" id="CheckBoxName">
+<input name="MaxNumber" type="hidden" value="" id="MaxNumber">
+<input name="ExportFileType" type="hidden" value="print" id="ExportFileType">
+<input name="CurrentViewID" type="hidden" value="11" id="CurrentViewID">
+<input name="sessionIdFromWindow" type="hidden" value="40koDSz+4p2d-oZqzIsdKP+0" id="sessionIdFromWindow">
+
+<input name="listID" type="hidden" value="" id="listID">
+<input name="printType" type="hidden" value="" id="printType">
+<input name="checkBoxValue" type="hidden" value="" id="checkBoxValue"><iframe id="edms" tabindex="-1" src="/portlets/framework/includes/error/blank.jsp"  frameborder="0" width="0" height="0" marginheight="0" marginwidth="0" title="menu">&nbsp;</iframe></td>
+					</tr>
+					
+				</table>
+			</td>
+   		</tr>
+		
+		        <tr id="_error_msg_tr">
+		            <td nowrap="nowrap">
+		            	<div tabindex="0" id="err_msg">
+			                
+			            </div>
+						<div tabindex="0" id="msg">
+			                
+			            </div>
+		           </td>
+		        </tr>
+				<tr>
+					<td style="xxx-padding-left: 10px;">
+							
+					<a name="maincontent" id="maincontent" tabindex="-1"></a>
+					<table id="displayBody" border="0" cellpadding="0" cellspacing="0" width="100%">
+						<tr>
+							<td>
+								
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+djConfig = {
+		baseScriptUri: "https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo/"
+}
+</script>
+<script type="text/javascript" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo/dojo.js">
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+var CloseMatch = {
+		
+	refreshRefContactList : function()
+	{
+		var currentURL = "";
+		var currentElements = document.getElementsByName("value(CurrentEntryURL)");
+		if(currentElements && currentElements.length > 0)
+		{
+			currentURL = currentElements[0].value;
+		}
+		
+		
+		currentURL = CloseMatch.replaceOrAddParam4URL(currentURL, "showCloseMatch", "Y");
+		currentURL = CloseMatch.replaceOrAddParam4URL(currentURL, "module", "Building");
+		currentURL = CloseMatch.replaceOrAddParam4URL(currentURL, "newInReference", "Y");
+		if(currentURL.indexOf("value(mode)=") < 0 && currentURL.indexOf("mode=") < 0)
+		{
+			currentURL = currentURL + "&value(accelasubmitbuttonname)=submit";
+		}
+		window.location.href = currentURL;
+	},
+	
+	refreshContactList : function(refContactNum)
+	{
+		var mode=null;
+		if(refContactNum)
+		{
+			mode='syncDaily2Ref';
+		}
+		var url='/portlets/contact/contactList.do?value(mode)=' + mode + '&refContactNum='+refContactNum+'&module='
+				+'Building';
+		document.forms[0].action = url;
+		document.forms[0].submit();
+		try{
+			new UI.ProcessBar().render();
+		}catch(e){}
+	},
+	
+	openNewRefContactForm : function()
+	{
+		var url = "/portlets/contact/ref/refContactDetail.do?mode=new&amp;listmode=list&amp;newInReference=Y&amp;module="
+			+"Building&lookup=false&fromDaily=";
+		var sync=document.getElementById("value(sync)");
+		if(sync)
+		{
+			url+="&amp;sync="+sync.value;
+		}
+		var capcontactid=document.getElementById("value(capcontactid)");
+		if(capcontactid)
+		{
+			url+="&amp;capcontactid=" + capcontactid.value;
+		}
+		url+="&amp;value(isDisableRefContact)=";
+		window.open(url,"_blank","width=770,height=570,scrollbars=yes,resizable=yes,toolbar=no,top=10,left=10,status=no,menubar=no");
+		return false;
+	},
+
+	replaceOrAddParam4URL : function(url, paramName, paramValue)
+	{
+		var paramPosS = url.indexOf("?" + paramName + "=");
+		if(paramPosS < 0)
+		{
+			paramPosS = url.indexOf("&" + paramName + "=");
+		}
+		if(paramPosS > 0)
+		{
+			var paramPosE = url.indexOf("&", paramPosS+1);
+			if(paramPosE < 0)
+			{
+				paramPosE = url.length;
+			}
+			url = url.replace(url.substring(paramPosS+1, paramPosE), paramName+"="+encodeURI(paramValue));
+		}
+		else
+		{
+			var paramHas = url.indexOf("?");
+			if(paramHas > 0)
+			{
+				url = url + "&" + paramName + "=" + encodeURI(paramValue);
+			}
+			else
+			{
+				url = url + "?" + paramName + "=" + encodeURI(paramValue);
+			}
+		}
+		return url;
+	}
+};
+</script>
+
+<script type="text/javascript" src="/portlets/framework/includes/javascript/widget/Link.js"></script>
+<script language="JavaScript">
+	dojo.require("dojo.event.*"); 
+	dojo.require("dojo.io.*");	
+</script>
+ 
+
+
+<input type="hidden" name="value(mode)" value="searchresult" id="value(mode)">
+<input type="hidden" name="value(lookup)" value="false" id="value(lookup)">
+<input type="hidden" name="value(usedQueryInfo)" value="Y" id="value(usedQueryInfo)">
+
+
+	
+	<input type="hidden" name="showCloseMatch" value="Y" id="showCloseMatch"/>
+	<input type="hidden" name="closeMatch" value="null"  id="closeMatch"/>
+	
+<script language='javascript' id='11918c37-6286-4a24-818f-64d30e87dcc5'>
+ <!-- 
+var table = new UI.QueryEngineTable({"webPath":"portlets","tableHead":[{"label":"","htmlElementHeads":[{"elementType":"multiple_select","elementId":"chk_contactid"}],"width":0,"readOnly":false,"required":false,"id":"ac360_list_id"},{"label":"Last Name","htmlElementHeads":[{"elementType":"link","elementId":"lastName"}],"sortLink":"/portlets/contact/ref/refContactList.do?1=1&module=Building&column=lastName","width":200,"readOnly":false,"required":true,"id":"lastName"},{"label":"First Name","htmlElementHeads":[{"elementType":"text"}],"sortLink":"/portlets/contact/ref/refContactList.do?1=1&module=Building&column=firstName","width":200,"readOnly":false,"required":true,"id":"firstName"},{"label":"Phone 1","htmlElementHeads":[{"elementType":"text","elementId":"phone1"}],"sortLink":"/portlets/contact/ref/refContactList.do?1=1&module=Building&column=phone1","width":300,"readOnly":false,"required":true,"id":"phone1"},{"label":"Type","htmlElementHeads":[{"elementType":"text","elementId":"contactType"},{"elementType":"hidden","elementId":"entity_type_hidden"},{"elementType":"hidden","elementId":"refContactId"}],"sortLink":"/portlets/contact/ref/refContactList.do?1=1&module=Building&column=contactType","width":200,"readOnly":false,"required":true,"id":"contactType"},{"label":"E-mail","htmlElementHeads":[{"elementType":"text"}],"sortLink":"/portlets/contact/ref/refContactList.do?1=1&module=Building&column=email","width":100,"readOnly":false,"required":false,"id":"email"},{"label":"Preferred Channel","htmlElementHeads":[{"elementType":"text"}],"sortLink":"/portlets/contact/ref/refContactList.do?1=1&module=Building&column=preferredChannelString","width":200,"readOnly":false,"required":true,"id":"preferredChannelString"},{"label":"Organization Name","htmlElementHeads":[{"elementType":"text"}],"sortLink":"/portlets/contact/ref/refContactList.do?1=1&module=Building&column=businessName","width":150,"readOnly":false,"required":false,"id":"businessName"}],"tableBody":[{"rowClick":"showContactDetail('879988')","cells":[{"htmlElements":[{"id":"ac360_list_id-0","name":"chk_contactid","required":false,"elementId":"chk_contactid","title":"menubar.common.select.label","disValue":"879988","value":"879988","checked":false}]},{"htmlElements":[{"id":"lastName-0","name":"lastName","required":true,"elementId":"lastName","style":"width:200;","disValue":"Blige","text":"Blige","href":"/portlets/contact/ref/refContactDetail.do?value(mode)=view&value(contactSeqNumber)=879988&value(lookup)=false&isFromContactList=true&module=Building","target":"contactForm","value":"Blige"}]},{"htmlElements":[{"id":"firstName-0","name":"firstName","required":true,"elementId":"firstName","style":"width:200;","disValue":"Mary","text":"Mary","value":"Mary"}]},{"htmlElements":[{"id":"phone1-0","name":"phone1","required":true,"elementId":"phone1","style":"width:300;","disValue":"2481564665","text":"2481564665","value":"2481564665"}]},{"htmlElements":[{"id":"contactType-0-0-0","name":"contactType","required":true,"elementId":"contactType","style":"width:200;","disValue":"Citizen","text":"Citizen","value":"Citizen"},{"id":"entity_type_hidden","name":"entity_type_hidden","required":false,"elementId":"entity_type_hidden","style":"width:0","disValue":"CONTACT","value":"CONTACT","checked":false},{"id":"refContactId","name":"refContactId","required":false,"elementId":"refContactId","style":"width:0","disValue":"879988","value":"879988","checked":false}]},{"htmlElements":[{"id":"email-0","name":"email","required":false,"elementId":"email","style":"width:100;","disValue":"test@test.com","text":"test@test.com","value":"test@test.com"}]},{"htmlElements":[{"id":"preferredChannelString-0","name":"preferredChannelString","required":true,"elementId":"preferredChannelString","style":"width:200;","disValue":"Home Phone","text":"Home Phone","value":"Home Phone"}]},{"htmlElements":[{"id":"businessName-0","name":"businessName","required":false,"elementId":"businessName","style":"width:150;","disValue":"","text":"","value":""}]}]}],"messages":{"resultset.prev.label":"First","menubar.common.select.label":"Select","error.js.pageHeader.sort":"Sort Descending","page.next.label":"Next","document.role.list.all":"Select All","page.norecord.label":"0 record(s) found.","error.js.pageHeader.sortAscending":"Sort Ascending","resultset.next.label":"Last","page.prev.label":"Previous"},"page":{"maxPageIndex":1,"curPageIndex":1,"module":"Building","pageUri":"/portlets/contact/ref/refContactList.do","pageSize":3,"order":false,"parameterString":"value(usedQueryInfo)=Y","totalNumber":1,"showingLabel":" Showing 1 of 1","pageLabel":" Page","ofLabel":"of"}});table.render(); Util.removeNode('11918c37-6286-4a24-818f-64d30e87dcc5'); 
+ //--> 
+</script>
+
+
+<script language='JavaScript' src='/portlets/commons/condition/commonConditionUtil.js'></script>
+<script language="JavaScript">
+	
+	function updateCondition()
+	{
+		var paras = new HashMap();
+		var url = "/portlets/condition/contactCondition.do?mode=viewCondition&module=Building";
+		paras.put("entity_type_hidden","entityType");
+		paras.put("refContactId","entityID");
+		commonUpdateCondition("ac360_list_id", paras, url);
+	}
+
+	updateCondition();
+
+	function selectSrcContacts()
+	{
+		if(!document.forms[0].chk_contactid || !document.forms[0].chk_contactid[0])
+		{
+			showErrorMessage('err_msg','Please select at least two records.');
+			doPageInit();
+			return;
+		}
+			
+		var totalSelect = 0;
+		for(i=0; i<document.forms[0].chk_contactid.length; i++)
+		{
+			if(document.forms[0].chk_contactid[i].checked)
+			{
+				totalSelect ++ ;
+			}
+		}
+			
+		if(totalSelect < 2)
+		{
+			showErrorMessage('err_msg','Please select at least two records.');
+			doPageInit();
+			return;
+		}
+		
+		var validateUrl = "/portlets/contact/ref/refContactList4Merge.do?mode=validate4Select&module=Building&ref=Y";
+		remoteAccess(validateUrl, afterValidate,  document.forms[0]);
+	}
+
+	function afterValidate(data)
+	{
+		var responseMsg = eval('('+data+')');
+		if (responseMsg.success == "true")
+		{
+			document.getElementById("err_msg").innerHTML = "";
+			scrollBarIssue.autoAdjustForErrorMsgDisplay(document);
+			var selectUrl = "/portlets/commons/contact/ref/mergeContactFrame.jsp?module=Building&contactIdStr=" + responseMsg.checkIdStr;
+			window.showModalDialog(selectUrl,window,'dialogWidth:800px;dialogHeight:610px;resizable:yes;scroll:no;Minimize=yes;Maximize=yes');
+		}
+		else
+		{
+			var msgMsg = responseMsg.errorMsg;
+			showErrorMessage('err_msg',msgMsg);
+			doPageInit();
+			return;
+		}
+	}
+
+	//show audit view window
+	function showAudit()
+	{
+	  windowOpen("/portlets/audit/audit.do?mode=search&entityModule=contact_condition&bizID=&auditFlag=Y&bizIdInputReadOnly=N", "auditLogWindow", "height=600, width=800, top=75 ,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=yes,left="+getScreenLeft(100,800));
+	}
+
+
+	//show audit view window
+	function showContactMerge()
+	{
+	      windowOpen("/portlets/commons/snapshot/frame.jsp?type=RefContact", "snapshotWindow", "height=600, width=800, top=75 ,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=yes,left="+getScreenLeft(100,800));
+	}
+
+	// show contact detail in contactForm iframe
+	function showContactDetail(contactSeqNbr)
+	{
+		var detailLink = "/portlets/contact/ref/refContactDetail.do?value(mode)=view&value(contactSeqNumber)=@@##@@&value(lookup)=false&isFromContactList=true&module=Building";
+		if(detailLink != null)
+		{
+			detailLink = detailLink.replace("@@##@@", contactSeqNbr);
+			windowOpen(detailLink, "contactForm");
+		}
+	}
+	
+</script>
+
+							</td>
+						</tr>
+					</table>
+				
+					</td>
+				</tr>
+			</table>
+			
+		</table>
+		</div>
+	</div>
+</form>	
+<script type="text/javascript">
+<!--
+
+function returnListView()
+{
+	parent.showList();
+}
+
+function showPrevious()
+{	
+	var numb = "";
+	
+	var listIFrameName = null;
+	var listIFrame = null;
+	var aListLink = null;
+
+	if(parent.document.frames['contactList'])
+	{
+		numb = "";
+		listIFrame = parent.document.frames['contactList'];
+		listIFrameName = 'contactList';
+		aListLink = 'ContactListLink';
+	}
+	else if(parent.document.frames['activityList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['activityList'];
+		listIFrameName = 'activityList';
+		aListLink = 'ActivityListLink';
+	}
+	else if(parent.document.frames['trustAccountList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['trustAccountList'];
+		listIFrameName = 'trustAccountList';
+		aListLink = 'TrustAccountListLink';
+	}
+	else if(parent.document.frames['ownerList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['ownerList'];
+		listIFrameName = 'ownerList';
+		aListLink = 'RefOwnerListLink';
+	}
+	else if(parent.document.frames['refParcelList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['refParcelList'];
+		listIFrameName = 'refParcelList';
+		aListLink = 'RefParcelListLink';
+	}
+	else if(parent.document.frames['addressList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['addressList'];
+		listIFrameName = 'addressList';
+		aListLink = 'RefAddressListLink';
+	}
+	else if(parent.document.frames['feeSetList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['feeSetList'];
+		listIFrameName = 'feeSetList';
+		aListLink = 'feeSetListLink';
+	}
+	else if(parent.document.frames['professionalList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['professionalList'];
+		listIFrameName = 'professionalList';
+		aListLink = 'professionalListLink';
+	}
+	else
+	{
+    // modified by dbalmer@accela.com
+    listIFrame = getDocumentIFrameById(parent.document, 'capList');
+		listIFrameName = 'capList';
+	}
+
+	
+	var accelaMTable = listIFrame.document.getElementById('AccelaMainTable');
+	if(accelaMTable)
+	{
+		var aList = listIFrame.document.getElementsByName(aListLink);
+		var previous = null;
+		for(var i = 0; i < aList.length ; i++)
+		{
+			if(aList[i].id == numb)
+			{
+				if(aList[i-1])
+				{
+					previous = aList[i-1].id;
+					break;
+				}
+				else
+				{
+					previous = null;
+				}
+			}
+		}
+	
+		if(previous == null)
+		{
+			var previouspage = listIFrame.document.getElementById('PreviousPage');
+			if(previouspage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var aList2 = listIFrame.document.getElementsByName(aListLink);
+					if(aList2)
+					{
+						aList2[aList2.length-1].click();
+					}
+				};
+				previouspage.click();
+			}
+		}
+		else
+		{
+			var previousRecord = listIFrame.document.getElementById(previous);
+			previousRecord.click();
+		}
+	}
+	else
+	{
+		var currentRows = listIFrame.document.getElementsByName(numb);
+
+		var currentRowId = currentRows[0].id;
+		var index = currentRowId.substr(numb.length+1);
+		var previousIndex = Number(index);
+		if(previousIndex == 0)
+		{
+			var previouspage = listIFrame.document.getElementById('PreviousPage');
+			if(previouspage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var accelaTable = listIFrame.document.getElementsByClassName('AccelaMainTable');
+					var count = null;
+					if(accelaTable)
+					{
+						var accelaTBody = accelaTable[0].getElementsByTagName('tbody');
+						if(accelaTBody)
+						{
+							var singleRow = accelaTBody[0].getElementsByClassName('singleRow');
+							var doubleRow = accelaTBody[0].getElementsByClassName('doubleRow');
+							if(doubleRow && doubleRow.length > 0)
+							{
+								count = singleRow.length + doubleRow.length;
+							}
+							else
+							{
+								if(singleRow.length)
+								{
+									count = singleRow.length;
+								}
+							}
+						}
+					}
+					if(count != null)
+					{
+						listIFrame.document.getElementById('table-row-'+ count).getElementsByTagName('a')[0].click();
+					}
+				};
+				previouspage.click();
+			}
+		}
+		else
+		{
+			var aLink = listIFrame.document.getElementById('table-row-'+ previousIndex).getElementsByTagName('a');
+			aLink[0].click();
+		}
+	}
+}
+
+function showNext()
+{
+	var numb = "";
+	
+	var listIFrameName = null;
+	var listIFrame = null;
+	var aListLink = null;
+
+	if(parent.document.frames['contactList'])
+	{
+		numb = "";
+		listIFrame = parent.document.frames['contactList'];
+		listIFrameName = 'contactList';
+		aListLink = 'ContactListLink';
+	}
+	else if(parent.document.frames['activityList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['activityList'];
+		listIFrameName = 'activityList';
+		aListLink = 'ActivityListLink';
+	}
+	else if(parent.document.frames['trustAccountList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['trustAccountList'];
+		listIFrameName = 'trustAccountList';
+		aListLink = 'TrustAccountListLink';
+	}
+	else if(parent.document.frames['ownerList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['ownerList'];
+		listIFrameName = 'ownerList';
+		aListLink = 'RefOwnerListLink';
+	}
+	else if(parent.document.frames['refParcelList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['refParcelList'];
+		listIFrameName = 'refParcelList';
+		aListLink = 'RefParcelListLink';
+	}
+	else if(parent.document.frames['addressList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['addressList'];
+		listIFrameName = 'addressList';
+		aListLink = 'RefAddressListLink';
+	}
+	else if(parent.document.frames['feeSetList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['feeSetList'];
+		listIFrameName = 'feeSetList';
+		aListLink = 'feeSetListLink';
+	}
+	else
+	{
+		listIFrame = parent.document.frames['capList'];
+		listIFrameName = 'capList';
+	}
+
+	
+	var accelaMTable = listIFrame.document.getElementById('AccelaMainTable');
+
+	if(accelaMTable)
+	{
+		var aList = listIFrame.document.getElementsByName(aListLink);
+		var hasNext = true;
+		var next = null;
+		for(var i = 0; i < aList.length ; i++)
+		{
+			if(aList[i].id == numb)
+			{
+				if(aList[i+1])
+				{
+					next = aList[i+1].id;
+					break;
+				}
+				else
+				{
+					next = null;
+				}
+			}
+		}
+	
+		if(next == null)
+		{
+			var nextpage = listIFrame.document.getElementById('NextPage');
+			if(nextpage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var aList2 = listIFrame.document.getElementsByName(aListLink);
+					if(aList2)
+					{
+						aList2[0].click();
+					}
+				};
+				nextpage.click();
+			}
+		}
+		else
+		{
+			var nextRecord = listIFrame.document.getElementById(next);
+			nextRecord.click();
+		}
+	}
+	else
+	{
+		var currentRows = listIFrame.document.getElementsByName(numb);
+
+		var currentRowId = currentRows[0].id;
+		var index = currentRowId.substr(numb.length+1);
+		var nextIndex = Number(index)+2;
+		
+		var accelaTable = listIFrame.document.getElementsByClassName('AccelaMainTable');
+		var count = null;
+		if(accelaTable)
+		{
+			var accelaTBody = accelaTable[0].getElementsByTagName('tbody');
+			if(accelaTBody)
+			{
+				var singleRow = accelaTBody[0].getElementsByClassName('singleRow');
+				var doubleRow = accelaTBody[0].getElementsByClassName('doubleRow');
+				if(doubleRow && doubleRow.length > 0)
+				{
+					count = singleRow.length + doubleRow.length;
+				}
+				else
+				{
+					if(singleRow.length)
+					{
+						count = singleRow.length;
+					}
+				}
+			}
+		}
+		
+		
+		if(nextIndex <= count)
+		{
+			var aLink = listIFrame.document.getElementById('table-row-'+ nextIndex).getElementsByTagName('a');
+			aLink[0].click();
+		}
+		else
+		{
+			var nextPage = listIFrame.document.getElementById('NextPage');
+			if(nextPage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					listIFrame.document.getElementById('table-row-1').getElementsByTagName('a')[0].click();
+				};
+				nextPage.click();
+			}
+		}
+	}
+}
+//-->
+</script>
+
+<script language="javascript">
+<!--
+
+tableCorner.addTabListen("_$mainContent");
+	function appendParamToURL(frm, url)
+	{
+		var tmp = url;
+		try
+		{
+			if (frm.document.forms[0].isGeneralCAP
+				&& frm.document.forms[0].isGeneralCAP.value == 'Y')
+			{
+				if (tmp.indexOf("isGeneralCAP") == -1)
+				{
+					tmp += tmp.indexOf("?") == -1 ? "?" : "&";
+					tmp += "isGeneralCAP=Y";
+				}
+			}
+		}
+		catch(e)
+		{
+		}
+		return tmp;
+	}
+	
+try{
+
+	
+	var myname=self.name;
+	var isBlank=true;
+	var isBlankObj=getParentObject("isBlankThird");
+	if(isBlankObj !=null && isBlankObj.value=="No")
+	{
+		isBlank=false;
+	}		
+	
+	if(myname == null || (myname!="mydataForm" && myname!="myassetForm" && myname!="assetInspectionFormDetail"&& myname!="assetCAFormDetail" 
+		&& myname!="professionalDataForm" && myname != "addressdataForm" && myname != "refParceldataForm"))
+	{
+		if(isBlank && parent!=null && (parent.frames != null))
+		{
+			var blankPageUrlStr = "/portlets/framework/includes/error/blank.jsp";
+			if (parent.frames["mydataForm"] != null && myname != "myassetdataForm")
+			{
+				d=parent.frames["mydataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["myassetForm"] != null && myname != "myassetdataForm")
+			{
+				d=parent.frames["myassetForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["assetInspectionFormDetail"] != null)
+			{
+				d=parent.frames["assetInspectionFormDetail"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["assetCAFormDetail"] != null)
+			{
+				d=parent.frames["assetCAFormDetail"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["professionaldataForm"] != null)
+			{
+				d=parent.frames["professionaldataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["addressdataForm"] != null)
+			{
+				d=parent.frames["addressdataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["refParceldataForm"] != null)
+			{
+				d=parent.frames["refParceldataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+		}
+		else
+		{
+			if (isBlankObj !=null)
+			{
+				isBlankObj.value="Yes";
+			}
+		}	
+	}
+	else if(myname != null && (myname=="mydataForm" || myname=="myassetForm" || myname=="assetInspectionFormDetail" || myname=="assetCAFormDetail"))
+	{
+		if (parent.frames["blank"] != null)
+			{
+				d=parent.frames["blank"];
+				d.location.href="/portlets/framework/includes/error/blank.jsp";				
+			}
+	}
+	//end-Lytton Cheng 2005-07-22
+	}catch(err){
+	}
+	//-->
+</script>	
+
+<script language="javascript">
+<!--
+adjustListContainer();
+
+
+Ac360.attachEvent(document,'onreadystatechange',fnStartInit);
+
+var pageFocusd = false;
+function fnStartInit()
+{	
+	try{
+		if (document.readyState=="complete")
+		{
+			var fromPortal = isFromJetspeed();
+
+			if(!pageFocusd && (!fromPortal || ((typeof(top.finishLoading) == "undefined") || top.finishLoading)) || window.name.indexOf("ifr_popup") > -1)
+			{
+				focusInputableElement(document);
+				pageFocusd = true;
+			}
+			if(top.finishLoading && !top.setGlobalFocus)
+			{
+				top.jetspeedOnLoad();
+			}
+		}
+	}catch(E){
+		focusInputableElement(document);
+	}
+}
+
+	//-->	
+</script>
+
+		<script language="JavaScript1.2" defer>
+
+			<!--
+			try
+			{
+				if(onAfterLoad!=null && onAfterLoad!="undefined")
+				{
+					onAfterLoad();
+				}
+			}catch(E){}
+			
+
+
+     
+			//-->
+			
+			
+			
+		</script>		
+           
+	</body>
+	<noscript>
+		Do not support the scripting.
+	</noscript>
+	<!--  %@ include file="timeout.jsp" %-->
+</html>
+	
+	<script type="text/javascript" src="/portlets/framework/includes/javascript/layoutPublic.js"></script>
+	<script language="JavaScript">
+	<!--
+	if(doNavigation)
+	{
+		window.setTimeout(doNavigation,350);
+		if(isClear)
+		{
+			clearNavigation();
+			frameElement.scrollIntoView(true);
+		}		
+	}
+
+	try
+	{
+		//execute script from create new for ajax  
+		if (parent.isAjaxRefreshNavScript && typeof(parent.navScript) != 'undefined' && parent.navScript != null && parent.navScript != "" )
+		{
+			eval(parent.navScript);
+			parent.isAjaxRefreshNavScript = false;
+		}
+	}
+	catch(e){}
+
+
+//------------------reset readonly style begin----------------------------
+	readOnlyObj.resetReadOnly();
+//------------------reset readonly style end------------------------------
+//------------------reset session time out--------------------------------
+if (top && top.setTimeoutTimer)
+{
+	top.sessionTimeOutWarnObj.renewSession();
+	top.setTimeoutTimer();
+}
+
+//------------------reset session time out--------------------------------
+//------------------reset bellow height begin-----------------------------
+//tabHandle.resizeTab();
+//scrollBarIssue.init();
+//------------------reset bellow height end--------------------------------
+	//-->
+	</script>
+
+
+
+
+
+
+

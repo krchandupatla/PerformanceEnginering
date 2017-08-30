@@ -1,0 +1,11 @@
+GET https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=spaces.c7ae1 HTTP/1.1
+Accept: */*
+X-Requested-With: XMLHttpRequest
+Referer: https://aa-pt6245.dev.accela.com:5443/portlets/cap/capStatusHistory.do?mode=list&clearForm=clearForm&module=Building
+Accept-Language: en-US
+Accept-Encoding: gzip, deflate
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko
+Cookie: JSESSIONID=q0DRFTb9tIe7JGj-xD+PWAnC; __cfduid=db60d5e784dbde7ca59ddec6e3acdc9621502430773; _pendo_accountId.567a146e-65ac-46a5-7a13-b32474a4f67b=FLAGSTAFF; _pendo_visitorId.567a146e-65ac-46a5-7a13-b32474a4f67b=e9af1fa5171aed0adbee00284a455086465aa31fc36563edabf646e11d55a6088095a23efeee0ca56703d10969d3ac54e979ab211892ee56defc91c468476a08; _pendo_meta.567a146e-65ac-46a5-7a13-b32474a4f67b=3399996617; JSESSIONID=***************************; 01-Jan-1970 00:00:10 GMT; LASTEST_REQUEST_TIME=1503945319354; hostSignOn=true; g_current_language_ext=en_US; LATEST_WEB_SERVER=10.1.0.6; LATEST_SESSION_ID=q0DRFTb9tIe7JGj-xD+PWAnC; ACAuth=88511893206235660908563880847696567914291405768657683367840521073983632823109011016409533845214252044639299144772450752623316798; ACSignOnModule=SSOStandard; AAPersistLoginServProvCode=FLAGSTAFF; LoginServProvCode4MultiAgency=FLAGSTAFF; LoginUsername4MultiAgency=179DD13A186028F4; ACSignoff="https://aa-pt6245.dev.accela.com:5443/portlets/security/signout.do"; ACSwitchAgency="https://aa-pt6245.dev.accela.com:5443/portlets/commons/sso/blank.jsp"
+Host: aa-pt6245.dev.accela.com:5443
+Connection: Close
+

@@ -1,0 +1,183 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('aaSpaceList', function ($rootScope, $q, $state, $timeout, OverlayService, SpaceManager, ModalDialog, $filter, SpaceConfiguration, $window, ServerSessionService) {
+      return {
+        restrict: 'A',
+        replace: false,
+        templateUrl: 'views/automation/space-list.html',
+        controller: function ($scope) {
+          $scope.primarySpaces = 1;
+          $scope.showcount = SpaceConfiguration.numberOfSpaces;
+          $scope.activeSpace = null;
+          $scope.duplicateSpace = angular.noop; // currently unused functionality
+          $scope.renameSpace = angular.noop; // currently unused functionality
+          $scope.spaceList = SpaceManager.spaces;
+          $scope.spaceNavigationDisabled = false;
+
+          $scope.pinSpace = function (space) {
+            SpaceManager.pinSpace(space);
+          };
+
+          $scope.$on('portlet-session-state-update:started', function () {
+            $scope.spaceNavigationDisabled = true;
+          });
+
+          $scope.$on('portlet-session-state-update:completed', function () {
+            $scope.spaceNavigationDisabled = false;
+          });
+
+          $scope.$on('space-status:loading', function () {
+            $scope.spaceNavigationDisabled = true;
+
+            $timeout(function () {
+              $scope.spaceNavigationDisabled = false;
+            }, 9000);
+          });
+
+          $scope.$on('space-status:loaded', function () {
+            $scope.spaceNavigationDisabled = false;
+          });
+
+          $scope.unpinSpace = function (space) {
+            SpaceManager.unpinSpace(space);
+          };
+
+          $scope.closeSpace = function (space) {
+            SpaceManager.close(space);
+            $scope.$emit('dashboard.closedSpace');
+
+            // the event above calls the same end() method below
+//            if (SpaceConfiguration.sessionStateService === 'ServerSessionService') {
+//              ServerSessionService.end(space.routeName);
+//            }
+          };
+
+          $scope.debugSpace = function (space) {
+            ModalDialog.message({
+              className: 'info',
+              title: 'Space Data',
+              msg: sprintf('<pre>%s</pre>', angular.toJson(space, true))
+            });
+          };
+
+          $scope.openSpace = function (space) {
+            if ($scope.spaceNavigationDisabled) {
+              return;
+            }
+
+            OverlayService.hide();
+
+            if (SpaceConfiguration.sessionStateService === 'ServerSessionService') {
+              ServerSessionService.start(space.routeName).then(function () {
+                if (space.spaceType === 'intake') {
+                  $state.go(space.spaceState.name, space.spaceState.params);
+                } else {
+                  $state.go(space.routeName);
+                }
+              });
+            }
+          };
+
+          // uhh yeah, we kinda need to fix this. top right gear icon -> admin things
+          $scope.openAdminPage = function (obj) {
+            OverlayService.hide();
+
+            if (obj.test) {
+              $scope.openNewSpace({
+                spaceName: 'Admin',
+                spaceUrl: obj.url,
+                isReference: false
+              });
+            } else {
+              $state.go('portlet', {
+                spaceName: obj.name,
+                spaceUrl: obj.url
+              });
+            }
+          };
+
+          $rootScope.$on('dashboard.openAdminPage', function (event, data) {
+            $scope.openAdminPage(data);
+          });
+
+          $rootScope.$on('dashboard.openPageSpace', function (event, page) {
+            $scope.openNewSpace({
+              spaceName: page.i18npageName,
+              spaceUrl: page.url,
+              isReference: page.isReference,
+              pageCategory: page.pageCategory
+            });
+          });
+
+          $scope.openNewSpace = function (data) {
+            if ($scope.spaceNavigationDisabled) {
+              return;
+            }
+
+            var newSpace = {
+              spaceType: data.spaceType,
+              spaceName: data.spaceName,
+              spaceUrl: data.spaceUrl,
+              spaceState: data.spaceState,
+              spaceIconType: data.spaceIconType,
+              pageCategory: data.pageCategory
+            };
+
+            var spaceResult = SpaceManager.create(newSpace);
+
+            OverlayService.hide();
+
+            if (spaceResult.ok) {
+              if (SpaceConfiguration.sessionStateService === 'ServerSessionService') {
+                ServerSessionService.start(spaceResult.space.routeName).then(function () {
+                  if(data.pageCategory !== 'Custom Page') {
+                    $rootScope.$broadcast('space-status:loading');
+                  }
+
+                  $state.go(spaceResult.space.routeName);
+                });
+              }
+            } else {
+              $rootScope.$broadcast('dashboard.addAlert', {
+                type: 'info',
+                timeout: 3000,
+                msg: spaceResult.msg
+              });
+            }
+          };
+
+          $rootScope.$on('dashboard.openSpace', function (event, data) {
+            $scope.openNewSpace(data);
+          });
+
+          $rootScope.$on('dashboard.resetActiveSpace', function () {
+            $scope.activeSpace = null;
+          });
+        },
+        link: function ($scope, element, attrs) {
+          var eachItem = 100;
+          var buffer = 30;
+          var minNumberOfSpaces = 2;
+
+          $scope.determineNumberOfAvailableSpaces = function () {
+
+            var totalHeight = element.parent()[0].offsetHeight;
+            var mainMenuHeight = element.parent().children('#main-menu')[0].offsetHeight;
+            var moreSpacesHeight = 100;
+            var availableSpace = totalHeight - moreSpacesHeight - mainMenuHeight - buffer;
+            var numberOfSpacesThatCanFit = Math.floor(Math.round(availableSpace / eachItem));
+            $scope.primarySpaces = numberOfSpacesThatCanFit <= minNumberOfSpaces ? minNumberOfSpaces : numberOfSpacesThatCanFit;
+          };
+
+          $scope.determineNumberOfAvailableSpaces();
+
+          angular.element($window).bind('resize', function () {
+            $scope.determineNumberOfAvailableSpaces();
+          });
+        }
+      };
+    });
+})();

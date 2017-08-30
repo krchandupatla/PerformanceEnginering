@@ -1,0 +1,11 @@
+[t882]
+FileName1=t882.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/regional/regionalSyncMask.do?mode=syncMask&maskType=phoneNumber&referValue=
+Total=1
+RequestHeaderFile=t882_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t882_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_882.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

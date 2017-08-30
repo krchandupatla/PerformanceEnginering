@@ -1,0 +1,11 @@
+[t602]
+FileName1=t602.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/professional/ref/refProfessionalDetail.do?mode=viewCondition&module=Building&licSeqNbr=2200860520
+Total=1
+RequestHeaderFile=t602_RequestHeader.txt
+RequestBodyFile=t602_RequestBody.txt
+ResponseHeaderFile=t602_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_602.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

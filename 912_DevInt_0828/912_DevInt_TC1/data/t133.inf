@@ -1,0 +1,11 @@
+[t133]
+FileName1=t133_preinstall.xml
+URL1=http://tile-service.weather.microsoft.com/en-US/livetile/preinstall?region=US&appid=C98EA5B0842DBB9405BBF071E1DA76512D21FE36&FORM=Threshold
+Total=1
+ContentType=text/xml
+SnapshotXmlFile=snapshot_133.xml
+RequestHeaderFile=t133_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t133_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

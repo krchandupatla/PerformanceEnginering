@@ -1,0 +1,42 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .factory('ModalDialog', service);
+
+  /**
+   * @ngInject
+   */
+  function service($log, $modal) {
+
+    // PRIVATE data
+
+    // PRIVATE methods
+
+    function message(options) {
+      var modalInstance = $modal.open({
+        size: options.size || 'md',
+        templateUrl: 'views/core/modal-message.html',
+        controller: function($modalInstance) {
+          if (!options.className) {
+            options.className = 'default';
+          }
+          this.options = options;
+          this.ok = $modalInstance.close;
+        },
+        controllerAs: 'dlg'
+      });
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('MODAL-DIALOG-SERVICE');
+
+    // PUBLIC interface
+
+    return {
+      message: message
+    };
+  }
+})();

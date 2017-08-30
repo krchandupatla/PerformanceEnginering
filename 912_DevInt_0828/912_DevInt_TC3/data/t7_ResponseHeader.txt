@@ -1,0 +1,13 @@
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Cache-Control: private
+Expires: Thu, 01 Jan 1970 00:00:00 UTC
+X-XSS-Protection: 0
+Accept-Ranges: bytes
+ETag: W/"1190-1498747150000"
+Last-Modified: Thu, 29 Jun 2017 14:39:10 GMT
+Content-Type: text/css
+Content-Length: 1190
+Date: Mon, 28 Aug 2017 18:13:04 GMT
+Connection: close
+

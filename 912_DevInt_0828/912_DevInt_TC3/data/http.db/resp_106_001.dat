@@ -1,0 +1,57 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard', [])
+    .config(function ($stateProvider, $urlRouterProvider) {
+      $stateProvider
+        .state('spaces.map-dashboard', {
+          url: 'dashboard',
+          deepStateRedirect: true,
+          sticky: true,
+          abstract: true,
+          views: {
+            'map@spaces': {
+              templateUrl: 'views/automation/dashboard/map-dashboard.html'
+            }
+          }
+        })
+        .state('spaces.map-dashboard.map', {
+          url: '/map',
+          deepStateRedirect: true,
+          sticky: true,
+            templateUrl: 'views/automation/dashboard/map-dashboard-jsp.html'
+        })
+        .state('spaces.task-dashboard', {
+          url: 'dashboard/task',
+          abstract: true,
+          deepStateRedirect: true,
+          sticky: true,
+          resolve: {
+            userSecurityProfile: function(UserManager, AGENCY_TAB_CONFIG) {
+              return UserManager.getUserSecurityProfile(AGENCY_TAB_CONFIG);
+            }
+          },
+          views: {
+            'main@spaces': {
+              controller: 'TaskDashboardController',
+              templateUrl: 'views/automation/dashboard/task/task-dashboard.html'
+            }
+          }
+        })
+        .state('spaces.task-dashboard.cards', {
+          url: '/cards',
+          deepStateRedirect: true,
+          sticky: true,
+          templateUrl: 'views/automation/dashboard/task/task-cards.html'
+        })
+        .state('spaces.task-dashboard.list', {
+          url: '/list',
+          deepStateRedirect: true,
+          sticky: true,
+          templateUrl: 'views/automation/dashboard/task/task-list.html'
+        });
+
+      $urlRouterProvider.otherwise('/dashboard/task/cards'); // default route if none of the above match
+    });
+})();

@@ -1,0 +1,11 @@
+[t182]
+FileName1=t182_icon-record.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/space-icons/icon-record.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_182.xml
+RequestHeaderFile=t182_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t182_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

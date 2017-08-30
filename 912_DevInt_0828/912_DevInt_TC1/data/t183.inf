@@ -1,0 +1,11 @@
+[t183]
+FileName1=t183_icon-space-context-menu.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/menubar/icon-space-context-menu.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_183.xml
+RequestHeaderFile=t183_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t183_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

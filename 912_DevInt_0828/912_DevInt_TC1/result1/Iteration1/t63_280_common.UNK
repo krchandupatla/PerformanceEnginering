@@ -1,0 +1,130 @@
+jQuery.namespace = function () {
+    var a = arguments, o = null, i, j, d;
+    for (i = 0; i < a.length; i = i + 1) {
+        d = a[i].split(".");
+        o = window;
+        for (j = 0; j < d.length; j = j + 1) {
+            o[d[j]] = o[d[j]] || {};
+            o = o[d[j]];
+        }
+    }
+    return o;
+};
+(function ($) {
+    $.fn.removeClassPrefix = function (prefix) {
+        this.each( function ( i, it ) {
+            var classes = it.className.split(" ").map(function (item) {
+                return item.indexOf(prefix) === 0 ? "" : item;
+            });
+            it.className = classes.join(" ");
+        });
+        return this;
+    }
+})(jQuery);
+jQuery.fn.exists = function () { return this.length > 0; }
+jQuery.namespace('aa', 'aa.ui', 'aa.constant', 'aa.data', 'aa.util', 'aa.template');
+
+
+//General Functions
+aa.util = {
+    localizationUrl : "/portlets/spa/text.do?mode=localizedText",
+    localizationSufix : "AANewUX_",
+    localization: {},
+    init: function () {
+        this.initWidth();
+        this.initHeight();
+    },
+    loadMask: {
+        show: function () {
+            try {
+                window.top.$('.spinner').removeClass("ng-hide");
+            }catch(err){}
+        },
+        hide: function () {
+            try{
+            window.top.$('.spinner').addClass("ng-hide");
+            }catch(err){}
+        }
+    },
+    initHeight: function () {
+
+    },
+    initWidth: function () {
+
+    },
+    isIE : function(){
+        var ua = window.navigator.userAgent;
+        var msie = ua.indexOf("MSIE ");
+        if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))  // If Internet Explorer, return version number
+            return true;
+        else  // If another browser, return 0
+            return false;
+    },
+    msieversion: function() {
+        var ua = window.navigator.userAgent;
+        var msie = ua.indexOf("MSIE ");
+        if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))  // If Internet Explorer, return version number
+            return (parseInt(ua.substring(msie + 5, ua.indexOf(".", msie))));
+        else  // If another browser, return 0
+            return ('otherbrowser');
+    },
+    initLocalizationControls: function() {
+       // debugger;
+        var locControl = $("[data-i18n]");
+        if(aa.util.localization.length==0 || locControl.length==0)
+            return;
+
+        $.each(locControl, function(){
+            try {
+                $(this).text(aa.util.localization.result[aa.util.localizationSufix + $(this).data("i18n").replace(/\./gi, "_")]);
+            }catch(err){}
+            //debugger;
+            //var val = aa.util.localization.result[aa.util.localizationSufix + $(this).data("i18n").replace(/\./gi, "_")];
+            //if(this.nodeName=="A" || this.nodeName=="SPAN" || this.nodeName=="P" || this.nodeName=="DIV" )
+            //    $(this).text(val);
+            //else (this.nodeName=="INPUT")
+            //     $(this).val(val);
+
+        });
+    },
+    initlocalization: function () {
+
+
+       var inputData = {}, keyString = "";
+        $.each(i18nKeysConfig, function(index, element){
+               $.each(element, function(ind, key) {
+                   keyString = aa.util.localizationSufix + index +"_"+ key;
+                   inputData[keyString] = "";
+            });
+        });
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: aa.util.localizationUrl,
+            data: JSON.stringify(inputData),
+            success: function (data) {
+                aa.util.localization = data;
+                aa.util.initLocalizationControls();
+            },
+            error: function (status, error) {
+
+            }
+        });
+    }
+};
+
+$(document).ready(function () {
+    if(oldUI==undefined || oldUI==null || oldUI== true)
+        return false;
+    else {
+        aa.util.initlocalization();
+        aa.util.init();
+        aa.pageInit();
+    }
+});
+
+
+$(window).resize(function () {
+    aa.util.initWidth();
+    aa.util.initHeight();
+});

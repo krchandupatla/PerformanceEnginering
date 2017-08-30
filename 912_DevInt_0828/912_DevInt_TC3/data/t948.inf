@@ -1,0 +1,11 @@
+[t948]
+FileName1=t948_hook.png
+URL1=https://aa-pt6245.dev.accela.com:5443/security/images/hook.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_948.xml
+RequestHeaderFile=t948_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t948_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

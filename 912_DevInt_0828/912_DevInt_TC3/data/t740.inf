@@ -1,0 +1,11 @@
+[t740]
+FileName1=t740.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/empty.jsp
+Total=1
+RequestHeaderFile=t740_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t740_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_740.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

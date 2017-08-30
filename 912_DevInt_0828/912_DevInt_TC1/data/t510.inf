@@ -1,0 +1,11 @@
+[t510]
+FileName1=t510.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp
+Total=1
+ContentType=text/html
+SnapshotXmlFile=snapshot_510.xml
+RequestHeaderFile=t510_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t510_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

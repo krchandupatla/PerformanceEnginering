@@ -1,0 +1,11 @@
+[t665]
+FileName1=t665_treeTPlus.gif
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/tree/treeTPlus.gif
+Total=1
+ContentType=image/gif
+SnapshotXmlFile=snapshot_665.xml
+RequestHeaderFile=t665_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t665_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

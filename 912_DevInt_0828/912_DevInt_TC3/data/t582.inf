@@ -1,0 +1,11 @@
+[t582]
+FileName1=t582_Widget.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo/src/widget/Widget.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_582.xml
+RequestHeaderFile=t582_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t582_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,19 @@
+/**
+ * Display task category tooltip when running as localhost.
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .directive('aaTaskFlyoutToggle', function($rootScope) {
+      return {
+        restrict: 'E',
+        replace: true,
+        template: '<a class="task-flyout-toggle" tooltip="{{::tooltip}}" ng-class="{\'hidden\': task.hideFlyout}" aria-haspopup="true" aria-expanded="false" tabindex="200"></a>',
+        link: function(scope, element, attrs) {
+          scope.tooltip = $rootScope.i18n.Task['Category' + scope.task.taskCategory];
+        }
+      };
+    });
+})();

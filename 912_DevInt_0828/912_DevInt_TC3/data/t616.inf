@@ -1,0 +1,11 @@
+[t616]
+FileName1=t616_appSpecInfoTableFilter.css
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/commons/appspecinfo/CSS/sky_blue/appSpecInfoTableFilter.css
+Total=1
+ContentType=text/css
+SnapshotXmlFile=snapshot_616.xml
+RequestHeaderFile=t616_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t616_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

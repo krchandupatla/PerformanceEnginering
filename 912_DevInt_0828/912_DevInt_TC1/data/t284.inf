@@ -1,0 +1,11 @@
+[t284]
+FileName1=t284.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/cap/capSearch.do?mode=search&isFromSearch=true&isSearchButton=true&module=Building&isGeneralCAP=Y
+Total=1
+RequestHeaderFile=t284_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t284_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_284.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

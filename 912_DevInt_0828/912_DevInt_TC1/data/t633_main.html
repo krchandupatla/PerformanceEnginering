@@ -1,0 +1,1098 @@
+aa.pageInit = function () {
+    aa.ui.initWorkflow();
+}
+
+aa.data = {
+    iframeId: "workflow-iframe-",
+    iframeIdFlowChart: "iframe-flowchart",
+    flowChartUrl: "/portlets/spa/workflow.do?mode=popup",
+    iframeIdIndex: 1,
+    workflowAjaxUrl : "/portlets/spa/workflow.do?mode=getTasks&module=",
+    lastClickedItem: "-",
+    isRedirectTriggered : false,
+    iCounter : 0,
+    iTimer:  "",
+    taskItem : {
+        levelCounter: 1,
+        counter: 1,
+        prefix: "task-item",
+        adHockprefix: "adhock-task-item",
+        taskMainContainerId: "main-task",
+        adHocktaskMainContainerId: "adhock-task"
+    },
+    task: {
+        completed: "completed",
+        inprogress: "inprogress",
+        inactive: "inactive"
+    },
+    cssClass: {
+        mainRowItem: "row-item",
+        completed : {
+            summaryClass : ".summary-completed",
+            itemClass: ".completed",
+            bucketItemClass : "bucket-completed",
+            bucketRowHeaderClass: "row-completed-bucket",
+            rowItemClass: "row-completed-"
+        },
+        inprogress : {
+            summaryClass : ".summary-inprogress",
+            itemClass: ".inprogress",
+            bucketItemClass : "bucket-inprogress",
+            bucketRowHeaderClass: "row-inprogress-bucket",
+            rowItemClass: "row-inprogress-"
+        },
+        inactive : {
+            summaryClass : ".summary-inactive",
+            itemClass: ".inactive",
+            bucketItemClass : "bucket-inactive",
+            bucketRowHeaderClass: "row-inactive-bucket",
+            rowItemClass: "row-inactive-"
+        }
+    }
+};
+
+aa.ui = {
+    initWorkflow: function () {
+        if (this.findIsRedirectReq()) {
+            return true; // Stop continue
+        }
+
+        this.initMainCssAtr();// First Method, Dont move
+        this.initReskinStyle();
+        this.initReconstructHTML();
+
+        //Load template and data
+        this.initLoadWorkflowtask();
+
+        //Stays in Last
+        this.initHeight();
+        this.initWidth();
+        this.initVisible();
+
+    },
+    findIsRedirectReq: function () {
+        try {
+            var frame = $('#' + window.frameElement.id, window.parent.document);
+            if ($(frame).hasClass("workflow-iframe")) {
+                var parentId = $(frame).data("parentid");
+                try {
+                    parent.aa.ui.reloadSummary(true, parentId);
+                    $(frame).remove();
+                } catch (err) {
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } catch (err) {
+            return false;
+        }
+    },
+    initMainCssAtr: function () {
+        $("body").addClass("workflow-page");
+    },
+    initReskinStyle: function () {
+        $("#menu_Bar").find("td").removeAttr("style");
+        $(".menu-right-normal").append("<i class='accelaicon menudownarrow accelicons-chevron-down'></i>");
+    },
+    initReconstructHTML: function () {
+        $("#dropMenu-2").appendTo("#menuContain-0");
+        $("#tr_tarbar_newUI").prepend($("#workflowchart-parent").html());
+        $("#tr_tarbar_newUI").prepend(this.getHeaderHtml(false));
+        $(".refresh").attr("href","");
+    },
+
+    initHeight: function () {
+
+    },
+    initWidth: function () {
+        $("#top-menu-bar").css('min-width', $(window).width() - 300);
+    },
+    initVisible: function () {
+        $("form#taskStatusListActionForm").addClass("shownow");
+    },
+    getHeaderHtml: function (isAdHocHeader) {
+
+        var source = "", data = {};
+        if (isAdHocHeader) {
+            source = aa.template.adhoctaskheader.html;
+            data = {
+                newadhocktaskurl: $("#a_new").attr("href")
+            };
+        }
+        else {
+            source = aa.template.header.html;
+            data = {
+                viewhistoryurl: $("#History").find("a").attr("href")
+            };
+        }
+
+        var template = Handlebars.compile(source);
+        var context = data;
+        var html = template(context);
+        return html;
+    },
+    initLocalizationTimer: function(){
+        aa.data.iTimer = setInterval(function(){
+            aa.ui.initLocalizationStatus();
+            aa.data.iCounter++;
+            if(aa.data.iCounter === 30) {
+                clearInterval(aa.data.iTimer);
+            }
+        }, 500);
+    },
+    redirectGIS: function() {
+        var url = $("#GIS").find("a").attr("href");
+        if (url != undefined && url != null && url.length != 0)
+            window.location.href = $("#GIS").find("a").attr("href");
+    },
+    updateJsonWithIdChild: function (json, itemId) {
+        var returnJson = [], id = "";
+
+        $.each(json, function (index, element) {
+            //id = itemId + "-" + index;
+            id = itemId + "-" + element.taskItemModel.processID + "-" + element.taskItemModel.stepNumber;
+            if(element.taskItemModel.historyID == undefined ||
+                element.taskItemModel.historyID == null ||
+                element.taskItemModel.historyID.length==0) {
+                returnJson.push({
+                    folderStatus: element.folderStatus,
+                    hasSubDocNode: element.hasSubDocNode,
+                    link: element.link,
+                    name: element.name,
+                    nodeStatus: element.nodeStatus,
+                    taskItemModel: element.taskItemModel,
+                    itemId: id,
+                    itemParentId: itemId,
+                    childCount: element.child.length,
+                    child: (element.child.length == 0 ? [] : aa.ui.updateJsonWithIdChild(element.child, id))
+                });
+            }
+        });
+        return returnJson;
+    },
+    updateJsonWithId: function (json, prefix) {
+        var returnJson = {
+            folderStatus: json.folderStatus,
+            hasSubDocNode: json.hasSubDocNode,
+            link: json.link,
+            name: json.name,
+            nodeStatus: json.nodeStatus,
+            taskItemModel: [],
+            itemId: prefix + "-0",
+            itemParentId: prefix + "-start",
+            childCount: json.child.length,
+            child: aa.ui.updateJsonWithIdChild(json.child, prefix + "-" + 0)
+        };
+        return returnJson;
+    },
+    initLoadWorkflowtask: function () {
+        $.ajax({
+            type: "GET",
+            //contentType: "application/json; charset=utf-8",
+            url: aa.data.workflowAjaxUrl + $("#module").val(),
+            //data: '{ param1: value1, param2: value2 }',
+            success: function (data) {
+
+                // var tempdata = aa.ui.getTempJason();
+                //var json = aa.ui.updateJsonWithId(tempdata);
+                //var json = aa.ui.updateJsonWithId(data);
+
+                aa.ui.generateTimelineHtml(data);
+                aa.util.initLocalizationControls();
+                aa.ui.initLocalizationTimer();
+                aa.ui.reOrderTimeLinePanel();
+                aa.ui.tiggerCompleteAndInactiveConatiner();
+                aa.ui.tiggerBucketLastItemStyle();
+            }
+        });
+    },
+    initLocalizationStatus: function(){
+        if(aa.util.localization != undefined && aa.util.localization != null && aa.util.localization.length != 0 ) {
+            var timelineStatus = $(".timeline-status"), status = "";
+            $.each(timelineStatus, function (index, element) {
+                status = $(element).text();
+                switch (status) {
+                    case aa.data.task.completed:
+                        $(element).text(aa.util.localization.result[aa.util.localizationSufix + "WorkFlow_TaskComplete"]);
+                        break;
+                    case aa.data.task.inprogress:
+                        $(element).text(aa.util.localization.result[aa.util.localizationSufix + "WorkFlow_TaskInprogress"]);
+                        break;
+                    case aa.data.task.inactive:
+                        $(element).text(aa.util.localization.result[aa.util.localizationSufix + "WorkFlow_TaskInactive"]);
+                        break;
+                }
+            });
+            clearInterval(aa.data.iTimer);
+        }
+    },
+    triggerMainContainer: function (containerExtId) {
+        var source = aa.template.workflowmain.html;
+        var template = Handlebars.compile(source);
+        var json = {
+            type: containerExtId
+        }
+        var html = template(json);//empty template
+        $("#tr_tarbar_newUI").append(html);
+    },
+    generateTimelineHtml: function (data) {
+        this.triggerMainContainer(aa.data.taskItem.taskMainContainerId);
+        var json = aa.ui.updateJsonWithId(data.result.taskList, aa.data.taskItem.prefix);
+        if (json.child.length != 0) {
+            aa.ui.generateTimelineChildHtml(json, aa.data.taskItem.taskMainContainerId);
+            $(".container-timeline-items." + json.itemId).addClass("expand");
+        }
+
+        if (data.result.adhocTaskList != undefined &&
+            data.result.adhocTaskList.child.length != 0) {
+            var contextJson = aa.ui.updateJsonWithId(data.result.adhocTaskList, aa.data.taskItem.adHockprefix);
+            if (contextJson.child.length != 0) {
+                $("#tr_tarbar_newUI").append(aa.ui.getHeaderHtml(true));
+                aa.ui.triggerMainContainer(aa.data.taskItem.adHocktaskMainContainerId);
+                aa.ui.generateTimelineChildHtml(contextJson, aa.data.taskItem.adHocktaskMainContainerId);
+                $(".container-timeline-items." + contextJson.itemId).addClass("expand");
+            }
+        }
+    },
+    generateTimelineChildHtml: function (json, containerExtId) {
+        var elemExsist = $(".container-timeline-items." + json.itemId).length;//If element never exsist, then create timeline
+        if (json.child.length != 0 && elemExsist==0) {
+            var source = aa.template.workflow.html;
+            var template = Handlebars.compile(source)
+            var context = json;
+            var html = template(context);
+            $("#container-timeline-" + containerExtId).append(html);
+
+            $.each(json.child, function (index, element) {
+                if (element.child.length != 0) {
+                    var jsonList = {
+                        child: element.child,
+                        itemId: element.itemId,
+                        itemParentId: element.itemParentId
+                    };
+                    aa.ui.generateTimelineChildHtml(jsonList, containerExtId);
+                }
+            });
+        }
+    },
+    reOrderTimeLinePanel: function () {
+        var continerItems = $("#container-timeline-" + aa.data.taskItem.taskMainContainerId).find(".container-timeline-items");
+        this.reorderTimeLinePanelItems(continerItems);
+        continerItems = $("#container-timeline-" + aa.data.taskItem.adHocktaskMainContainerId).find(".container-timeline-items");
+        this.reorderTimeLinePanelItems(continerItems);
+    },
+    reorderTimeLinePanelItems: function (continerItems) {
+        $.each(continerItems, function (index, element) {
+            $(element).find(".timeline-item.completed").addClass("collapse").insertAfter($(element).find(".bucket.completed"));
+            $(element).find(".timeline-item.inprogress").addClass("expand").insertAfter($(element).find(".bucket.inprogress"));
+            $(element).find(".timeline-item.inactive").addClass("collapse").insertAfter($(element).find(".bucket.inactive"));
+        });
+    },
+    getNavigationUrl: function (value, link) {
+        var url = $($(value)[1]).attr('href');
+        var updatedUrl = '', param = [], pageUrl = '';
+
+        try {
+            if (url == undefined || url == null || url.length == 0) {
+                url = $(value).attr('href');
+            }
+        }catch(err){}
+
+        if (url != undefined && url != null & url.length != 0) {
+            url = url.substr(0, url.indexOf(')'));
+            url = url.substr(url.indexOf('(') + 1);
+            updatedUrl = url.replace(/'/g, '').replace(/\/spa/, '');
+            param = updatedUrl.split(',');
+            pageUrl = param[0];
+
+            if (param[1] != undefined && param[1] != null && param[1].length != 0)
+                pageUrl = pageUrl + "&taskName=" + encodeURIComponent(param[1])
+
+            if (param[2] != undefined && param[2] != null && param[2].length != 0)
+                pageUrl = pageUrl + "&processCode=" + encodeURIComponent(param[2])
+
+            pageUrl = pageUrl + "&rememberUrl=true";
+        }
+        return pageUrl;
+    },
+    setModalWinSize: function () {
+        $("#workflowchartModal").css("height", $(window).height() - 300 + "px");
+    },
+    openFlowChartInTab: function () {
+        window.open(aa.data.flowChartUrl, 'WorkflowChart', "top=0, left=0, toolbar=yes, menubar=yes, scrollbars=yes, resizable=yes,location=yes, status=yes, width=" + (screen.availWidth - 20) + ",height=" + (screen.availHeight - 180));
+    },
+    openFlowChart: function () {
+
+        if ($('body').has("#" + aa.data.iframeIdFlowChart).length != 0) {
+            return false;
+        }
+
+        $('<iframe/>')
+            .attr('id', aa.data.iframeIdFlowChart)
+            .attr('class', 'workflow-popup-iframe')
+            .attr('style', 'border: 0px; width: 100%; height: 90%')
+            .attr('src', aa.data.flowChartUrl)
+            .appendTo($("#workflowchartModal").find(".modal-body"));
+
+        this.setModalWinSize();
+    },
+    reloadSummary: function (loadDiffPage, ParentId) {
+        aa.data.isRedirectTriggered = false;
+        $.ajax({
+            type: "GET",
+            //contentType: "application/json; charset=utf-8",
+            url: aa.data.workflowAjaxUrl + $("#module").val(),
+            //data: '{ param1: value1, param2: value2 }',
+            success: function (data) {
+
+
+                //var data = aa.ui.getTempJasonOnSubmit();
+                //aa.data.lastClickedItem = "task-item-0-1";
+
+                var json = aa.ui.updateJsonWithId(data.result.taskList, aa.data.taskItem.prefix);
+                aa.ui.updateSummaryTile(json.child, json.itemId, aa.data.taskItem.taskMainContainerId);
+
+                if (data.result.adhocTaskList != undefined &&
+                    data.result.adhocTaskList.child.length != 0) {
+                    var adHocJson = aa.ui.updateJsonWithId(data.result.adhocTaskList, aa.data.taskItem.adHockprefix);
+                    aa.ui.updateSummaryTile(adHocJson.child, adHocJson.itemId, aa.data.taskItem.adHocktaskMainContainerId);
+                }
+
+                if (loadDiffPage) {
+                    aa.ui.showDetailPage(ParentId);
+                }
+
+                aa.ui.reArrangeBuckets();
+                aa.ui.initLocalizationTimer();
+                /*
+                 $.each(data.result.taskList.child,function(index, elem) {
+                 aa.ui.updateElement(index, elem);
+                 });
+
+                 if(data.result.adhocTaskList != undefined &&
+                 data.result.adhocTaskList.child.length!=0) {
+
+                 $.each(data.result.adhocTaskList.child,function(index, elem) {
+                 aa.ui.updateElement(index,elem);
+                 });
+                 }
+
+                 if(loadDiffPage){
+                 aa.ui.showDetailPage(ParentId);
+                 }*/
+
+                if(aa.data.isRedirectTriggered==false)
+                    aa.util.loadMask.hide();
+            }
+        });
+    },
+    updateSummaryTile: function (json, itemId, containerExtId) {
+        var id = "";
+        $.each(json, function (index, element) {
+            id = itemId + "-" + element.taskItemModel.processID + "-" + element.taskItemModel.stepNumber;
+                if(element.taskItemModel.historyID == undefined ||
+                    element.taskItemModel.historyID == null ||
+                    element.taskItemModel.historyID.length==0) {
+                    aa.ui.updateElement(id, element, containerExtId);
+                    if (element.child.length != 0) {
+                        aa.ui.updateSummaryTile(element.child, id, containerExtId)
+                    }
+                }
+        });
+    },
+    isNotHistoryElement: function(child){
+        if(child.length !== 0){
+            var totalChild = 0;
+            $.each(child, function (index, element) {
+                if (element.taskItemModel.historyID == undefined ||
+                    element.taskItemModel.historyID == null ||
+                    element.taskItemModel.historyID.length == 0) {
+                    totalChild++;
+                }
+            });
+            if(totalChild==0)
+                return false;
+            else
+                return true;
+
+        }else {
+            return false;
+        }
+    },
+    updateChildEementHtml: function(itemId, elem, containerExtId){
+        var row = $("#" + itemId);
+        row.find(".child-completed-count").text(aa.ui.childCompletedcount(elem.child));
+        row.find(".child-total-count").text(elem.child.length);
+        aa.ui.generateTimelineChildHtml(elem, containerExtId);
+    },
+    updateElement: function (itemId, elem, containerExtId) {
+        var element = elem.taskItemModel;
+        //var itemId = "item-" + index + "-" + element.stepNumber;
+        var row = $("#" + itemId);
+
+        var rowClass = aa.ui.getTimelineStatus(element.activeFlag, element.completeFlag);
+        row.removeClass("inactive inprogress completed").addClass(rowClass);
+        if(elem.child.length !== 0)
+            row.addClass("child-item");
+
+
+        if(this.isNotHistoryElement(elem.child)) {
+            row.addClass("child-item");
+            aa.ui.updateChildEementHtml(itemId, elem, containerExtId);
+        }
+
+        row.find(".timeline-assigneduser").text(element.assignedUser.fullName);
+        row.find(".timeline-status").text(aa.ui.getApplicationStatus(element.disposition, element.activeFlag, element.completeFlag));
+        row.find(".timeline-subtask-hour").text(element.hoursSpent + "h");
+        row.find(".timeline-actionby").text(aa.ui.formateDate(element.statusDate) + " by " + element.sysUser.fullName);
+        row.find(".timeline-duedate").text(aa.ui.formateDate(element.dueDate));
+        row.find(".timeline-page").data("clickfunction", aa.ui.getNavigationUrl(elem.name))
+           .data("isactive", element.activeFlag)
+           .data("iscomplete", element.completeFlag);
+
+
+        if(row.find(".panel-body.timeline-page").data("childcount") != elem.childCount){
+            if(aa.ui.getTimelineStatus(element.activeFlag, element.completeFlag)==aa.data.task.inprogress) {
+                aa.data.isRedirectTriggered = true;
+                var childPageRow = row.find(".panel-body.timeline-page");
+                $(childPageRow).data("childcount", elem.childCount);
+                aa.ui.showDetailPageReload($(childPageRow).data("parentid"));
+            }
+        }
+    },
+    /*getApplicationStatus: function (status, isActive, isCompleted) {
+        if ((status == undefined || status == null || status.length == 0) && isActive == 'N' && isCompleted == 'N')
+            return (aa.util.localization.length != 0 ? aa.util.localization.result[aa.util.localizationSufix + "WorkFlow_TaskInactive"] : "inactive");
+        else if ((status == undefined || status == null || status.length == 0) && isActive == 'Y' && isCompleted == 'N')
+            return (aa.util.localization.length != 0 ? aa.util.localization.result[aa.util.localizationSufix + "WorkFlow_TaskInprogress"] : "in progress");
+        else if ((status == undefined || status == null || status.length == 0) && isActive == 'Y' && isCompleted == 'Y')
+            return (aa.util.localization.length != 0 ? aa.util.localization.result[aa.util.localizationSufix + "WorkFlow_TaskComplete"] : "completed");
+        else if ((status == undefined || status == null || status.length == 0) && isActive == 'N' && isCompleted == 'Y')
+            return (aa.util.localization.length != 0 ? aa.util.localization.result[aa.util.localizationSufix + "WorkFlow_TaskComplete"] : "completed");
+        else if (status != undefined && status != null && status.length != 0)
+            return status;
+    },*/
+    getApplicationStatus: function (status, isActive, isCompleted) {
+        if ((status == undefined || status == null || status.length == 0) && isActive == 'N' && isCompleted == 'N')
+            return aa.data.task.inactive;
+        else if ((status == undefined || status == null || status.length == 0) && isActive == 'Y' && isCompleted == 'N')
+            return  aa.data.task.inprogress;
+        else if ((status == undefined || status == null || status.length == 0) && isActive == 'Y' && isCompleted == 'Y')
+            return aa.data.task.completed;
+        else if ((status == undefined || status == null || status.length == 0) && isActive == 'N' && isCompleted == 'Y')
+            return aa.data.task.completed;
+        else if (status != undefined && status != null && status.length != 0)
+            return status;
+    },
+    getTimelineStatus: function (isActive, isCompleted) {
+        if (isActive == 'N' && isCompleted == 'N')
+            return aa.data.task.inactive;
+        else if (isActive == 'Y' && isCompleted == 'N')
+            return aa.data.task.inprogress;
+        else if (isActive == 'Y' && isCompleted == 'Y')
+            return aa.data.task.completed;
+        else if (isActive == 'N' && isCompleted == 'Y')
+            return aa.data.task.completed;
+    },
+    getTimelineStatusIsComplete: function (isActive, isCompleted) {
+        if (isActive == 'N' && isCompleted == 'N')
+            return false;
+        else if (isActive == 'Y' && isCompleted == 'N')
+            return false;
+        else if (isActive == 'Y' && isCompleted == 'Y')
+            return true;
+        else if (isActive == 'N' && isCompleted == 'Y')
+            return true;
+    },
+    formateDate: function (date) {
+        if (date == undefined || date == null || date.length == 0)
+            return "";
+        else {
+            //var returnDate = new Date((date).substr(0, (date).indexOf('T')));
+            //return (returnDate.getMonth() + 1) + '/' + returnDate.getDate() + '/' + returnDate.getFullYear();
+            var aryDate = (date).substr(0, (date).indexOf('T')).split('-');
+            return aryDate[1] + "/" + aryDate[2] + "/" + aryDate[0];
+        }
+    },
+    showDetailPageReload: function(pageid){
+        aa.data.lastClickedItem = pageid;
+        var page = $("#" + pageid).find(".timeline-page");
+
+        var url = page.data("clickfunction");
+        var parentid = page.data("parentid");
+
+        if(page.find(".workflow-iframe").length!=0) {
+            aa.util.loadMask.show();
+            page.find(".workflow-iframe").attr("src", url);
+        }
+    },
+    showDetailPage: function (pageid) {
+        aa.data.lastClickedItem = pageid;
+        var page = $("#" + pageid).find(".timeline-page");
+
+        //If Inactive then return
+        if (getMode(page.data("isactive"), page.data("iscomplete")) == "none")
+            return false;
+
+        if ($(page).has("iframe").length != 0) {
+            if ($(page).hasClass("hide-page"))
+                showIframe(true);
+            else
+                showIframe(false);
+
+            //var iframe = $(page).find("iframe");
+            //$(iframe).css('height','1347px');
+            //$(iframe).css('height','500px');
+            return false;
+        }
+
+        function showIframe(display) {
+            if (display) {
+                $(page).addClass("show-page").removeClass("hide-page");
+                $(page).parent().find(".accelicons-expand")
+                    .removeClass("accelicons-expand")
+                    .addClass("accelicons-collapse");
+            }
+            else {
+                $(page).addClass("hide-page").removeClass("show-page");
+                $(page).parent().find(".accelicons-collapse")
+                    .removeClass("accelicons-collapse")
+                    .addClass("accelicons-expand");
+            }
+        }
+
+        function getMode(isActive, isCompleted) {
+            if (isActive == 'Y' && isCompleted == 'N')
+                return "edit";
+            else if (isActive == 'Y' && isCompleted == 'Y')
+                return "view";
+            else if (isActive == 'N' && isCompleted == 'Y')
+                return "view";
+            else
+                return "none";
+        }
+
+
+        var url = page.data("clickfunction");
+        var parentid = page.data("parentid");
+
+        aa.util.loadMask.show();
+        $('<iframe/>')
+            .attr('id', aa.data.iframeId + aa.data.iframeIdIndex)
+            .attr('class', 'workflow-iframe')
+            .attr('style', 'border: 0px')
+            .attr('data-parentid', parentid)
+            .attr('src', url)
+            .appendTo($(page).find(".workflow-item-page"));
+
+        aa.data.iframeIdIndex++;
+        showIframe(true);
+        /* if(url == undefined &&
+         url == null &&
+         url.length==0){
+         aa.util.loadMask.hide();
+         }*/
+    },
+    expandTask: function (pcid, tasktype) {
+        if ($(aa.data.cssClass[tasktype].itemClass + "." + pcid).hasClass("expand")) {
+            $(aa.data.cssClass[tasktype].itemClass + "." + pcid).removeClass("expand").addClass("collapse");
+            $(aa.data.cssClass[tasktype].summaryClass + "." + pcid).removeClass("collapse").addClass("expand");
+        } else {
+            $(aa.data.cssClass[tasktype].itemClass + "." + pcid).removeClass("collapse").addClass("expand");
+            $(aa.data.cssClass[tasktype].summaryClass + "." + pcid).removeClass("expand").addClass("collapse");
+        }
+    },
+    subProcessExpand: function (containerId, parentContainerId, title, mainContainerId) {
+        var list = {linklist: []};
+        $("#" + mainContainerId + " .container-timeline-items").removeClass("expand");
+        $("#" + mainContainerId + " .container-timeline-items." + containerId).addClass("expand");
+        this.timelineContainer.hide(mainContainerId);
+        $("#title-dynamic").text(title);
+
+        if ($("#title-workflow").hasClass("hidden")) {
+            $.each($(".crumbs li"), function (index, element) {
+                list.linklist.push({
+                    name: $(element).data("name"),
+                    itemId: $(element).data("pid"),
+                    mainContainerId: $(element).data("mid")
+                });
+            });
+        } else {
+            $("#title-workflow, #title-workflow-adhock, #button-workflow-adhock").removeClass("visible").addClass("hidden");
+            $("#title-dynamic").removeClass("hidden").addClass("visible");
+            list.linklist.push({
+                name: (aa.ui.timelineContainer.isAdhocTask(mainContainerId) ? $("#title-workflow-adhock").text() : $("#title-workflow").text()),
+                itemId: parentContainerId,
+                mainContainerId: mainContainerId
+            });
+        }
+        //Clicked Parent
+        list.linklist.push({
+            name: title,
+            itemId: containerId,
+            mainContainerId: mainContainerId
+        });
+
+        this.navbarHTML(list);
+    },
+    subProcessBackHome: function (itemIndex, title, containerId, mainContainerId) {
+        $("#title-dynamic").text(title);
+        var list = {linklist: []};
+        $("#" + mainContainerId + " .container-timeline-items").removeClass("expand");
+        $("#" + mainContainerId + " .container-timeline-items." + containerId).addClass("expand");
+        this.timelineContainer.hide(mainContainerId);
+        if (itemIndex == 0) {
+            $("#title-dynamic").removeClass("visible").addClass("hidden");
+            $("#title-workflow, #title-workflow-adhock, #button-workflow-adhock").removeClass("hidden").addClass("visible");
+            this.timelineContainer.show();
+        } else {
+            $.each($(".crumbs li"), function (index, element) {
+                if (itemIndex >= index) {
+                    list.linklist.push({
+                        name: $(element).data("name"),
+                        itemId: $(element).data("pid"),
+                        mainContainerId: $(element).data("mid")
+                    });
+                }
+            });
+        }
+        this.navbarHTML(list);
+    },
+    navbarHTML: function (json) {
+        var source = aa.template.breadcrumb.html;
+        var template = Handlebars.compile(source);
+        var html = template(json);
+        $("#nav-bar").html(html);
+    },
+    timelineContainer: {
+        show: function () {
+            $("#container-timeline-" + aa.data.taskItem.taskMainContainerId + ", #container-timeline-" + aa.data.taskItem.adHocktaskMainContainerId).removeClass("hidden");
+        },
+        hide: function (mainContainerId) {
+            if (mainContainerId == "container-timeline-" + aa.data.taskItem.taskMainContainerId)
+                $("#container-timeline-" + aa.data.taskItem.adHocktaskMainContainerId).addClass("hidden");
+            else
+                $("#container-timeline-" + aa.data.taskItem.taskMainContainerId).addClass("hidden");
+        },
+        isAdhocTask: function (mainContainerId) {
+            if (mainContainerId == "container-timeline-" + aa.data.taskItem.taskMainContainerId)
+                return false;
+            else
+                return true;
+        }
+    },
+    tiggerCompleteAndInactiveConatiner: function(){
+       var continerItems = $("#container-timeline-" + aa.data.taskItem.taskMainContainerId).find(".container-timeline-items");
+        this.tiggerCompleteAndInactiveConatinerItems(continerItems);
+        continerItems = $("#container-timeline-" + aa.data.taskItem.adHocktaskMainContainerId).find(".container-timeline-items");
+        this.tiggerCompleteAndInactiveConatinerItems(continerItems);
+        this.tiggerBucketLastItemStyle();
+    },
+    tiggerCompleteAndInactiveConatinerItems: function(continerItems){
+        $.each(continerItems, function(index, element){
+            if($(element).find(".timeline-item.completed").length==0){
+                $(element).find(".summary-completed").removeClass("expand").addClass("collapse");
+                $(element).find(".summary-completed").parent().addClass("hide-elem");
+            }
+
+            if($(element).find(".timeline-item.inprogress").length==0){
+                $(element).find(".summary-inprogress").removeClass("expand").addClass("collapse");
+                $(element).find(".summary-inprogress").parent().addClass("hide-elem");
+            }
+
+            if($(element).find(".timeline-item.inactive").length==0){
+                $(element).find(".summary-inactive").removeClass("expand").addClass("collapse");
+                $(element).find(".summary-inactive").parent().addClass("hide-elem");
+            }
+        });
+    },
+    tiggerBucketLastItemStyle: function(){
+        var isCompleteVisible = false, isInprogressVisible = false , isPendingVisible = false;
+        $.each($(".container-timeline-items"), function(index, element) {
+            isCompleteVisible = false, isInprogressVisible = false , isPendingVisible = false;
+            if($(element).find(".bucket.completed.hide-elem").length==0)
+                isCompleteVisible = true;
+
+            if($(element).find(".bucket.inprogress.hide-elem").length==0)
+                isInprogressVisible = true;
+
+            if($(element).find(".bucket.inactive.hide-elem").length==0)
+                isPendingVisible = true;
+
+            if ((isCompleteVisible && isInprogressVisible && isPendingVisible)
+                || (!isCompleteVisible && isInprogressVisible && isPendingVisible)
+                || (!isCompleteVisible && !isInprogressVisible && isPendingVisible)) {
+                $(element).find(".bucket.inactive").addClass("last-bc");
+            }
+            else if((!isCompleteVisible && isInprogressVisible && !isPendingVisible)
+                || (isCompleteVisible && isInprogressVisible && !isPendingVisible)) {
+                $(element).find(".bucket.inprogress").addClass("last-bc");
+            }
+            else if (isCompleteVisible && !isInprogressVisible && !isPendingVisible){
+                $(element).find(".bucket.completed").addClass("last-bc");
+            }
+        });
+    },
+    reArrangeBuckets: function() {
+        $.each($(".container-timeline-items"), function (index, element) {
+            var expandBucketCompleted = false,
+                expandBucketInprogress = false,
+                expandBucketInActive = false;
+
+            $.each($(element).find(".row-item"), function (ind, ele) {
+                if ($(ele).hasClass("completed") &&
+                    ($(ele).hasClass(aa.data.cssClass.inprogress.bucketItemClass) || ($(ele).hasClass(aa.data.cssClass.inactive.bucketItemClass)) )) {
+
+                    $(ele).removeClass(aa.data.cssClass.inprogress.bucketItemClass)
+                        .removeClass(aa.data.cssClass.inactive.bucketItemClass)
+                        .removeClassPrefix(aa.data.cssClass.inprogress.rowItemClass)
+                        .removeClassPrefix(aa.data.cssClass.inactive.rowItemClass)
+                        .addClass(aa.data.cssClass.completed.bucketItemClass + " " + aa.data.cssClass.completed.rowItemClass + $(ele).data("indexnumber"));
+
+                    expandBucketCompleted = true;
+                }else if ($(ele).hasClass("inprogress") && $(ele).hasClass(aa.data.cssClass.completed.bucketItemClass)) {
+                    //Speical Case, When Complted task becomes Inprogress again
+                    $(ele).removeClass(aa.data.cssClass.completed.bucketItemClass)
+                        .removeClassPrefix(aa.data.cssClass.completed.rowItemClass)
+                        .addClass(aa.data.cssClass.inprogress.bucketItemClass + " " + aa.data.cssClass.inprogress.rowItemClass + $(ele).data("indexnumber"));
+
+                    aa.ui.showDetailPageReload($(ele).attr("id"));
+                    expandBucketInprogress = true;
+                }
+                else if ($(ele).hasClass("inprogress") && $(ele).hasClass(aa.data.cssClass.inactive.bucketItemClass)) {
+
+                    $(ele).removeClass(aa.data.cssClass.inactive.bucketItemClass)
+                        .removeClassPrefix(aa.data.cssClass.inactive.rowItemClass)
+                        .addClass(aa.data.cssClass.inprogress.bucketItemClass + " " + aa.data.cssClass.inprogress.rowItemClass + $(ele).data("indexnumber"));
+
+                    expandBucketInprogress = true;
+                } else if ($(ele).hasClass("inactive") && ($(ele).hasClass(aa.data.cssClass.inprogress.bucketItemClass) || ($(ele).hasClass(aa.data.cssClass.completed.bucketItemClass)))) {
+                    $(ele).removeClass(aa.data.cssClass.inprogress.bucketItemClass)
+                        .removeClass(aa.data.cssClass.completed.bucketItemClass)
+                        .removeClassPrefix(aa.data.cssClass.inprogress.rowItemClass)
+                        .removeClassPrefix(aa.data.cssClass.completed.rowItemClass)
+                        .removeClass("child-item")
+                        .addClass(aa.data.cssClass.inactive.bucketItemClass + " " + aa.data.cssClass.inactive.rowItemClass + $(ele).data("indexnumber"));
+
+                    expandBucketInActive = true;
+                }
+            });
+
+            if (expandBucketCompleted)
+                aa.ui.expandBucketItems(element, "completed");
+
+
+            if (expandBucketInprogress)
+                aa.ui.expandBucketItems(element, "inprogress");
+
+            if (expandBucketInActive)
+                aa.ui.expandBucketItems(element, "inactive");
+
+            aa.ui.hideBucketsIfEmpty(element);
+        });
+    },
+    hideBucketsIfEmpty: function(element){
+        if($(element).find(".timeline-item.completed").length==0)
+            $(element).find(".bucket.completed").addClass("hide-elem");
+
+        if($(element).find(".timeline-item.inprogress").length==0)
+            $(element).find(".bucket.inprogress").addClass("hide-elem");
+
+        if($(element).find(".timeline-item.inactive").length==0)
+            $(element).find(".bucket.inactive").addClass("hide-elem");
+
+    },
+    expandBucketItems: function(element, style) {
+        $.each($(element).find(".row-item"), function (ind, ele) {
+            if ($(ele).hasClass(style) && $(ele).hasClass("timeline-item"))
+                $(ele).removeClass("collapse").addClass("expand");
+
+                if ($(ele).hasClass(style) && $(ele).hasClass("bucket")) {
+                    $(ele).removeClass("hide-elem");
+                    $(ele).find(".timeline-item").removeClass("expand").removeClass("expand").addClass("collapse");
+                }
+        });
+    },
+    getRowOrderClass: function(css, indexNumber) {
+        if (css == "completed") {
+            return css + " " + aa.data.cssClass.completed.bucketItemClass + " "  + aa.data.cssClass.completed.rowItemClass + indexNumber;
+        } else if (css == "inprogress") {
+            return css + " " + aa.data.cssClass.inprogress.bucketItemClass + " "  + aa.data.cssClass.inprogress.rowItemClass + indexNumber;
+        } else if (css == "inactive") {
+            return css + " " + aa.data.cssClass.inactive.bucketItemClass + " "  + aa.data.cssClass.inactive.rowItemClass + indexNumber;
+        }
+    },
+    childCompletedcount: function(child){
+        var iSCounter = 0;
+        $.each(child, function(index, elem) {
+            if(aa.ui.getTimelineStatusIsComplete(elem.taskItemModel.activeFlag, elem.taskItemModel.completeFlag))
+                iSCounter++;
+        });
+        return iSCounter;
+    }
+};
+
+Handlebars.registerHelper('timelineStatus', function(isActive, isCompleted, indexNumber) {
+ return aa.ui.getRowOrderClass(aa.ui.getTimelineStatus(isActive, isCompleted), (indexNumber + 1));
+});
+
+Handlebars.registerHelper('formateDate', function(date) {
+    return aa.ui.formateDate(date);
+});
+
+//May need to remove later
+Handlebars.registerHelper('timelineApplicationStatus', function(status, isActive, isCompleted) {
+    return aa.ui.getApplicationStatus(status, isActive, isCompleted);
+});
+
+Handlebars.registerHelper('navigateFunc', function(value, link) {
+    return aa.ui.getNavigationUrl(value, link);
+});
+/*
+Handlebars.registerHelper('genChildNode', function(child) {
+    if(child.length==0){
+        return new Handlebars.SafeString("");
+    }else {
+        var source = aa.template.workflow.html;
+        var template = Handlebars.compile(source);
+        if (child.length != 0)
+            var list = {
+                child: child
+            };
+        var context = list;
+        var html = template(context);
+        return new Handlebars.SafeString(html);
+    }
+});
+*/
+Handlebars.registerHelper('hasChildNode', function(child) {
+    if(child.length!=0)
+        return "child-item";
+    else
+        return "";
+});
+
+Handlebars.registerHelper('childTotalTaskCount', function(child) {
+    return child.length;
+});
+
+Handlebars.registerHelper('childCompletedTaskCount', function(child) {
+    return aa.ui.childCompletedcount(child);
+});
+
+$(document).on("click",".timeline-stack", function(e) {
+    e.preventDefault();
+    var containerId = $(this).data("showitem");
+    var parentContainerId =  $(this).data("parentitem");
+    var title = $(this).data("title");
+    var mainContainerId = $(this).closest(".timeline").attr("id");
+    aa.ui.subProcessExpand(containerId, parentContainerId, title, mainContainerId);
+});
+
+
+$(document).on("click","#nav-bar a", function(e) {
+    e.preventDefault();
+
+    var index = $(this).parent().data("index");
+    var title = $(this).parent().data("name");
+    var containerId = $(this).parent().data("pid");
+    var mainContainerId = $(this).parent().data("mid");
+    aa.ui.subProcessBackHome(index, title, containerId, mainContainerId);
+});
+
+
+$(document).on("click","#workflowchart", function(e) {
+    e.preventDefault();
+    if(aa.util.isIE()) {
+        aa.ui.openFlowChartInTab();
+        return false;
+    } else {
+        $("#workflowchartModal").css('display', 'block').addClass("in");
+        $("body").append("<div id='modalbackdrop' class='modal-backdrop fade in'></div>");
+        aa.ui.openFlowChart();
+    }
+});
+
+$(document).on("click","#chartmodalclose, #tbarchartmodalclose", function(e) {
+    e.preventDefault();
+    $("#workflowchartModal").css('display','none').removeClass("in");
+    $("#modalbackdrop").remove();
+});
+
+
+
+/*
+$(document).on("click",".timeline-item .timeline-stack", function(e){
+    e.preventDefault();
+    var pageId = $(this).parent().parent().attr("id");
+    $(".container-timeline-items." + pageId).addClass("expand");
+});*/
+
+$(document).on("click",".timeline-item .panel-body", function(e){
+    e.preventDefault();
+    //var page = $(this).find(".workflow-item-page");
+    var pageId = $(this).parent().parent().attr("id");
+    var hasSummaryClass = $(this).parent().parent().hasClass("summary-completed");
+    var hasInProgressClass = $(this).parent().parent().hasClass("summary-inprogress");
+    var hasInactiveClass = $(this).parent().parent().hasClass("summary-inactive");
+    if(hasSummaryClass)
+        aa.ui.expandTask($(this).parent().parent().data("pcid"), aa.data.task.completed);
+    else if(hasInProgressClass)
+        aa.ui.expandTask($(this).parent().parent().data("pcid"), aa.data.task.inprogress);
+    else if(hasInactiveClass)
+        aa.ui.expandTask($(this).parent().parent().data("pcid"), aa.data.task.inactive);
+    else
+        aa.ui.showDetailPage(pageId);
+
+    /*-------------End-----------*/
+});
+
+$(document).on("click","#title-workflow", function(e) {
+    e.preventDefault();
+    aa.ui.reArrangeBuckets();
+});
+
+$(document).on("click",".refresh", function(e) {
+    e.preventDefault();
+    window.location.href = $("#Workflow").find("a").attr("href");
+    return false;
+});
+
+$(window).resize(function () {
+    aa.ui.initWidth();
+    aa.ui.initHeight();
+});
+
+aa.template = {
+    'workflowmain' :{
+      'html' :  '<div id="container-timeline-{{type}}" class="timeline">'
+                + '</div>'
+    },
+    'workflow' : {
+        'html' :  '<div class="container-timeline-items {{itemId}} ">'
+                    +'<div class="bucket completed row-item row-completed-bucket"><div class="b-header"></div><div data-pcid="{{itemParentId}}" class="timeline-item summary-completed {{itemParentId}} expand">'
+                        +'<div class="panel panel-default">'
+                            +'<div class="panel-body">'
+                                +'<span class="timeline-icon"><i class="accelaicon statusicons"></i></span>'
+                                +'<div class="row mb-5">'
+                                    +'<div class="col-md-10">'
+                                        +'<span class="timeline-title" data-i18n="WorkFlow.BucketCompleted">Completed Task</span>'
+                                    + '</div>'
+                                + '</div>'
+                            + '</div>'
+                        + '</div>'
+                    + '</div></div>'
+
+                    +'<div class="bucket inprogress row-item row-inprogress-bucket"><div class="b-header"></div><div data-pcid="{{itemParentId}}" class="timeline-item summary-inprogress {{itemParentId}} collapse">'
+                        +'<div class="panel panel-default">'
+                            +'<div class="panel-body">'
+                                +'<span class="timeline-icon"><i class="accelaicon statusicons"></i></span>'
+                                +'<div class="row mb-5">'
+                                    +'<div class="col-md-10">'
+                                        +'<span class="timeline-title" data-i18n="WorkFlow.BucketInprogress">In progress</span>'
+                                    + '</div>'
+                                + '</div>'
+                            + '</div>'
+                        + '</div>'
+                    + '</div></div>'
+
+                    + '<div class="bucket inactive row-item row-inactive-bucket"><div class="b-header"></div><div data-pcid="{{itemParentId}}" class="timeline-item summary-inactive {{itemParentId}} expand">'
+                        +'<div class="panel panel-default">'
+                            +'<div class="panel-body">'
+                                +'<span class="timeline-icon"><i class="accelaicon statusicons"></i></span>'
+                                +'<div class="row mb-5">'
+                                    +'<div class="col-md-10">'
+                                        +'<span class="timeline-title" data-i18n="WorkFlow.BucketUpNext">Up Next</span>'
+                                    + '</div>'
+                                + '</div>'
+                            + '</div>'
+                        + '</div>'
+                    + '</div></div>'
+
+                    + '{{#each child}}'
+                    + '<div id="{{itemId}}" data-indexnumber={{@index}} data-stepnumber={{taskItemModel.stepNumber}} class="timeline-item row-item {{../itemParentId}} {{timelineStatus taskItemModel.activeFlag taskItemModel.completeFlag @index}} {{#if @last}}last{{/if}} {{hasChildNode child}}">'
+                        +'<div class="panel panel-default">'
+                            +'<div class="panel-body">'
+                                    +'<span class="timeline-icon"><i class="accelaicon statusicons"></i></span>'
+                                    +'<span class="timeline-expand"><i class="accelaicon accelicons-expand"></i></span>'
+                                    +'<div class="row mb-5">'
+                                        +'<div class="col-md-4"><span class="timeline-title">{{taskItemModel.dispTaskDescription}}</span></div>'
+                                        + '<div class="col-md-4">'
+                                                +'<span class="timeline-label" data-i18n="WorkFlow.Assigned">Assigned To</span>'
+                                                +'<span class="timeline-value timeline-assigneduser">{{taskItemModel.assignedUser.fullName}}</span>'
+                                        +'</div>'
+                                        +'<div class="col-md-4 text-align-right col-last">'
+                                                +'<span class="timeline-status">{{timelineApplicationStatus taskItemModel.disposition taskItemModel.activeFlag taskItemModel.completeFlag}}</span>'
+                                        +'</div>'
+                                    +'</div>'
+                                    +'<div class="row">'
+                                         +'<div class="col-md-4">'
+                                                +'<!--<span class="timeline-subtask-count">0</span>'
+                                                +'<span class="timeline-subtask" data-i18n="WorkFlow.Subtask">Sub task</span>-->'
+                                                +'<span class="timeline-subtask-icon accelaicon accelicons-clock"></span>'
+                                                +'<span class="timeline-subtask-hour">{{taskItemModel.hoursSpent}}h</span>'
+                                         +'</div>'
+                                         +'<div class="col-md-4">'
+                                                +'<span class="timeline-label" data-i18n="WorkFlow.Started">Action</span>'
+                                                +'<span class="timeline-value timeline-actionby">{{formateDate taskItemModel.statusDate}} <span data-i18n="WorkFlow.By">by</span> {{taskItemModel.sysUser.fullName}}</span>'
+                                         +'</div>'
+                                         +' <div class="col-md-4 text-align-right col-last">'
+                                                +'<span class="timeline-label" data-i18n="WorkFlow.Due">Due</span>'
+                                                +'<span class="timeline-value timeline-duedate">{{formateDate taskItemModel.dueDate}}</span>'
+                                         +'</div>'
+                                    +'</div>'
+                            + '</div>'
+                            +'<div class="panel-body timeline-page hide-page" data-clickfunction="{{navigateFunc name link}}" data-parentid="{{itemId}}"  data-isactive="{{taskItemModel.activeFlag}}" data-childcount="{{childCount}}"  data-iscomplete="{{taskItemModel.completeFlag}}">'
+                                    +'<div class="row">'
+                                          +'<div class="col-md-12 workflow-item-page">'
+                                          +'</div>'
+                                    +'</div>'
+                            + '</div>'
+                            +'<div class="timeline-stack"  data-title="{{taskItemModel.dispTaskDescription}}" data-parentitem={{itemParentId}} data-showitem="{{itemId}}"><div class="additional-step-label"><span data-i18n="WorkFlow.IncludeAddPage">+ Includes additional steps</span>&nbsp;<span class="child-completed-count">{{childCompletedTaskCount child}}</span>&nbsp;<span data-i18n="WorkFlow.PageOf">of</span>&nbsp;<span class="child-total-count">{{childTotalTaskCount child}}</span>&nbsp;<span data-i18n="WorkFlow.PageCompleted">completed</span></div><div class="stack-1"></div><div class="stack-2"></div><div class="stack-3"></div><div class="stack-4"></div><div class="stack-5"></div></div>'
+                        +'</div>'
+                    + '</div>'
+                    + ' {{/each}}'
+                 + '</div>'
+    },
+    'header' : {
+        'html' :  '<div class="workflow-topheader">'
+                    +'<div class="row" id="nav-bar">'
+
+                    +'</div>'
+                    +'<div class="row">'
+                        +'<div class="col-md-6 h1-header"><h1 data-i18n="WorkFlow.WorkflowTask" id="title-workflow" class="header-text visible">Workflow Task</h1><h1 id="title-dynamic" class="hidden"></h1></div>'
+                        +'<div class="col-md-6 link-header">'
+                            +'<div class="header-link"><a href="{{viewhistoryurl}}"><span class="workflow-header-icon accelaicon accelicons-clock"></span><span data-i18n="WorkFlow.ViewHistory">View History</span></a></div>'
+                        +'</div>'
+                     +'</div>'
+                  +'</div>'
+    },
+    'adhoctaskheader' : {
+        'html' :'<div class="workflow-topheader">'
+                    +'<div class="row">'
+                        +'<div class="col-md-8 h1-header"><h1  data-i18n="WorkFlow.AdditionalAdhocTask" id="title-workflow-adhock" class="header-text visible">Additional Ad Hoc Task</h1></div>'
+                        +'<div class="col-md-4 link-header" id="button-workflow-adhock" class="visible">'
+                            +'<div class="header-link"><a href="{{newadhocktaskurl}}"><span class="workflow-header-icon accelaicon accelicons-plus-circle"></span><span data-i18n="WorkFlow.NewAdhocTask">Ad Hoc Task</span></a></div>'
+                        +'</div>'
+                    +'</div>'
+                +'</div>'
+    },
+    'breadcrumb' : {
+        'html' :    '<div id="breadcrumb">'
+                        + '<ul class="crumbs">'
+                            + '{{#each linklist}}'
+                                +  '<li class="{{#if @first}}first{{/if}} {{#if @last}}last{{/if}}" data-pid={{itemId}} data-index="{{@index}}" data-name="{{name}}" data-mid="{{mainContainerId}}">'
+                                    + '{{#unless @last}}'
+                                        +'<a href="#">{{name}}</a></li>'
+                                    +'{{/unless}}'
+                                    + '{{#if @last}}'
+                                        + '<span >{{name}}</span></li>'
+                                    + '{{/if}}'
+                                + '</li>'
+                            + ' {{/each}}'
+                        + '</ul>'
+                    + '</div>'
+
+    }
+}

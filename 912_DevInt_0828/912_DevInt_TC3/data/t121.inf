@@ -1,0 +1,11 @@
+[t121]
+FileName1=t121_portlet-iframe-controller.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/automation/portlet/portlet-iframe-controller.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_121.xml
+RequestHeaderFile=t121_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t121_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

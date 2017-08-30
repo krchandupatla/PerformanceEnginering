@@ -1,0 +1,11 @@
+[t555]
+FileName1=t555_ext-all.css
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/ext-2.0.2/resources/css/ext-all.css
+Total=1
+ContentType=text/css
+SnapshotXmlFile=snapshot_555.xml
+RequestHeaderFile=t555_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t555_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

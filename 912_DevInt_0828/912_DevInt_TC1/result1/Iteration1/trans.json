@@ -1,0 +1,52 @@
+[
+    {
+        "transactionName": "Login",
+        "rawStartTime": 1503945484050,
+        "rawEndTime": 1503945488498
+    },
+    {
+        "transactionName": "TC1_4_Click_Record",
+        "rawStartTime": 1503945488499,
+        "rawEndTime": 1503945492061
+    },
+    {
+        "transactionName": "TC1_5_Click_Search",
+        "rawStartTime": 1503945492062,
+        "rawEndTime": 1503945494544
+    },
+    {
+        "transactionName": "TC1_6_Search_Record",
+        "rawStartTime": 1503945497145,
+        "rawEndTime": 1503945499158
+    },
+    {
+        "transactionName": "TC1_7_Record_Details",
+        "rawStartTime": 1503945499159,
+        "rawEndTime": 1503945502160
+    },
+    {
+        "transactionName": "TC1_8_Click_Addtl_Info",
+        "rawStartTime": 1503945502160,
+        "rawEndTime": 1503945505530
+    },
+    {
+        "transactionName": "TC19_Save_Addtl_Info",
+        "rawStartTime": 1503945505531,
+        "rawEndTime": 1503945505566
+    },
+    {
+        "transactionName": "TC1_11_Save_AppHistory",
+        "rawStartTime": 1503945505568,
+        "rawEndTime": 1503945507379
+    },
+    {
+        "transactionName": "TC1_12_Click_WorkFlow",
+        "rawStartTime": 1503945507380,
+        "rawEndTime": 1503945510316
+    },
+    {
+        "transactionName": "SignOut",
+        "rawStartTime": 1503945510317,
+        "rawEndTime": 1503945512686
+    }
+]

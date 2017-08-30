@@ -1,0 +1,61 @@
+(function() {
+  'use strict';
+
+  /**
+   * USER PROFILE - dependency injection handled by UserModel.
+   */
+  Accela.module('Entity.UserProfile', function() {
+
+    // DEFINE class
+
+    function UserProfile(data) {
+      this.agencyCode = data.agencyCode || null;
+      this.bureauCode = data.bureauCode || null;
+      this.dispText = data.dispText || null;
+      this.divisionCode = data.divisionCode || null;
+      this.email = data.email || null;
+      this.employeePhone1 = data.employeePhone1 || null;
+      this.firstName = data.firstName || '';
+      this.groupCode = data.groupCode || null;
+      this.lastName = data.lastName || '';
+      this.officeCode = data.officeCode || null;
+      this.sectionCode = data.sectionCode || null;
+      this.serviceProviderCode = data.serviceProviderCode || null;
+      this.userName = data.userName || null;
+
+      // COMPUTED FIELDS
+
+      this.fullName = sprintf('%s %s', this.firstName, this.lastName);
+
+      // TODO: alias
+
+      this.role = this.dispText;
+    }
+
+    // PRIVATE METHODS
+
+//    /**
+//     * Handle nested properties - NOT USED
+//     *
+//     * usage:  setDepartment('group', data),
+//     */
+//    function setDepartment(prop, data) {
+//      if (data && data.department) {
+//        return data.department[prop] || null;
+//      } else {
+//        return null;
+//      }
+//    }
+
+    // STATIC METHODS - assigned to class
+
+    /**
+     * Constructor for objects of this class
+     */
+    UserProfile.build = function (data) {
+      return new UserProfile(data || {});
+    };
+
+    return UserProfile;
+  });
+})();

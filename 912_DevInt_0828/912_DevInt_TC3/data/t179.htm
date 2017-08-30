@@ -1,0 +1,58 @@
+	
+
+
+
+
+
+
+<html>
+<head>
+
+
+<link rel="stylesheet" type="text/css" href="/portlets/spa/styles/portlet-iframe-content.css"/>
+
+
+</head>
+<body>
+
+<iframe  id="addressList" name="addressList" frameborder="0" scrolling="auto" title="reference Address" height="300px" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='javascript:void(0);'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="addressForm" name="addressForm" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="reference Address" height="380px" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="addressdataForm" name="addressdataForm" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="" height="380px" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="mydataForm" name="mydataForm" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="reference Address" height="380px" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="myassetForm" name="myassetForm" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="reference Address" height="380px" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="refAddressMapFrame" name="refAddressMapFrame" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="reference Address" style="display:none"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+
+</body>
+<script language="JavaScript">
+if(typeof(navUrl)=='undefined' || navUrl==null || navUrl=="")
+{
+	document.getElementById('addressList').src="/portlets/address/refAddressList.do?mode=Search";	
+}
+else
+{
+	document.getElementById('addressList').src=navUrl;
+}
+
+
+
+        var portletDetails = {
+            initial: 'addressList'
+        };
+
+        var portletNavigation = new parent.Accela.PortletNavigation();
+        portletNavigation.init(window, document, history, parent.Accela.PortletInterface, portletDetails);
+
+        function showList()
+        {
+            portletNavigation.showList();
+        }
+
+
+</script>
+	<noscript>
+		Do not support the scripting.
+	</noscript>
+</html>
+<!---
+$Log: av-env.bat,v $
+--->

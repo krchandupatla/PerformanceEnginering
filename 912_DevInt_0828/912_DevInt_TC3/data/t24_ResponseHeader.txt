@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Cache-Control: no-cache
+Expires: Wed, 31 Dec 1969 23:59:59 GMT
+X-XSS-Protection: 0
+Pragma: No-cache
+Set-Cookie: ACSignoff="https://aa-pt6245.dev.accela.com:5443/portlets/security/signout.do"; Version=1; Domain=dev.accela.com; Path=/; Secure,ACSwitchAgency="https://aa-pt6245.dev.accela.com:5443/portlets/commons/sso/blank.jsp"; Version=1; Domain=dev.accela.com; Path=/; Secure
+Accept-Ranges: bytes
+ETag: W/"807-1498747150000"
+Last-Modified: Thu, 29 Jun 2017 14:39:10 GMT
+Content-Type: image/gif;charset=UTF-8
+Content-Length: 807
+Date: Mon, 28 Aug 2017 18:13:32 GMT
+Connection: close
+

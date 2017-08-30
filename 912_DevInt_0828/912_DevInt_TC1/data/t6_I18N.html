@@ -1,0 +1,86 @@
+//Accela Automation
+//File: I18N.js
+//Accela, Inc.
+//Copyright (C): 2008-2009
+//
+//Description: This javascript is about support I18N. 
+document.write("<script src='/portlets/framework/includes/javascript/jsMessageResoruce.js'></script>");
+
+var dataFormat = '';
+var agencyDate = '';
+var reg = eval("/\\./g");
+
+function getTextlable(lablekey)
+{
+	var str = "jsMessageResoruce." + lablekey.replace(reg, "_");
+	return eval(str);
+}
+
+function getTextLablebyArg(lablekey,args)
+{
+	var str = "jsMessageResoruce." + lablekey.replace(reg, "_");
+	var value = eval(str);
+	for(var i=0; i<args.length; i++)
+	{
+		value = value.replace(eval("/\{"+i+"\\}/g"), args[i]);
+	}
+	return value;
+}
+
+function getDateFormat()
+{
+	var returnData;
+	if (dataFormat == '')
+	{
+		returnData = sendHttpRequest('/portlets/i18n/ajax.do?mode=getDateFormat', null, false);
+		dataFormat = returnData;
+	}
+	else
+	{
+		returnData = dataFormat;
+	}
+	return returnData;
+}
+
+function getAgencyDate()
+{
+	var returnData;
+	if (agencyDate == '')
+	{
+		returnData = sendHttpRequest('/portlets/i18n/ajax.do?mode=getAgencyDate', null, false);
+		agencyDate = returnData;
+	}
+	else
+	{
+		returnData = agencyDate;
+	}
+	return returnData;
+}
+
+function getAgencyDateByPattern(pattern)
+{
+	var returnData = sendHttpRequest('/portlets/i18n/ajax.do?mode=getAgencyDate&pattern='+pattern, null, false);
+	return returnData;
+}
+
+function getCurrencyFormat(amount)
+{
+	var returnData = sendHttpRequest('/portlets/i18n/ajax.do?mode=getCurrencyFormat&amount='+amount, null, false);
+	return returnData;
+}
+
+function getCapTypeName(capTypeName)
+{
+	return sendHttpRequest('/portlets/i18n/ajax.do?mode=getCapTypeName&capTypeName='+encodeURIComponent(capTypeName), null, false);
+}
+
+function getCapTypeNameTimeAccount(capTypeName)
+{
+	return sendHttpRequest('/portlets/i18n/ajax.do?mode=getCapTypeNameTimeAccount&capTypeName='+encodeURIComponent(capTypeName), null, false);
+}
+
+function getASITableColumn(group,subGroup,cloumn) 
+{
+	var returnData = sendHttpRequest('/portlets/i18n/ajax.do?mode=getASITableColumn&group='+encodeURIComponent(group)+'&subGroup='+encodeURIComponent(subGroup)+'&cloumn='+encodeURIComponent(cloumn), null, false);
+	return returnData;
+}

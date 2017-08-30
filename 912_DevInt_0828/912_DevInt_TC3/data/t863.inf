@@ -1,0 +1,11 @@
+[t863]
+FileName1=t863.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/i18n/ajax.do?mode=getDateFormat
+Total=1
+RequestHeaderFile=t863_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t863_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_863.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

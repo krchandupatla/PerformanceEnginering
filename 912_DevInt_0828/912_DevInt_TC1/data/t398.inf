@@ -1,0 +1,11 @@
+[t398]
+FileName1=t398.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/cap/capSearch.do?module=Building
+Total=1
+RequestHeaderFile=t398_RequestHeader.txt
+RequestBodyFile=t398_RequestBody.txt
+ResponseHeaderFile=t398_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_398.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

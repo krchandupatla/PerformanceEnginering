@@ -1,0 +1,11 @@
+[t215]
+FileName1=t215_ac360ScrollBar.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/ac360ScrollBar.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_215.xml
+RequestHeaderFile=t215_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t215_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

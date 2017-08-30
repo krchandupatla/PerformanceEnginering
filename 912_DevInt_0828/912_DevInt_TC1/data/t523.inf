@@ -1,0 +1,11 @@
+[t523]
+FileName1=t523_back_medium_active.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/reskin/back_medium_active.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_523.xml
+RequestHeaderFile=t523_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t523_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

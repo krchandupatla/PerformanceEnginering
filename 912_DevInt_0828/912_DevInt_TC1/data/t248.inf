@@ -1,0 +1,11 @@
+[t248]
+FileName1=t248_sniff.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo1.4.3/dijit/_base/sniff.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_248.xml
+RequestHeaderFile=t248_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t248_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

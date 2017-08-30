@@ -1,0 +1,11 @@
+[t160]
+FileName1=t160_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=spaces.mytask-list
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_160.xml
+RequestHeaderFile=t160_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t160_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

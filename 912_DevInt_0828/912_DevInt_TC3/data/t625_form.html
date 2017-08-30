@@ -1,0 +1,220 @@
+//Accela Automation
+//File: form.js
+//Accela, Inc.
+//Copyright (C): 2011-2013
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: form.js 125874 2011-01-20 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+
+Template.form = function (map){
+	Template.form.superclass.constructor.call(this, map);
+	
+};
+
+Ext.extend(Template.form, Template.widget, {
+	layout : function(contain, rows, layout,template)
+	{
+		//var panel = contain;//document.createElement("div"); 
+		//contain.appendChild(panel);
+		if (layout)
+		{
+			var layoutMap = Template.layout.layout(layout, this.subgroupObj);
+		}
+		this.renderForm(contain, layoutMap,template);
+		
+	},
+	
+	renderForm : function(contain, layoutMap, template)
+	{
+		var table = TemplateHelper.createTable();
+		table.id = this.tableID;
+		table.border = '0';
+		table.cellSpacing = '0';
+		table.cellPadding = '0';
+		table.width = '90%';
+		contain.appendChild(table);
+		
+		var rows = this.renderFields(table, layoutMap, contain, template);
+		this.subgroupObj['rows'] = rows;
+	},
+	
+	renderFields : function(table, layoutMap, contain,template)
+	{
+		var fields = this.subgroupObj['fields'];
+		var value = {}, tr, td, field, entry;
+		//var trId = null;//Table.generatorTrId(key, 1);//form only have one row
+		var i = 1, id, defaultValue, fieldName, groupName, subgroupName, layoutKey, layoutSpanId, layoutStyle;
+		var noLayout = false;
+		
+		var existLayout = this.existLayout(fields, layoutMap);
+		var columns = TemplateHelper.columns;
+		groupName = this.subgroupObj['groupName'];
+		subGroupName = this.subgroupObj['subgroupName'];
+		var templateIsReadOnly = template.isReadOnly;
+		var templateIsSearch = template.isSearch;
+		var uiUID = template.uiUID;
+		
+		for (var j = 0; j < fields.length; j++)
+		{
+			field = fields[j];
+			fieldName = field['fieldName'];
+			layoutKey = Template.layout.getLayoutkey(groupName, subGroupName, fieldName);
+			id = 'template_form_'+TemplateHelper.increaseId();
+			defaultValue = !field.defaultValue ? "" : field.defaultValue;
+			if(!Template.elementIDs)
+			{
+				Template.elementIDs= new HashMap(10);
+			}
+			Template.elementIDs.put(id,uiUID);
+			
+			//add layout layoutStyle = LayoutStyle.java
+			if (layoutMap && layoutMap[layoutKey])//replace in input
+			{
+				value[fieldName] = this.createValue(field.seqNum, defaultValue, fieldName, id);
+				layoutStyle = layoutMap[layoutKey];
+				if (layoutStyle)
+				{
+					layoutSpanId = layoutStyle.spanId;
+					var span = document.getElementById(layoutSpanId);
+					if (!span)
+						continue;
+					td = span.parentNode;
+					this.addField(field, td, value[fieldName], id,templateIsReadOnly,templateIsSearch, template.isDisabled);
+					continue;
+				}
+			}
+			
+			if (existLayout)
+			{
+				continue;
+			}
+			value[fieldName] = this.createValue(field.seqNum, defaultValue, fieldName, id);
+			if (!noLayout)//render subgroup and add row for value
+			{
+				var div = document.createElement('div');
+				contain.appendChild(div);
+				div.className = "common-border-bottom";
+				div.style.marginTop = "5px";
+				div.style.marginBottom = "10px";
+				
+				var tr0 = TemplateHelper.insertRow(table);
+				var td0 = TemplateHelper.insertCell(tr0);
+				td0.className = 'portlet-form-field-label';
+				td0.height = "20";
+				td0.innerHTML = '<strong>'+this.subgroupObj['displayName']+'</strong>';
+				tr = TemplateHelper.insertRow(table);
+			}
+			noLayout = true;
+			td = TemplateHelper.insertCell(tr);
+			td.width = 400;
+			this.addField(field, td, value[fieldName], id,templateIsReadOnly,templateIsSearch,template.isDisabled);
+			
+			if (i % columns == 0)
+			{
+				if (i < fields.length )//just the element render complete
+					tr = TemplateHelper.insertRow(table);
+			}
+			i++;
+		}
+		
+		//if one row is not enoght column, then append empty column.
+		var mod = columns - (fields.length % columns);
+		if (mod > 0 && mod < columns && tr)
+		{
+			for (var j = 0; j < mod; j++)
+			{
+				td = TemplateHelper.insertCell(tr);
+				td.width = 400;
+			}
+		}
+		var rows = new Array();
+		rows.push(value);//only has noe row in form forever
+		return rows;
+	},
+	
+	//judge the subgroup exist formlayout
+	existLayout : function(fields, layoutMap)
+	{
+		for (var j = 0; j < fields.length; j++)
+		{
+			var field = fields[j];
+			var groupName = field['groupName'];
+			var subGroupName = field['subgroupName'];
+			var fieldName = field['fieldName'];
+			var layoutKey = Template.layout.getLayoutkey(groupName, subGroupName, fieldName);
+			//add layout layoutStyle = LayoutStyle.java
+			if (layoutMap && layoutMap[layoutKey])//replace in input
+			{
+				return true;				
+			}
+		}
+		return false;
+	},
+	
+	addField : function(field, td0, value, id,templateIsReadOnly,templateIsSearch, templateIsDisabled)
+	{
+		var table = TemplateHelper.createTable();
+		table.border = '0';
+		table.cellSpacing = '0';
+		table.cellPadding = '0';
+		table.width = '100%';
+		td0.vAlign = 'top';
+		var tr = TemplateHelper.insertRow(table);
+		var td = TemplateHelper.insertCell(tr);
+		td.className = 'portlet-form-field-label';
+		if (field.styleJustification)// layout align
+		{
+			td.align = field.styleJustification;
+		}
+		var tdEmpty = TemplateHelper.insertCell(tr);
+		tdEmpty.width="100%";
+		if(field.fieldTypeValue != 9 ||templateIsReadOnly)// if field type is not check box, put label above field.
+		{
+			td.innerHTML = '<label id="'+TemplateHelper.getLableId(id)+'" for="'+id+'">'+TemplateHelper.getHead(field, false, id,templateIsSearch)+'</label>';
+			tr = TemplateHelper.insertRow(table);
+			td = TemplateHelper.insertCell(tr);
+			tdEmpty = TemplateHelper.insertCell(tr);
+			tdEmpty.width="100%";
+		}
+	
+		var ele = Field.createField(field, td, value, id,templateIsReadOnly, templateIsDisabled);
+		if(field.fieldTypeValue == 9 && !templateIsReadOnly)// if field type is check box, put label after check box.
+		{
+			var label = Field.cloneLabel();
+			label.htmlFor = id;
+			label.innerHTML = TemplateHelper.getHead(field,null,null,templateIsSearch);
+			label.id = TemplateHelper.getLableId(id);
+			td.appendChild(label);
+			tr = TemplateHelper.insertRow(table);
+			td = TemplateHelper.insertCell(tr);
+		}
+		
+		if (field.fieldTypeValue == 4 && !templateIsReadOnly)//number
+		{
+			td.appendChild(Field.createLabel(numberLabel, id));
+		}
+		else if (field.fieldTypeValue == 8 && !templateIsReadOnly)//money
+		{
+			td.appendChild(Field.createLabel(moneyLabel, id));
+		}
+		else if (field.fieldTypeValue == 5)//drop down list
+		{
+			//field.fireEvent('afferRender', Field, field, ele, td, value);
+		}
+
+		//1-text,2-date,4-number,6-textarea, 8-money
+		if (ele && (field.fieldTypeValue == 1 || field.fieldTypeValue == 2 
+			|| field.fieldTypeValue == 4 || field.fieldTypeValue == 6 
+			|| field.fieldTypeValue == 8))//text/textarea/add mask
+		{
+			Template.layout.waterMask(field, ele);
+		}
+		
+		td0.appendChild(table);
+	}
+});

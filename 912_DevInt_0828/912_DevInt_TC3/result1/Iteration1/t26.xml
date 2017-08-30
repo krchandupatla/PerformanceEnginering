@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zones><zone name="aazone-country-state"><![CDATA[
+    
+                <select tabIndex="0" name="value(state)" style="" id="value(state)" class="portlet-form-field"  title="Select State">
+                    <option value="">--Select--</option>              	
+                	
+                			  <option value="Alabama" >Alabama</option>
+              			
+                			  <option value="Alaska" >Alaska</option>
+              			
+                			  <option value="Arizona" >Arizona</option>
+              			
+                			  <option value="Arkansas" >Arkansas</option>
+              			
+                			  <option value="California" >California</option>
+              			
+                			  <option value="Colorado" >Colorado</option>
+              			
+                			  <option value="Connecticut" >Connecticut</option>
+              			
+                			  <option value="Delaware" >Delaware</option>
+              			
+                			  <option value="Florida" >Florida</option>
+              			
+                			  <option value="Georgia" >Georgia</option>
+              			
+                			  <option value="Hawaii" >Hawaii</option>
+              			
+                			  <option value="Idaho" >Idaho</option>
+              			
+                			  <option value="Illinois" >Illinois</option>
+              			
+                			  <option value="New York" >New York</option>
+              			
+                			  <option value="SC" >SC</option>
+              			
+                </select>
+       
+    ]]></zone><script/></zones>

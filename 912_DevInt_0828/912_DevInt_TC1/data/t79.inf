@@ -1,0 +1,11 @@
+[t79]
+FileName1=t79_modal-dialog-service.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/core/services/modal-dialog-service.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_79.xml
+RequestHeaderFile=t79_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t79_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

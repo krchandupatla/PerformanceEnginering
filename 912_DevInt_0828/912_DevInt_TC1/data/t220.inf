@@ -1,0 +1,11 @@
+[t220]
+FileName1=t220_Next_Button_Default.jpg
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/menu/Next_Button_Default.jpg
+Total=1
+ContentType=image/jpeg
+SnapshotXmlFile=snapshot_220.xml
+RequestHeaderFile=t220_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t220_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

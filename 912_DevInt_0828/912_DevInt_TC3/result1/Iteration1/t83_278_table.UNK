@@ -1,0 +1,1090 @@
+//Accela Automation
+//File: table.js
+//Accela, Inc.
+//Copyright (C): 2011-2015
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: table.js 125874 2011-01-20 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+
+Template.table = function(map){
+	Template.table.superclass.constructor.call(this, map);	
+	this.rowSelectArray = [];
+	this.events = [];
+	this.addEvents({'insertrow':true, 'removerow':true});
+};
+
+// insert a new element after target element.
+function insertAfter(newElement, targetElement) {
+	var parent = targetElement.parentNode;
+	if(parent.lastChild == targetElement) {
+		parent.appendChild(newElement); 
+	} 
+	else {
+		parent.insertBefore(newElement, targetElement.nextSibling);
+	}
+}
+
+Ext.extend(Template.table, Template.widget, {
+		
+	layout : function(contain, rows,layout,template)
+	{
+	    this.subgroupObj.disabled = template.isDisabled;
+		var menuTable = TemplateHelper.createTable();
+		menuTable.width = '100%';
+		menuTable.id = 'template_menu_table_'+menuTable.id
+		contain.appendChild(menuTable);
+		
+		var outTable = TemplateHelper.createTable();
+		var table = TemplateHelper.createTable();
+		table.id = this.tableID;
+		if(!Template.tableIDs)
+		{
+			Template.tableIDs = new HashMap(10);
+		}
+		Template.tableIDs.put(table.id,template.uiUID);
+		contain.appendChild(outTable);
+		//msg tr
+		var tr= TemplateHelper.insertRow(outTable);
+		var td = TemplateHelper.insertCell(tr);
+		var errorSpan = this.createErrMsgSpan(table.id);
+		td.appendChild(errorSpan);
+		
+		//data tr
+		tr= TemplateHelper.insertRow(outTable);
+		td = TemplateHelper.insertCell(tr);
+		td.appendChild(table);
+		table.border='0';
+		if(this.subgroupObj.noBackground)
+			table.className = 'tableData tabledata-nobackground';
+		else
+			table.className = 'tableData';
+		
+		if(!this.subgroupObj.hasSelectCol){
+			table.style.cursor = 'default'
+		}
+		table.cellSpacing='0';
+		table.cellPadding='0';
+		var fields = this.subgroupObj['fields'];
+		if (fields)
+		{
+			this.renderTableHead(fields, table, template.isSearch);
+			if (fields.length > 0)
+			{
+				template.templateName = fields[0].asiGroupCode;
+			}
+		}
+
+		//array [rowIndex] = {....};
+		var rows = this.renderRows(rows, table, fields, template);
+		this.subgroupObj['rows'] = rows;
+		
+		var div = document.createElement('div');
+		contain.appendChild(div);
+		div.style.marginTop = "15px";
+		this.renderButton(menuTable);
+
+		return rows;
+	},
+	
+	createErrMsgSpan : function(id)
+	{
+		var span = Field.cloneSpan();
+		var erroMsgId = TemplateHelper.errorMsgId(id);
+		span.id = erroMsgId;
+		span.className = 'Error';
+		return span;
+	}, 
+	
+	renderButton : function(menuTable)
+	{
+		menuTable.border = '0';
+		menuTable.cellSpacing = '0';
+		menuTable.cellPadding = '0';
+		var displayName = this.subgroupObj['displayName'];
+		 
+		var menuTr= TemplateHelper.insertRow(menuTable);
+		if(!this.subgroupObj.noBackground)
+		{
+			menuTr.className = 'menuBarbgcolor';
+		}
+		var td = TemplateHelper.insertCell(menuTr);
+		td.vAlign = 'center';
+		td.noWrap = 'noWrap';
+		var span = document.createElement('label');
+		span.innerHTML = '<font class="menuBarText" style="padding:0px">'
+				+displayName+'</font>&nbsp;&nbsp;&nbsp;&nbsp;';
+		
+		td.appendChild(span);
+		if (!this.subgroupObj.readOnly)
+		{
+			td = TemplateHelper.insertCell(menuTr);
+			td.vAlign = 'center';
+			td.noWrap = 'noWrap';
+			this.addButton(td);
+			td = TemplateHelper.insertCell(menuTr);
+			td.vAlign = 'center';
+			td.noWrap = 'noWrap';
+			this.removeButton(td);
+		}
+		td = TemplateHelper.insertCell(menuTr);
+		
+		if(this.isExistEntityPKModel())
+		{
+			td.vAlign = 'center';
+			td.noWrap = 'noWrap';
+			this.csvExportButton(td);
+			td = TemplateHelper.insertCell(menuTr);
+		}
+		
+		td.height = "20";
+		td.width = '100%';
+	},
+	
+	csvExportButton : function(td)
+	{
+		var csvExportId = 'csvExoport' + this.subgroupObj['subgroupName'];
+		var csvExportButton = document.createElement('img');
+		
+		var omouseenter = this.updateImg.bind(csvExportButton, "/portlets/images/sky_blue/menu/csvexport_on.gif");
+		var omouselever = this.updateImg.bind(csvExportButton, "/portlets/images/sky_blue/menu/csvexport_button.gif");
+		csvExportButton.onmouseenter = omouseenter;
+		csvExportButton.onmouseleave = omouselever;
+		
+		csvExportButton.id = csvExportId;
+		csvExportButton.accessKey = 'x';
+		csvExportButton.alt = csvLable;
+		csvExportButton.src = '/portlets/images/sky_blue/menu/csvexport_button.gif';
+		csvExportButton.border = '0';
+		csvExportButton.oSrc = '/portlets/images/sky_blue/menu/csvexport_button.gif';
+		
+		//var csvExportBtLink = this.buttonLink(csvExportButton, csvExportId, 'CSV Export', 
+		//	this.csvExport.createDelegate(this));
+		
+		var csvExportLink = document.createElement('a');
+		csvExportLink.href = 'javascript:void(0);';
+		csvExportLink.target = '_self';
+		//csvExportLink.className = 'portlet-menu-item';
+		csvExportLink.id = 'csv_id';
+		//csvExportLink.innerHTML = "&nbsp;CSV Export&nbsp;&nbsp;";
+		if (!this.subgroupObj.disabled)
+		    csvExportLink.onclick = this.csvExport.createDelegate(this);
+		
+		var font = document.createElement("font");
+		font.className = "portlet-menu-item condition-menu";
+		font.innerHTML = "&nbsp;" + csvLable  + "&nbsp;&nbsp;";
+		
+		csvExportLink.appendChild(csvExportButton);
+		csvExportLink.appendChild(font);
+		
+		//td.appendChild(csvExportBtLink);
+		td.appendChild(csvExportLink);
+	},
+	
+	isExistEntityPKModel: function()
+	{
+		var uiUID = Template.tableIDs.get(this.tableID);
+		var entityPKModel = Template.templates.get(uiUID).entityPKModel;
+		if(entityPKModel == null)
+		{
+			return false;
+		}
+		
+		return true;
+	},
+	
+	csvExport : function ()
+	{
+		if(!this.isExistEntityPKModel())
+		{
+			return false;
+		}
+		
+		var groupName = this.subgroupObj['groupName'];
+		var tableName = this.subgroupObj['subgroupName'];
+		var uiUID = Template.tableIDs.get(this.tableID);
+		var entityPKModel = Template.templates.get(uiUID).entityPKModel;
+		var portletLanguage = document.getElementById(PORTLET_LANGUAGE);
+		var url = getBaseURL()+"/portlets/generictemplate/genericTemplate.do?module=" + currModule +"&serviceProviderCode=" + profile.agency;
+		url = url + "&"+EXPORT_FILE_TYPE+"="+TEMPLATE_CSV+"&type=GenericTemplateTable"+"&tableName="+encodeURIComponent(tableName)+"&groupName="+encodeURIComponent(groupName);
+		if(portletLanguage)
+		{
+			url = url + "&"+PORTLET_LANGUAGE+"="+encodeURIComponent(portletLanguage.value);
+		}
+		if (entityPKModel)
+		{
+			for (var p in entityPKModel)
+			{
+				if(entityPKModel[p])
+				{
+					url = url + '&' + p + '=' + encodeURIComponent(entityPKModel[p]);
+				}
+			}
+		}
+		window.location=url;
+		return false;
+	},
+	
+	updateImg : function(img){
+		//only use old UI
+		if (img)
+		{
+			this.src = img;
+		}
+	},
+	
+	addButton : function(td)
+	{
+		
+		
+		var addId = 'add' + this.subgroupObj['subgroupName'];
+		var addButton = document.createElement('img');
+		
+		var omouseenter = this.updateImg.bind(addButton, "/portlets/images/sky_blue/menu/edit_on.gif");
+		var omouselever = this.updateImg.bind(addButton, "/portlets/images/sky_blue/menu/edit_button.gif");
+		addButton.onmouseenter = omouseenter;
+		addButton.onmouseleave = omouselever;
+		
+		addButton.name = addId;
+		addButton.id = addId;
+		addButton.alt = addLable;
+		addButton.src="/portlets/images/sky_blue/menu/edit_button.gif";
+		addButton.border = '0';
+		addButton.oSrc="/portlets/images/sky_blue/menu/edit_button.gif";
+		
+		//var addButtonLink = this.buttonLink(addButton, addId, 'add', 
+		//	this.addRow.createDelegate(this));
+		
+		var addLink = document.createElement('a');
+		addLink.href = 'javascript:void(0);';
+		addLink.target = '_self';
+		//addLink.className = 'portlet-menu-item';
+		addLink.id = 'a_id';	
+		if (!this.subgroupObj.disabled)
+		    addLink.onclick = this.addRow.createDelegate(this);
+		
+		var font = document.createElement("font");
+		font.className = "portlet-menu-item condition-menu";
+		font.innerHTML = "&nbsp;" + addLable + "&nbsp;&nbsp;";
+		
+		addLink.appendChild(addButton);
+		addLink.appendChild(font);
+		
+		//td.appendChild(addButtonLink);
+		td.appendChild(addLink);
+	},
+
+	addRow : function()
+	{
+		var table = document.getElementById(this.tableID);
+		var uiUID = Template.tableIDs.get(this.tableID);
+		var fields = this.subgroupObj['fields'];
+		this.setTableMsg(this.tableID, '');//remove table error msg
+		
+		var value = {}, fieldName, defaultValue;
+		if (!this.cloneTr)
+		{
+			this.cloneTr = this.createCloneTr(table, fields);
+		}
+		var fieldName;
+		for (var i = 0; i < fields.length; i++)
+		{
+			id = this.getTableFieldId();
+			if(!Template.elementIDs)
+			{
+					Template.elementIDs= new HashMap(10);
+			}
+			Template.elementIDs.put(id,uiUID);
+			fieldName = fields[i].fieldName;
+			defaultValue = fields[i].defaultValue;
+			value[fieldName] = this.createValue("", defaultValue, fieldName, id);
+		}
+		var tr = this.renderRow(table, value, fields);
+		// Page Adjust for Scroll bar.
+		scrollBarIssue.autoAdjustForTableAddOrRemoveRows(document);
+		var rows = this.subgroupObj['rows'];
+		if (rows)
+			rows.push(value);//because hidden one clone row, so, reduce one
+		this.fireEvent('insertRow');
+		return tr;
+	},
+
+	
+	buttonLink : function(button, id, title, onkeydownFn)
+	{
+		var link = document.createElement('a');
+		link.name = id+'Link';
+		link.title = title;
+		link.id = id + 'Link';
+		link.className = 'text-decoration: none;';
+		link.onclick = onkeydownFn;
+		link.href = 'javascript:void(0);';
+		link.target = '';
+		link.appendChild(button);
+		return link;
+	},
+	
+	removeButton : function(td)
+	{
+		var removeId = 'remove' + this.subgroupObj['subgroupName'];
+		var removeButton = document.createElement('img');
+		var omouseenter = this.updateImg.bind(removeButton, "/portlets/images/sky_blue/menu/delete_on.gif");
+		var omouselever = this.updateImg.bind(removeButton, "/portlets/images/sky_blue/menu/delete_button.gif");
+		removeButton.onmouseenter = omouseenter;
+		removeButton.onmouseleave = omouselever;
+
+		removeButton.id = removeId;
+		removeButton.accessKey = 'x';
+		removeButton.alt = deleteLable;
+		removeButton.src = '/portlets/images/sky_blue/menu/delete_button.gif';
+		removeButton.border = '0';
+		removeButton.oSrc = '/portlets/images/sky_blue/menu/delete_button.gif';
+		
+		//var removeBtLink = this.buttonLink(removeButton, removeId, 'remove', 
+		//	this.removeRow.createDelegate(this));
+		
+		var removeLink = document.createElement('a');
+		removeLink.href = 'javascript:void(0);';
+		removeLink.target = '_self';
+		//removeLink.className = 'portlet-menu-item';
+		removeLink.id = 'd_id';
+		//removeLink.innerHTML = "&nbsp;Delete&nbsp;&nbsp;";
+		if (!this.subgroupObj.disabled)
+		    removeLink.onclick = this.removeRow.createDelegate(this);
+		
+		var font = document.createElement("font");
+		font.className = "portlet-menu-item condition-menu";
+		font.innerHTML = "&nbsp;" + deleteLable + "&nbsp;&nbsp;";
+		
+		removeLink.appendChild(removeButton);
+		removeLink.appendChild(font);
+		
+		
+		//td.appendChild(removeBtLink);
+		td.appendChild(removeLink);
+	},
+	
+	removeRow : function ()
+	{
+		this.remove(this.rowSelectArray);
+		// Page Adjust for Scroll bar.
+		scrollBarIssue.autoAdjustForTableAddOrRemoveRows(document);
+		this.fireEvent('removeRow');
+	},
+	
+	remove : function(rowids)
+	{
+		if (!rowids || rowids.length <= 0)
+		{
+			this.setTableMsg(this.tableID,  msgASITDelRecord);
+			return false;
+		}
+
+		var rows = this.subgroupObj['rows'];
+		var table = document.getElementById(this.tableID);
+		var rowIndex;
+		this.setTableMsg(this.tableID, '');
+		var indexArray = new Array();
+		for (var i = (rowids.length - 1); i >=0 ; i--)
+		{
+			if (!rowids[i])
+				continue;
+			rowIndex = document.getElementById(rowids[i]).rowIndex;
+			indexArray.push(rowIndex);
+		}
+		
+		indexArray.sort(function compare(a, b){return a - b;});
+		
+		for (var i = (indexArray.length - 1); i >=0 ; i--)
+		{
+			rowIndex = indexArray[i];
+			rows[rowIndex - 1] = null;//the hidden no rowIndex
+			delete rows[rowIndex - 1];
+			table.deleteRow(rowIndex);
+			rowids[i] = null;
+			delete rowids[i];
+		}
+		
+		//reset hashmap value(row value)
+		var newRows = new Array();
+		
+		for (var i = 0; i < rows.length; i++)
+		{
+			if (!rows[i])
+				continue;
+			newRows.push(rows[i]);
+			rows[i] = null;
+		}
+		this.subgroupObj['rows'] = newRows;
+		
+		var selectObj = document.getElementById(this.generatorCheckId(this.tableID));
+		selectObj.checked = false;
+		this.rowSelectArray = [];
+		rows = null;
+		rowids = null;
+	},
+	
+	renderTableHead : function(fields, table, templateIsSearch)
+	{
+		var thead = table.createTHead();
+		var tableId = table.id;
+		var header= TemplateHelper.insertRow(thead);
+		var isFirst = true;
+		if(this.subgroupObj.hasSelectCol)
+		{
+			var th = document.createElement("TH");
+			th.className = 'headoff common-border-bottom';
+			th.align='center';
+			th.noWrap='nowrap';
+			th.style.paddingLeft = '0';
+			isFirst = false;
+			
+			var headCheckboxId = this.generatorCheckId(tableId);
+			var selectCheckbox = this.checkHtml(headCheckboxId, "", headCheckboxId);
+			selectCheckbox.title = 'Select All';
+			selectCheckbox.onclick = function() {
+	        	this.selected(this.getTableCheckId(tableId));
+	    	}.createDelegate(this);
+	    	
+			th.appendChild(selectCheckbox);
+			header.appendChild(th);
+		}
+		var headStr, field;
+		for(var i = 0; i < fields.length; i++)
+		{
+			field = fields[i];
+			th = document.createElement("TH");
+			th.style.paddingLeft = '0';
+			headStr = TemplateHelper.getHead(field, true,null,templateIsSearch, this.subgroupObj.noBackground);
+			th.innerHTML = headStr;
+			th.className = this.subgroupObj.noBackground ? 'headoff headoff-nobackground common-border-bottom' : 'headoff common-border-bottom';
+			//th.align='center';
+			th.noWrap='nowrap';
+			th.style.height = "30px";
+			if(jspEntityType == "summary" && field.displayLen > 0)
+			{	
+				th.style.width = field.displayLen*5;	
+			}
+			
+			if(isFirst && i == 0)
+				th.style.paddingLeft = '0';
+			header.appendChild(th);
+		}
+		
+	},
+
+	renderRows : function(rows, table, fields, template)
+	{
+		if (!rows)
+		{
+			return new Array();
+		}
+		
+		var templateIsReadOnly = template.isReadOnly;
+		var templateIsDisabled = template.isDisabled;
+		var uiUID = template.uiUID;
+		this.cloneTr = this.createCloneTr(table, fields, templateIsReadOnly, templateIsDisabled); 
+		var rowMap = new Array();
+		var id, row, fileName;
+		for(var i = 0; i < rows.length; i++)
+		{
+			row = rows[i].values;
+			if (!row)
+				continue;
+			var value = {};
+			for (var j = 0; j < row.length; j++)
+			{
+				id = this.getTableFieldId();
+				if(!Template.elementIDs)
+				{
+					Template.elementIDs= new HashMap(10);
+				}
+				Template.elementIDs.put(id,uiUID);
+				fileName = row[j].fieldName;
+				value[fileName] = this.createValue(row[j].seqNum, row[j].value, fileName, id);
+				for ( var k = 0; k < fields.length; k++) {
+					var field = fields[k];
+					if(field.fieldTypeEnum.toUpperCase() == "Date".toUpperCase() && field.fieldName == fileName)
+					{
+						var defaultFileValue=value[fileName].value;
+						defaultFileValue = transformGlobalDateToLocal(defaultFileValue);
+						if(window.currentFromPage == 'tabSummary' && window.convertToIslamicDate && window.systemCalendarDateFmt)
+						{
+							defaultFileValue = window.convertToIslamicDate(defaultFileValue,window.systemCalendarDateFmt,window.systemCalendarDateFmt);
+						}
+						value[fileName].value=defaultFileValue;
+						break;
+					}
+				}
+			}
+			this.renderRow(table, value, fields,templateIsReadOnly, templateIsDisabled);
+			rowMap.push(value);//the value map key is rowindex
+		}
+
+		return rowMap;
+	},	
+	
+	//value:  one row value ex:  {fieldName: {....}}
+	renderRow : function(table, value, fields,templateIsReadOnly, templateIsDisabled)
+	{
+		var trID = this.getTrId();
+		var tr = $(this.cloneTr).clone(true, true)[0], fieldName;
+		// copy event
+		var cloneTds = this.cloneTr.children;
+		var targetTds = tr.children;
+		var cloneTextAreaArr = $(cloneTds).find('textarea');
+		var targetTexAreaArr = $(targetTds).find('textarea');
+		
+		for(var m = 0;m < cloneTextAreaArr.length;m++)
+		{
+			var cloneTextArea = cloneTextAreaArr[m];
+			var targetTexArea = targetTexAreaArr[m];
+			if(cloneTextArea && targetTexArea &&  cloneTextArea.listener)
+			{
+				for( var listenerType in cloneTextArea.listener)
+				{
+					if(cloneTextArea.listener[listenerType])
+					{
+						var eventArry = cloneTextArea.listener[listenerType];
+						for (var j = 0; j < eventArry.length; j++)
+						{
+							BaseJS.addEventHandler(targetTexArea, listenerType, eventArry[j]);
+						}
+						
+					}
+				}	
+			}
+		}
+		for (var i = 0; i < cloneTds.length; i++)
+		{
+			var cloneInputObjArr = cloneTds[i].children;
+			var targetInputObjArr = targetTds[i].children;
+			for (var k = 0; k < cloneInputObjArr.length; k++)
+			{
+				if (cloneInputObjArr[k].listener)
+				{
+					var cloneObj = cloneInputObjArr[k];
+					var targeobj = targetInputObjArr[k];
+					for (var type in cloneObj.listener)
+					{
+						if (cloneObj.listener[type])
+						{
+							var eventArr = cloneObj.listener[type];
+							for (var j = 0; j < eventArr.length; j++)
+							{
+								BaseJS.addEventHandler(targeobj, type, eventArr[j]);
+							}
+						}
+					}	
+				}
+			}
+		}
+		
+		tr.id = trID;
+		tr.className =  this.subgroupObj.noBackground ? 'row_off1 row_off1-nobackground' : 'row_off1';
+		var fieldName;
+		var delta = this.subgroupObj.hasSelectCol? 1: 0;
+		for (var i = 0; i < fields.length; i ++)
+		{
+			fieldName = fields[i].fieldName;
+			this.updateCell(tr.childNodes[i + delta], fields[i], value[fieldName],templateIsReadOnly, templateIsDisabled);
+		}
+
+		if(this.subgroupObj.hasSelectCol)
+		{
+			var checkBox = tr.childNodes[0].firstChild;
+			checkBox.checked = false;
+			checkBox.value = trID;
+			//didn't bind the click event for checkbox in the renderCell function, so we bind it in this method.
+			BaseJS.addEventHandler(checkBox, 'click',  this.getCheckListener().createDelegate(this));
+		}
+		
+		/*refactor
+		if(!this.isIE)
+		{
+			this.fireFox();
+			//for firefox. the event need add again for insertAdjacentElement
+			BaseJS.addEventHandler(checkBox, 'click',  this.getCheckListener().createDelegate(this));	
+		}
+*/
+		// IE Standard Mode, insert new row cannot create tbody node.
+		if (table.childNodes[0].nextSibling && table.childNodes[0].nextSibling.tagName && table.childNodes[0].nextSibling.tagName == 'TBODY')
+		{
+			table.childNodes[0].insertAdjacentElement("beforeEnd", tr);
+		}
+		else
+		{
+			insertAfter(tr, table.rows[table.rows.length - 2]);
+		}
+		
+		return tr;
+	},	
+	
+	updateCell : function (td, field, value,templateIsReadOnly, templateIsDisabled)
+	{
+		var defaultValue = !value.value ? '' : value.value;
+		defaultValue = BaseJS.htmlDecode(defaultValue);
+		var fieldType = field.fieldTypeValue;
+		if (!fieldType)
+		{
+			return;
+		}
+		if (templateIsReadOnly)
+		{
+			//td.height = 17;	
+			if(defaultValue){
+				var valueHtml = [];
+				var link = null;
+				
+				valueHtml.push("<span ");
+				valueHtml.push(UI.Tip.appendTip(defaultValue));
+				valueHtml.push(">");
+				
+				if(field.options && field.options.link){
+					link = field.options.link;
+					valueHtml.push('<a href="');
+					valueHtml.push(link);
+					valueHtml.push('"')
+					if(field.options && field.options.target)
+					{
+						valueHtml.push(' target="');
+						valueHtml.push(field.options.target);
+						valueHtml.push('"');
+					}
+					valueHtml.push('>')
+				}
+			
+				if(jspEntityType == "summary" && field.displayLen > 0)
+				{	
+					valueHtml.push(Ac360.formatToMaxLength(defaultValue, field.displayLen*5));	
+				}
+				else
+				{	
+					valueHtml.push(Ac360.formatToMaxLength(defaultValue, 200));
+				}
+				
+				if(link){
+					valueHtml.push('</a>')
+				}
+				
+				valueHtml.push("</span>");
+				
+				td.innerHTML = valueHtml.join('');
+			}
+			
+			td.id = value.id + '_exp';
+			td.style.paddingLeft = "0px";
+			return;
+		}
+
+		switch(fieldType)
+		{
+			case 1:
+				this.updateText(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			case 2:
+				this.updateDate(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			case 3:
+				this.updateRadio(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			case 4:
+				this.updateNumber(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			case 5:
+				 this.updateDropdown(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			case 6:
+				this.updateArea(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			case 7:
+				this.updateTime(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			case 8:
+				 this.updateMoney(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			case 9:
+				 this.updateChecbox(td, field, value, defaultValue, templateIsDisabled);
+				break;
+			default:
+				 this.updateText(td, field, value, defaultValue, templateIsDisabled);
+		};	
+		
+	},
+	
+	
+	updateText : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		var input = td.firstChild;
+		input.id = value.id;
+		input.value = defaultValue;
+		input.defaultValue = defaultValue;
+		this.addEvent(input, value);
+		if (templateIsDisabled)
+			input.disabled = true;
+	},
+	
+	updateDate : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		this.updateText(td, field, value, defaultValue);
+		var id = value.id;
+		var input = td.firstChild;
+		input.name = id;
+		
+		var childNodes = td.childNodes;
+		var dateSelect = childNodes[2];
+		
+		dateSelect.id = id+'_img_id';
+		dateSelect.href = '#';
+		if (field.readOnly)
+		{
+			dateSelect.onclick = function(){return false;};		
+		}
+		else if (templateIsDisabled)
+		{
+			dateSelect.disabled = true;
+			dateSelect.onclick = function(){return false;};
+		}
+		else
+		{
+			dateSelect.onclick = BaseJS.createDelegate(this, selectDate, [id]).createDelegate(this);
+		}
+	},
+	
+	updateRadio : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		td.innerHTML = '';
+		var id = value.id;
+		Field.createField(field, td, value, id, false, templateIsDisabled);
+	},
+	
+	updateNumber : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		this.updateText(td, field, value, defaultValue, templateIsDisabled);
+	},
+	
+	updateDropdown : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		var select =  td.firstChild;
+		select.id = value.id;
+		var options = select.options;	
+		var optionObj = field.options;
+		if (defaultValue && optionObj && optionObj[defaultValue])
+		{
+			var option = Field.cloneOption();
+			option.text = optionObj[defaultValue];
+			option.value = defaultValue;
+			options.add(option);
+			select.value = defaultValue;
+		}
+		this.addEvent(select, value);
+		if (templateIsDisabled)
+			select.disabled = true;
+	},
+	
+	updateArea : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		var table = td.firstChild;
+		var rows = table.rows;
+		
+		var tr = rows[0];
+		var td0 = tr.childNodes[0];
+		var textarea = td0.firstChild;
+		textarea.id = value.id;
+		textarea.name = value.id;
+		textarea.value = defaultValue;
+		textarea.defaultValue = defaultValue;
+		//textarea.listener = null;
+		this.addEvent(textarea, value);
+		var childNodes = td0.childNodes;
+		tr = rows[1];
+		td0 = tr.childNodes[0];
+		var spellLink = td0.firstChild;
+		if(spellLink)
+		{
+			spellLink.id = value.id+'_spellLink';
+			if (templateIsDisabled)
+				spellLink.href = 'javascript:void(0);';
+			else
+			    spellLink.href = 'javascript:doSpellCheck("/portlets/commons/spellchecker/", "'+value.id+'" );';
+		}
+		if (templateIsDisabled)
+			textarea.disabled = true;
+		
+	},
+	
+	updateTime : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		defaultValue = value.value ? value.value :  ' : ';
+		this.updateText(td, field, value, defaultValue);
+		var childNodes = td.childNodes;
+		var input = childNodes[0];
+		input.type = 'hidden';
+		var array = defaultValue.split(':');
+		
+		var dateTimeDropdownIdArray = TemplateHelper.getDateTimeId(value.id);
+		
+		var hour = childNodes[1];
+		hour.id = dateTimeDropdownIdArray[0];
+		
+		var optionObj = hour.options;
+		for (var i = 0; i < optionObj.length; i++)
+		{
+			if (array[0] != optionObj[i].value)
+			{
+				continue;
+			}
+			optionObj[i].selected = true;
+			optionObj[i].defaultSelected  = true;
+		}
+		
+		//set time value
+		hour.onchange = function()
+		{
+			var localValue = this.value;
+			var inputValue = input.value;
+			input.value = localValue + inputValue.substr(inputValue.indexOf(':'));
+			value.value = input.value;
+			Field.validateTime(input.id, input, field);
+		}
+
+		var minuter = childNodes[2];
+		minuter.id = dateTimeDropdownIdArray[1];
+
+		optionObj = minuter.options;
+		for (var i = 0; i < optionObj.length; i++)
+		{
+			if (array[1] != optionObj[i].value)
+			{
+				continue;
+			}
+			optionObj[i].selected = true;
+			optionObj[i].defaultSelected  = true;
+		}
+		
+		//set time value
+		minuter.onchange = function()
+		{
+			var localValue = this.value;
+			var inputValue = input.value;
+			input.value = inputValue.substr(0, inputValue.indexOf(':')) + ':' + localValue;
+			value.value = input.value;
+			Field.validateTime(input.id, input, field);
+		}
+		
+		if (templateIsDisabled)
+		{
+			hour.disabled = true;
+			minuter.disabled = true;
+		}
+	},
+
+	updateMoney : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		this.updateText(td, field, value, defaultValue, templateIsDisabled);
+		var input = td.firstChild;
+		input.id = value.id;
+		input.value = defaultValue;
+	},
+	
+	updateChecbox : function(td, field, value, defaultValue, templateIsDisabled)
+	{
+		var input = td.firstChild;
+		input.id = value.id;
+		//input.listener = null;
+		this.addEvent(input, value);
+
+		if (defaultValue && defaultValue.toLowerCase() == 'checked')
+		{
+			input.checked = true;
+			input.defaultChecked = true;
+		}
+		if (templateIsDisabled)
+			input.disabled = true;
+	},
+	
+	createCloneTr : function(table, fields, templateIsReadOnly, templateIsDisabled)
+	{
+		var tr= TemplateHelper.insertRow(table);
+		
+		tr.className ='tmpTr';
+		
+		var tableID = table.id;
+		this.renderCell(fields, tr, templateIsReadOnly, templateIsDisabled);
+		this.cloneTr = tr;
+		return tr;
+	},	
+
+	removeFn : function(htmlObj)
+	{
+		for (var event in TemplateHelper.events)
+		{
+			TemplateHelper.removeEvent(htmlObj, event, BaseJS.getEventHandler());
+		}
+	},
+
+	renderCell : function(fields, tr, templateIsReadOnly, templateIsDisabled)
+	{
+		var field, currentValue, td, isFirst = true;
+		if(this.subgroupObj.hasSelectCol)
+		{
+			//add check
+			TemplateHelper.insertCell(tr);
+			var checkbox = this.checkHtml(this.getTableCheckId(this.tableID), 
+								'', this.getTableCheckId(this.tableID));
+			checkbox.title = 'Select';
+			td = tr.childNodes[0];
+			td.appendChild(checkbox);
+			td.style['padding-right'] = '5px';
+			td.style['padding-top'] = '5px';
+			td.vAlign = 'top';
+			td.align='center';
+			isFirst = false;
+			//style="padding-left: 5px; padding-right: 5px; padding-top: 5px;"
+			//BaseJS.addEventHandler(checkbox, 'click',  this.getCheckListener().createDelegate(this));
+		}
+		for (var i = 0; i < fields.length; i++)
+		{
+			td = TemplateHelper.insertCell(tr);
+			if(!isFirst || i > 0)
+				td.style['padding-left'] = '5px';
+			
+			//td.style['padding-right'] = '5px';
+			td.style['padding-top'] = '5px';
+			td.vAlign = 'top';
+			field = fields[i];
+			var element = Field.createField(field, td, '', 'cloneId',templateIsReadOnly, templateIsDisabled);			
+		}
+	},	
+	
+	generatorCheckId : function(tableId)
+	{
+		return tableId+'table_head_chk';
+	},
+	
+	checkHtml : function(name, value, id)
+	{
+		var input = Field.cloneCheckbox();
+		input.id = id;
+		input.value = value;
+		input.name = name;
+		return input;
+	},
+	
+	selected : function(name)
+	{
+  		var allcheckboxs = document.getElementsByName(name) ;
+  		var len =allcheckboxs.length;  		
+  		var headerCheckbox= document.getElementById(this.tableID+'table_head_chk');  
+  		this.rowSelectArray = [];  		 		
+  		for(i = 0; i < len; i++)
+		{
+		    allcheckboxs[i].checked = headerCheckbox.checked;		
+			if(headerCheckbox.checked)
+			{
+				this.rowSelectArray.push(allcheckboxs[i].value);	
+			}
+		}    				
+ 	},
+ 	
+ 	getTableCheckId : function(tableID)
+ 	{
+ 		return tableID + '_table_chk';
+ 	},
+ 	
+ 	setTableMsg : function(tableID, msg)
+	{
+		var errorSpan = document.getElementById(TemplateHelper.errorMsgId(tableID));
+		errorSpan.innerHTML = msg;
+	},
+	
+	getTableFieldId : function()
+	{
+		return 'template_table_'+TemplateHelper.increaseId();
+	},
+	
+	getTrId : function()
+	{
+		return 'template_table_tr_'+ TemplateHelper.increaseId();
+	},
+	
+	getCheckListener : function()
+	{
+		if (this.checkListenerFn)
+			return this.checkListenerFn;
+		this.checkListenerFn = function(e)
+		{
+			var target = TemplateHelper.getTarget(e);
+			if (!target.checked)
+			{
+				for (var i = 0; i < this.rowSelectArray.length; i++)
+				{
+					if (this.rowSelectArray[i] == target.value)
+					{
+						this.rowSelectArray[i] = null;
+						delete this.rowSelectArray[i];
+						break;
+					}
+				}
+			}
+			else
+			{
+				this.rowSelectArray.push(target.value);
+			}
+		}
+		return this.checkListenerFn; 
+	},
+	
+	addEvent : function(obj, valueObj)
+	{
+		//obj.field = field;
+		$(obj).data('valueObj', valueObj);
+	},
+	
+	fireFox : function()
+	{
+		if (typeof HTMLElement == "undefined" 
+			|| HTMLElement.prototype.insertAdjacentElement)
+		{
+			return;
+		}
+		HTMLElement.prototype.insertAdjacentElement = function(where,parsedNode)
+		{
+			switch (where){
+				case 'beforeBegin':
+					this.parentNode.insertBefore(parsedNode,this)
+					break;
+				case 'afterBegin':
+					this.insertBefore(parsedNode,this.firstChild);
+					break;
+				case 'beforeEnd':
+					this.appendChild(parsedNode);
+					break;
+				case 'afterEnd':
+					if (this.nextSibling)
+						this.parentNode.insertBefore(parsedNode,this.nextSibling);
+					else 
+						this.parentNode.appendChild(parsedNode);
+					break;
+			}
+		};
+		
+		HTMLElement.prototype.insertAdjacentHTML = function(where,htmlStr)
+		{
+			var r = this.ownerDocument.createRange();
+			r.setStartBefore(this);
+			var parsedHTML = r.createContextualFragment(htmlStr);
+			this.insertAdjacentElement(where,parsedHTML)
+		};
+		
+		HTMLElement.prototype.insertAdjacentText = function(where,txtStr)
+		{
+			var parsedText = document.createTextNode(txtStr)
+			this.insertAdjacentElement(where,parsedText)
+		}
+	}
+});

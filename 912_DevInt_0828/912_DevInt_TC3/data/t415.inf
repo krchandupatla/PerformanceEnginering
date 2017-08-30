@@ -1,0 +1,11 @@
+[t415]
+FileName1=t415.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/parcel/refParcelForm.do?mode=viewCondition&module=Building&refParcelNumber=10002
+Total=1
+RequestHeaderFile=t415_RequestHeader.txt
+RequestBodyFile=t415_RequestBody.txt
+ResponseHeaderFile=t415_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_415.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

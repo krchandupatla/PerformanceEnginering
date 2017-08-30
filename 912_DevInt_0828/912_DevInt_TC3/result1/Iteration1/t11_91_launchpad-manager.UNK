@@ -1,0 +1,142 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .factory('LaunchpadManager', service);
+
+  /**
+   * @ngInject
+   **/
+  function service($log, $q, DashboardModel, DataService, CONFIG) {
+
+    // PRIVATE data
+
+    var model = DashboardModel;
+    var dataService = DataService.getInstance('LAUNCHPAD');
+
+    var allPages = [];
+    var favoritePages = [];
+
+    // PRIVATE methods
+
+    function clearAllRecentActivity() {
+      return dataService.send('CLEAR_RECENT_ACTIVITY');
+    }
+
+    function createNewPage(data) {
+      return model.LaunchpadPage.build(data);
+    }
+
+    function getAvailablePages() {
+      return getPages({
+        isFavorite: false,
+        serviceMethod: 'GET_AVAILABLE_PAGES'
+      });
+    }
+
+    function getFavoritePages() {
+      return getPages({
+        isFavorite: true,
+        serviceMethod: 'GET_FAVORITE_PAGES'
+      });
+    }
+
+    function getPages(options) {
+      var deferred = $q.defer();
+
+      if (options && options.serviceMethod) {
+        dataService.send(options.serviceMethod)
+          .then(function(response) {
+            var list = [];
+
+            if (options.serviceMethod === 'GET_FAVORITE_PAGES') {
+              favoritePages = [];
+              if(undefined !== response.data.result){
+                list = response.data.result.split('|');
+              }
+              angular.forEach(list, function(item) {
+                var keys = item.split(',');
+
+                angular.forEach(allPages, function(page) {
+                  if (page.pageCategory === keys[0].trim() && page.pageName === keys[1].trim()) {
+                    favoritePages.push(page);
+                  }
+                });
+              });
+
+              deferred.resolve(favoritePages);
+            } else {
+              allPages = [];
+
+              angular.forEach(response.data.result, function(data) {
+                //AAETA-567 All Pages should not provide AA Classic or Administration link access
+                if (!(data.i18npageName === 'AA Classic' || data.i18npageName === 'Administration')) {
+                  allPages.push(model.LaunchpadPage.build(data, options.isFavorite));
+                }
+              });
+
+              deferred.resolve(allPages);
+            }
+
+          }, function(error) { // already reported by HttpInterceptor
+            deferred.reject(error);
+          });
+      } else {
+        deferred.reject('getPages() called with invalid options: ' + JSON.stringify(options));
+      }
+
+      return deferred.promise;
+    }
+
+    function getRecentActivity() {
+      var deferred = $q.defer();
+
+      dataService.send('GET_RECENT_ACTIVITY')
+        .then(function(response) {
+          deferred.resolve(response.data.result);
+        }, function(error) { // already reported by HttpInterceptor
+          deferred.reject(error);
+        });
+
+      return deferred.promise;
+    }
+
+    function getRecentActivityUrl(activity) {
+      var url =  dataService.getServiceUrl('GET_RECENT_ACTIVITY_ENTITY_PAGE');
+
+      var params = {
+        entityType: activity.entityType,
+        entityKey: encodeURIComponent(activity.entityKey)
+      };
+
+      return Accela.Util.appendQuerystring(url, params);
+    }
+
+    function updateFavoritePages(data) {
+      var pages = [];
+
+      angular.forEach(data, function(page) {
+        pages.push(sprintf('%s,%s', page.pageCategory, page.pageName));
+      });
+
+      return dataService.send('UPDATE_FAVORITE_PAGES', pages.join('|'));
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('LAUNCHPAD-MANAGER');
+
+    // PUBLIC interface
+
+    return {
+      clearAllRecentActivity: clearAllRecentActivity,
+      createNewPage: createNewPage,
+      getAvailablePages: getAvailablePages,
+      getFavoritePages: getFavoritePages,
+      getRecentActivity: getRecentActivity,
+      getRecentActivityUrl: getRecentActivityUrl,
+      updateFavoritePages: updateFavoritePages
+    };
+  }
+})();

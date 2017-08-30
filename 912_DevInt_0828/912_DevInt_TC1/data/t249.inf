@@ -1,0 +1,11 @@
+[t249]
+FileName1=t249_typematic.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo1.4.3/dijit/_base/typematic.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_249.xml
+RequestHeaderFile=t249_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t249_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

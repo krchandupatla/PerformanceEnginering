@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Content-Type: text/xml; charset=utf-8
+Server: Microsoft-IIS/10.0
+X-ActivityId: 94eae990-1ecd-486d-8d44-85971d288640
+Access-Control-Allow-Origin: *
+X-AspNet-Version: 4.0.30319
+X-Powered-By: ASP.NET
+Cache-Control: public, max-age=140
+Date: Mon, 28 Aug 2017 18:31:11 GMT
+Content-Length: 4290
+Connection: close
+

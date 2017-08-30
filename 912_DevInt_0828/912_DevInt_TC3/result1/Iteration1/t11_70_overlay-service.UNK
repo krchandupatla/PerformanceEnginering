@@ -1,0 +1,124 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .factory('OverlayService', service);
+
+  /**
+   * @ngInject
+   */
+  function service($log) {
+
+    // PRIVATE data
+
+    var hash = {};
+    var activeThing = {};
+    var overlay = $('body .overlay');
+
+    // PRIVATE methods
+
+    function makeThingActive(obj) {
+      activeThing = obj || null;
+
+      if (activeThing) {
+        overlay.addClass('active');
+
+        if (activeThing.show) {
+          activeThing.show();
+        }
+      }
+    }
+
+    /**
+     * Show a registered thing with an overlay.
+     */
+    function show(evt, name) {
+      var thisThing = hash[name] || null;
+
+      var finalizeShow = function() {
+        if (thisThing !== activeThing) { // we're toggling, so don't activate it again
+          makeThingActive(thisThing);
+        } else {
+          activeThing = null;
+          overlay.removeClass('active');
+        }
+      };
+
+      if (overlay.hasClass('active')) { // something else is open
+        if (activeThing) {
+          if (activeThing.hide) {
+            activeThing.hide().then(finalizeShow);
+          } else {
+            finalizeShow();
+          }
+        }
+      } else {
+        makeThingActive(thisThing);
+      }
+    }
+
+    function getActive() {
+      return activeThing || null;
+    }
+
+    function isActive() {
+      return getActive() ? true : false;
+    }
+
+    /**
+     * Hide a registered thing, and remove overlay.
+     *
+     * If name is not provided, will close activeThing.
+     */
+    function hide(evt, name) {
+      var someThing = name ? hash[name] || null : activeThing;
+
+      var finalizeHide = function() {
+        if (activeThing === someThing) { // if not the same, then something else is replacing it
+          activeThing = null;
+          overlay.removeClass('active');
+        }
+      };
+
+      if (someThing) {
+        if (someThing.hide) {
+          someThing.hide().then(finalizeHide);
+        } else {
+          finalizeHide();
+        }
+      }
+    }
+
+    function register(options) {
+      if (options && options.name) {
+        hash[options.name] = options;
+      }
+    }
+
+    function unregister(name) {
+      if (hash[name]) {
+        delete hash[name];
+      }
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('OVERLAY-SERVICE');
+
+    overlay.on('click', function() {
+      hide(); // can't call it directly because first arg is event
+    });
+
+    // PUBLIC interface
+
+    return {
+      show: show,
+      hide: hide,
+      getActive: getActive,
+      isActive: isActive,
+      register: register,
+      unregister: unregister
+    };
+  }
+})();

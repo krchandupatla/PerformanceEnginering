@@ -1,0 +1,11 @@
+[t524]
+FileName1=t524.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/owner/refOwnerForm.do?mode=viewCondition&module=Building&refOwnerNumber=927284287
+Total=1
+RequestHeaderFile=t524_RequestHeader.txt
+RequestBodyFile=t524_RequestBody.txt
+ResponseHeaderFile=t524_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_524.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

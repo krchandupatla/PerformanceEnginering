@@ -1,0 +1,30 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('aaStyledCheckbox', function() {
+      return {
+        restrict: 'E',
+        replace: true,
+        scope: {
+          model: '=',
+          clicked: '&'
+        },
+        template: '<span class="styled-checkbox"><input type="checkbox" ng-model="model.isChecked" tabindex="100"><label>{{model.label}}</label></span>',
+        link: function(scope, element, attributes) {
+          element.find('input').on('click', function(evt) {
+            if (scope.clicked && typeof scope.clicked === 'function') {
+              scope.clicked({
+                model: scope.model
+              });
+            }
+          }).on('focus', function() {
+            element.find('input').addClass('focus');
+          }).on('blur', function() {
+            element.find('input').removeClass('focus');
+          });
+        }
+      };
+  });
+})();

@@ -1,0 +1,11 @@
+[t2]
+FileName1=t2.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/security/hostSignon.do?successUrl=https://aa-pt6245.dev.accela.com:5443/portlets/spa/dashboard.do
+Total=1
+RequestHeaderFile=t2_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t2_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_2.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

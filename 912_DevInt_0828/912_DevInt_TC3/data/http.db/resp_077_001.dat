@@ -1,0 +1,49 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .factory('AgencyService', service);
+
+  /**
+   * @ngInject
+   **/
+  function service($log, DataService) {
+
+    // PRIVATE data
+
+    var dataService = DataService.getInstance('AGENCY');
+
+    // PRIVATE methods
+
+    function statusCheck(agencyName) {
+      var data = {};
+      var params = {
+        switchAgency: encodeURIComponent(agencyName)
+      };
+
+      return dataService.send('SWITCH_STATUS_CHECK', data, params);
+    }
+
+    function switchAgency(agencyName) {
+      var data = {};
+      var params = {
+        mode: 'setAgency',
+        serviceProviderCode: agencyName
+      };
+
+      return dataService.send('SWITCH_AGENCY', data, params);
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('AGENCY-MANAGER');
+
+    // PUBLIC interface
+
+    return {
+      statusCheck: statusCheck,
+      switchAgency: switchAgency
+    };
+  }
+})();

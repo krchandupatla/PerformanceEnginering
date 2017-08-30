@@ -1,0 +1,11 @@
+[t369]
+FileName1=t369_subdivisionLot.xml
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/commons/parcel/subdivisionLot.jsp?subdivision=&lotName=value(parcel*lot)&lotValue=&autoGet=false&aaxmlrequest=true&aa_rand=0.6385214045872161&aazones=aazone-parcel-lot
+Total=1
+ContentType=text/xml
+SnapshotXmlFile=snapshot_369.xml
+RequestHeaderFile=t369_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t369_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

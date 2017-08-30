@@ -1,0 +1,11 @@
+[t493]
+FileName1=t493_portletInterface.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/portletInterface.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_493.xml
+RequestHeaderFile=t493_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t493_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,656 @@
+(function () {
+	'use strict';
+
+	angular
+	.module('accela.automation')
+	.controller('AutomationController', controller);
+
+	/**
+	 * @ngInject
+	 */
+	function controller($rootScope, $scope, $document, $log, $safeApply, $sce, $state, $timeout, $window, i18nService, LoggingService, OverlayService, ServerSessionService, SlideoutService, SpaceManager, TaskManager, UserManager, CONFIG, AGENCY_TAB_CONFIG, I18N_CONFIG) {
+
+		// PRIVATE data
+
+		var savedSearchState;
+    var i18n = $rootScope.i18n;
+
+		// PUBLIC data
+
+    $scope.translations = Accela.translations;
+
+		$scope.currentUser = {};
+
+		$scope.isAdminView = false;
+		$scope.showcount = 0;
+		$scope.morecount = 0;
+		$scope.mainContentSectionClass = '';
+		$scope.isRTL = document.dir.toUpperCase() === 'RTL';
+		$scope.isUsingMockServices = CONFIG.USE_MOCK_SERVICES ? true : false;
+
+		$scope.dashboardSelected = 'tasks';
+		$scope.dashboardPanelCollapsed = true;
+
+		$scope.spinner = { active: true };
+		$scope.moreSpaces = { visible: false };
+
+    $scope.flyoutActive = {
+      globalsearch: false,
+      launchpad: false
+    };
+
+		$scope.menubar = {
+      dashboard: {
+        isActive: function() {
+          return $state.includes('spaces.map-dashboard') || $state.includes('spaces.task-dashboard');
+        },
+        activeClass: function() {
+          return $scope.menubar.dashboard.isActive() ? 'active' : '';
+        },
+        label: function() {
+          return $scope.menubar.dashboard.isActive() ? i18n.MainMenu.DashboardActive : i18n.MainMenu.DashboardOpen;
+        }
+      },
+      globalsearch: {
+        label: function() {
+          return $scope.flyoutActive.globalsearch || $state.is('spaces.globalSearch') ? i18n.MainMenu.GlobalSearchClose : i18n.MainMenu.GlobalSearchOpen;
+        },
+      },
+      launchpad: {
+        label: function() {
+          return $scope.flyoutActive.launchpad ? i18n.MainMenu.LaunchpadClose : i18n.MainMenu.LaunchpadOpen;
+        }
+      },
+      onload: function() {
+        // when clicking outside of these elements, close them
+        $document.on('click', function(evt) {
+          var search = $('li.globalsearch-tile');
+          var launchPad = $('li.launchpad-tile');
+
+          if (search.hasClass('active') && !$state.is('spaces.globalSearch')) {
+            if (Accela.DOM.isClickOutsideOf(search, evt) && Accela.DOM.isClickOutsideOf($('#search-flyout'), evt)) {
+              OverlayService.hide();
+            }
+          } else if (launchPad.hasClass('active')) {
+            if (Accela.DOM.isClickOutsideOf(launchPad, evt) && Accela.DOM.isClickOutsideOf($('#launchpad-flyout'), evt)) {
+              OverlayService.hide();
+            }
+          } else { // execute any registered handlers
+            Accela.DOM.ClickOutsideHandlers.execute(evt);
+          }
+        });
+      }
+		};
+
+        var restrictedLinks = _.filter(CONFIG.APPLICATION_BAR_LINKS, function (x) {
+            return !x.requiresAdmin;
+        });
+
+        UserManager.getUserApplicationBarLinks('0375').then(function(response){
+            $scope.applicationBar.links = response ? CONFIG.APPLICATION_BAR_LINKS : restrictedLinks;
+        });
+
+		$scope.applicationBar = {
+      userFullName: AGENCY_TAB_CONFIG.loginUserModel.fullName,
+      loginAgency: AGENCY_TAB_CONFIG.loginUserModel.serviceProviderCode,
+      links: null,
+      products: [
+         { name: 'Civic Platform', url: '#' }
+      ]
+		};
+
+    $scope.search = {
+      text: ''
+    };
+
+		$scope.searchMenuOptions = {
+      default: ' Everything',
+      permit: 'Permits',
+      people: 'people'
+		};
+
+		// PUBLIC IIFE's
+
+		// Alert portlet
+		// portlets/alert/alertMessageList.do?isFromPortlet=Y&paneID=P-145911182dd-10253&param=undefined
+
+		$scope.alerts = (function() {
+			var list = [];
+
+			var close = function(index) {
+				if (index >= 0) {
+					$safeApply($scope, function() {
+						list.splice(index, 1);
+					});
+				}
+			};
+
+			var closeMatching = function(options) {
+				angular.forEach(list, function(item, index) {
+					if (item.msg === options.msg) {
+						close(index);
+						return false;
+					}
+				});
+			};
+
+			return {
+				list: list,
+				add: function(options) {
+					closeMatching(options); // close any matching alert
+					list.push(options);
+				},
+				close: close,
+				closeMatching: closeMatching
+			};
+		})();
+
+		$scope.slideout = {
+				templateUrl: 'views/automation/slideout.html',
+				open: function(options) {
+					$scope.slideout.title = options.title;
+					$scope.slideout.contentUrl = 'views/automation/slideout-iframe.html';
+					$scope.slideout.contentSrc = $sce.trustAsResourceUrl(options.url);
+					return SlideoutService.open({
+						level: 'default'
+					});
+				},
+				openView: function(options) {
+					$scope.slideout.title = options.title;
+					$scope.slideout.contentUrl = options.templateUrl;
+					return SlideoutService.open({
+						level: 'default'
+					});
+				},
+				close: function(data) {
+					$scope.slideout.title = '';
+					$scope.slideout.contentSrc = '';
+					SlideoutService.close(data);
+				}
+		};
+
+		$scope.windowResizeHandlers = (function() {
+			var list = [];
+
+			var getIndex = function(fn) {
+				return list.indexOf(fn);
+			};
+
+			return {
+				register: function(fn) {
+					if (typeof fn === 'function' && getIndex(fn) === -1) {
+						list.push(fn);
+					}
+				},
+				unregister: function(fn) {
+					var index = getIndex(fn);
+
+					if (index >= 0) {
+						list.splice(index, 1);
+					}
+				},
+				run: function() {
+					angular.forEach(list, function(fn) {
+						fn();
+					});
+				}
+			};
+		})();
+
+		// EVENT handlers
+
+		$rootScope.$on('$stateChangeStart', function (event, toState, toParams, fromState, fromParams) {
+			OverlayService.hide();
+		});
+
+		$rootScope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState, fromParams) {
+			var appLink;
+
+			var setDefaultReturnState = function(name) {
+        var appLink = _.find($scope.applicationBar.links, { 'name': name });
+
+				if (appLink) {
+					appLink.returnState = 'spaces.task-dashboard.cards';
+				}
+			};
+
+			if (toState.name === 'admin') {
+				$scope.isAdminView = true;
+				// mark as 'Exit Administration'
+				setDefaultReturnState('Administration');
+			} else if (toState.name === 'classic-admin') {
+				$scope.isAdminView = true;
+				// mark as 'Exit Classic Administration'
+				setDefaultReturnState('ClassicAdministration');
+			} else {
+				$scope.isAdminView = false;
+				if (toState.name === 'spaces.globalSearch') {
+					savedSearchState = {
+            name: toState.name,
+            params: toParams
+					};
+				} else if (toState.name === 'spaces.map-dashboard.map') {
+          $scope.dashboardSelected = 'map';
+        }
+			}
+		});
+
+		$rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
+			LoggingService.error(sprintf('<b>$stateChangeError : </b>%s : %s', toState.name, error.customErrorMessage));
+		});
+
+    $scope.$on('globalsearch.showCachedResults', function() {
+      ServerSessionService.start(CONFIG.TASK_SESSION_NAME); // CAGAMMA-1144
+    });
+
+    $scope.$on('portlet.iframe.dump.response', function(event, data) {
+      $log.info(angular.toJson(data));
+    });
+
+		$scope.$on('ajax.spinner', function(event, isActive) {
+			$scope.spinner.active = isActive;
+		});
+
+		$scope.$on('iframe.clicked', function() {
+			$scope.$apply(
+					function() {
+						$scope.closeMoreSpaces();
+					}
+			);
+		});
+
+    $scope.$on('main-menu-flyout', function(event, flyout) {
+      $scope.flyoutActive[flyout.overlayName] = flyout.active;
+    });
+
+		$scope.$on('dashboard.addAlert', function(event, options) {
+      addAlert(options);
+    });
+
+    $scope.$on('dashboard.closedSpace', function() {
+      if ($scope.dashboardSelected === 'map') {
+        $state.go('spaces.map-dashboard.map');
+      } else {
+        $state.go('spaces.task-dashboard.cards');
+      }
+    });
+
+		// PUBLIC methods
+
+    $scope.closeDashboardsPanel = function() { // called by aa-click-outside
+      $scope.dashboardPanelCollapsed = true;
+    };
+    
+    function eventPropagation(event) {
+      if(event && event.name && event.params) {
+        $rootScope.$broadcast(event.name, event.params);
+      }
+    }
+  	
+  	Accela.PortletInterface.register('events', eventPropagation);
+
+		$scope.closeMoreSpaces = function() {
+  			if ($scope.moreSpaces.visible) {
+				$log.debug('closeMoreSpaces');
+				$scope.moreSpaces.visible = false;
+			}
+		};
+
+		/**
+		 * Handle submit of global-search form in flyout.
+		 */
+		$scope.globalSearch = function () {
+      var searchText = $scope.search.text || '';
+
+      if (searchText.length >= 3) {
+        ServerSessionService.start(CONFIG.TASK_SESSION_NAME).then(function() { // CAGAMMA-1144
+          OverlayService.hide();
+
+          $timeout(function () {
+            $state.go('spaces.globalSearch', {
+              searchText: $scope.search.text
+            });
+          }, Accela.animationDelay);
+        });
+      }
+		};
+
+    $scope.openAppBarLink = function(link) {
+      try {
+        if (link.state) { // admin or classic admin
+          openAdminPage(link);
+        } else {
+          if (link.name === 'Help') {
+            Accela.Util.showI18NHelp(link.helpID);
+          } else if (link.name === 'SignOut') {
+            UserManager.signOut(link.url, $scope.isAdminView);
+          } else if (link.name === 'Portlet Debug') {
+            $rootScope.$broadcast('portlet.iframe.dump.request');
+          } else {
+            $window.location.href = link.url;
+          }
+        }
+      } catch (ignore) {} // AATHETA-2135
+    };
+
+		$scope.openAlertsPortlet = function() {
+			$scope.$emit('dashboard.openSpace', { // handled in aa-space-list directive
+				spaceType: 'portlet',
+				spaceName: 'Alerts',
+				spaceUrl: '/portlets/alert/alertMessageList.do?isFromPortlet=Y&paneID=P-145911182dd-10253'
+			});
+		};
+
+		$scope.openDashboard = function(dashboard) {
+			$scope.dashboardSelected = dashboard;
+			$scope.dashboardPanelCollapsed = true;
+
+			$timeout(function() {
+				if (dashboard === 'map') {
+          if ($state.is('spaces.map-dashboard.map')) {
+            OverlayService.hide();
+          } else {
+            $state.go('spaces.map-dashboard.map');
+          }
+				} else if (dashboard === 'tasks') {
+          if ($state.is('spaces.task-dashboard.cards')) {
+            OverlayService.hide();
+          } else {
+            $state.go('spaces.task-dashboard.cards');
+          }
+        }
+			}, Accela.animationDelay);
+		};
+
+		$scope.openDefaultSlideout = function(title, url, params) {
+			$scope.slideout.open({
+				title: title,
+				url: url + (params ? Accela.Util.json2str(params) : '')
+			}).then(function(data) {
+        $scope.$broadcast('tasks.refresh');
+			});
+
+			// set to window methods to make sure V360 portlet can close the slideout.
+
+			$window.slideout = $scope.slideout;
+
+			$window.slideout.closeSlideoutAndRefreshTask = function() {
+				$scope.slideout.close();
+			};
+		};
+
+    $scope.openDefaultSlideoutView = function(title, templateUrl) {
+      return $scope.slideout.openView({
+        title: title,
+        templateUrl: templateUrl
+      });
+    };
+
+		// defined here because it's called by globalsearch document view
+		$scope.openDocument = function(task) {
+      var info = TaskManager.getOpenDocumentSlideoutInfo(task);
+
+			$scope.openDefaultSlideout(i18n.Task.CategoryDOCUMENT, info.url, info.params);
+		};
+
+		$scope.setLanguage = function(locale) {
+			$log.log(sprintf('setLanguage(%s)', locale));
+		};
+
+		// called by main-menu-flyout directive
+		$scope.hasGlobalSearchResults = function() {
+			if (savedSearchState) {
+        $state.go(savedSearchState.name, savedSearchState.params);
+			}
+
+			return savedSearchState ? true : false;
+		};
+
+		$scope.toggleDashboardsPanel = function() {
+			var handler = {
+					id: 'dashboard-panel',
+					selectors: ['.dashboard-tile', '.btn-dashboards', '.dashboard-panel'],
+					callback: function() {
+						$scope.$apply(function() {
+							$scope.dashboardPanelCollapsed = true;
+							Accela.DOM.ClickOutsideHandlers.unregister(handler);
+						});
+					}
+			};
+
+			$scope.dashboardPanelCollapsed = !$scope.dashboardPanelCollapsed;
+
+			if ($scope.dashboardPanelCollapsed) {
+				Accela.DOM.ClickOutsideHandlers.unregister(handler);
+			} else {
+				Accela.DOM.ClickOutsideHandlers.register(handler);
+			}
+		};
+
+		$scope.newApplication = function() {
+      function _newApplication() {
+        var url = '/portlets/picker/capTypePickerSelector.do?fromModel=cap&module=%s&isGeneralCAP=Y';
+
+        OverlayService.hide();
+
+        if (CONFIG.DefaultModule) {
+          $timeout(function() {
+            Accela.Util.openPopup('NewApplication', sprintf(url, CONFIG.DefaultModule));
+// FOR DEBUGGING RE-SKIN INTAKE PROCESS
+//          $scope.$emit('dashboard.openSpace', { // handled in aa-space-list directive
+//            spaceType: 'portlet',
+//            spaceName: 'New Application',
+//            spaceUrl: sprintf(url, CONFIG.DefaultModule)
+//          });
+          }, Accela.animationDelay);
+        } else {
+          addAlert({
+            type: 'error',
+            delay: Accela.animationDelay,
+            msg: 'Cannot select RecordType, no MODULE defined.'
+          });
+        }
+
+//      // FOR NEW INTAKE PROCESS
+//      $timeout(function() {
+//        $scope.$emit('dashboard.openSpace', { // handled in aa-space-list directive
+//          spaceType: 'portlet',
+//          spaceName: 'New Application',
+//          spaceState: {
+//            name: 'spaces.record.new',
+//            params: {
+//              recordType: '',
+//              recordId: ''
+//            }
+//          }
+//        });
+//      }, Accela.animationDelay);
+      }
+
+      ServerSessionService.start('null').then(_newApplication); // CAGAMMA-1144
+		};
+
+		// PRIVATE methods
+
+    function addAlert(options) {
+      if (options.delay) {
+        $timeout(function() {
+          options.msg = $sce.trustAsHtml(options.msg);
+          $scope.alerts.add(options);
+        }, options.delay);
+      } else {
+        $safeApply($scope, function() {
+          options.msg = $sce.trustAsHtml(options.msg);
+          $scope.alerts.add(options);
+        });
+      }
+
+      if (options.timeout) {
+        $timeout(function() {
+          $scope.alerts.closeMatching(options);
+        }, options.timeout, true);
+      }
+    }
+
+    function openAdminPage(link) {
+		angular.forEach($scope.applicationBar.links, function (obj) {
+			if (link.state && obj.state && link.state !== obj.state) {
+				// so we don't end up with two 'exit' links
+				obj.returnState = null;
+			}
+		});
+
+		function openLink() {
+			$timeout(function () {
+				if (link.returnState) {
+					removeOldJSAndCSS(top.document);
+					$state.go(link.returnState);
+					link.returnState = null;
+				} else if (link.state) {
+					importOldJSAndCSS(top.document);
+					if (link.state === 'classic-admin') {
+						$timeout(function () {
+							window.location.href = CONFIG.CFMX_URL + '/login/index.cfm?fuseaction=checkuser&isFromPortlet=Y&paneID=P-14d9beabe07-10003';
+						});
+					} else {
+						$state.go(link.state);
+					}
+					//$state.go(link.state);
+					link.returnState = $state.$current.name;
+					if (link.returnState === 'admin' || link.returnState === 'classic-admin') {
+						link.returnState = 'spaces.task-dashboard.cards';
+					}
+				} else {
+					$rootScope.$broadcast('dashboard.openAdminPage', link);
+				}
+			});
+		}
+
+		if (link.state === 'classic-admin') {
+			openLink();
+		} else {
+			UserManager.switchUI(link.returnState).then(function () {
+				openLink();
+			}, function (error) {
+				addAlert({msg: error});
+			});
+		}
+	}
+
+
+
+
+
+
+		function windowResizeHandler() {
+			$scope.windowResizeHandlers.run();
+		}
+
+    // INITIALIZE
+
+    $log = $log.getInstance('AUTOMATION-CONTROLLER');
+
+    Accela.init({
+      agency: AGENCY_TAB_CONFIG.loginUserModel.serviceProviderCode,
+      userName: AGENCY_TAB_CONFIG.loginUserModel.fullName,
+      appName: CONFIG.APP_NAME,
+      appVersion: CONFIG.APP_VERSION,
+      buildServer: CONFIG.BUILD_SERVER,
+      buildTimestamp: CONFIG.BUILD_TIMESTAMP
+    });
+
+    if (typeof setTimeoutTimer !== 'undefined') { // for .html files
+      setTimeoutTimer();
+    }
+
+    angular.element($window).bind('resize', _.debounce(function() {
+      $timeout(windowResizeHandler, 250);
+    }, 250));
+
+    $scope.$on('$destroy', function () {
+      $log.info('destroyed');
+    });
+
+    if (I18N_CONFIG) {
+      i18nService.updateStore(I18N_CONFIG);
+    } else if (CONFIG.i18nError) {
+      addAlert({
+        type: 'error',
+        msg: CONFIG.i18nError
+      });
+    }
+
+    UserManager.getUserProfile().then(function(data) {
+      $scope.currentUser = data;
+    });
+	}
+
+	var oldJSAndCSS = {
+    'JS' : [
+      '/portlets/framework/includes/javascript/hashMap.js',
+      '/portlets/framework/includes/javascript/ac360ui.js',
+      '/portlets/framework/includes/javascript/ac360ScrollBar.js',
+      '/portlets/framework/includes/javascript/Ac360ToolManager.js',
+      '/portlets/framework/includes/javascript/I18N.js',
+      '/portlets/framework/includes/javascript/jsMessageResoruce.js',
+      '/portlets/framework/includes/javascript/checkTextAreaLength.js',
+      '/portlets/framework/includes/javascript/ac360.js',
+      '/portlets/framework/includes/javascript/ac360base.js',
+      '/portlets/framework/includes/javascript/popup/popup.js'
+    ],
+    'CSS' : [
+      '/portlets/images/sky_blue/popUp.css'
+    ]
+	};
+
+	function importOldJSAndCSS(doc){
+		var head = doc.getElementsByTagName('head')[0];	
+		for(var index4JS = 0; index4JS < oldJSAndCSS.JS.length; index4JS++)
+		{
+			var script = doc.createElement('SCRIPT');
+			script.type = 'text/javascript';
+			script.src = oldJSAndCSS.JS[index4JS];
+			head.appendChild(script);
+		}
+		for(var index4CSS = 0; index4CSS < oldJSAndCSS.CSS.length; index4CSS++)
+		{
+			var link = doc.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = oldJSAndCSS.CSS[index4CSS];
+			head.appendChild(link);
+		}
+		setTimeout(function(){
+		  /* jshint ignore:start */
+		  top.acPop = new Popup({ contentType:1,scrollType:false,isReloadOnClose:false,width:500,height:330,layout:''});
+		  /* jshint ignore:end */
+		}, 1000);
+	}
+	
+	function removeOldJSAndCSS(doc){
+		var head = doc.getElementsByTagName('head')[0];
+		var jsReg  = /\/portlets\/.*framework\/includes\/javascript\/.*\.js/i;
+		var cssReg = /\/portlets\/.*images\/sky_blue\/\w*\.css/i;
+		var node;
+		for(var index = head.children.length -1; index >= 0; index--)
+		{
+			node = head.children[index];
+			if(node.src)
+			{
+				var jsURL = node.src.match(jsReg);
+				if(jsURL && oldJSAndCSS.JS.indexOf(jsURL.toString()) > -1)
+				{
+					head.removeChild(node);
+				}
+			}
+			else if(node.href)
+			{
+				var cssURL = node.href.match(cssReg);
+				if(cssURL && oldJSAndCSS.CSS.indexOf(cssURL.toString()) > -1)
+				{
+					head.removeChild(node);
+				}
+			}
+		}
+		delete top.acPop;
+	}
+})();

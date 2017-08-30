@@ -1,0 +1,18 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('aaAutofocus', function() {
+      return {
+        restrict: 'A',
+        link: function(scope, element, attrs) {
+          if (attrs.aaAutofocus === 'true') {
+            setTimeout(function() {
+              element[0].focus();
+            }, Accela.animationDelay);
+          }
+        }
+      };
+  });
+})();

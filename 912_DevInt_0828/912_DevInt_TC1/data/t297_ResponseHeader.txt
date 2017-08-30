@@ -1,0 +1,13 @@
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Pragma: No-cache
+Cache-Control: no-cache
+Expires: Thu, 01 Jan 1970 00:00:00 UTC
+Accept-Ranges: bytes
+ETag: W/"1045-1498747098000"
+Last-Modified: Thu, 29 Jun 2017 14:38:18 GMT
+Content-Type: text/javascript
+Content-Length: 1045
+Date: Mon, 28 Aug 2017 18:32:05 GMT
+Connection: close
+

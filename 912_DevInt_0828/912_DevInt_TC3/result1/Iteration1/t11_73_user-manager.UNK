@@ -1,0 +1,218 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .factory('UserManager', service);
+
+  /**
+   * @ngInject
+   **/
+  function service($log, $q, $window, UserModel, DataService) {
+
+    // PRIVATE data
+
+    var loginAgency;
+    var currentAgency;
+    var model = UserModel;
+    var dataService = DataService.getInstance('USER');
+    var adminDataService = DataService.getInstance('V360ADMIN');
+    var deferredSecurityProfile = $q.defer();
+
+    var userProfile = {};
+    var userSecurityProfile;
+
+    // PRIVATE methods
+
+    function getUserProfile() {
+      var deferred = $q.defer();
+      if (Accela.Util.isEmpty(userProfile)) {
+        dataService.send('GET_PROFILE').then(function (response) {
+          userProfile = model.UserProfile.build(response.data.result);
+
+          deferred.resolve(userProfile);
+        }, function (error) { // already reported by HttpInterceptor
+          deferred.reject(error);
+        });
+      } else {
+        deferred.resolve(userProfile);
+      }
+
+      return deferred.promise;
+    }
+
+    /**
+     * Get dashboard FIDS, where "items" contains a comma delimited list of FIDs required.
+     *
+     * This is called by AutomationController and LaunchpadController, but we only want to make one ajax request.
+     */
+    function getUserSecurityProfile(AGENCY_TAB_CONFIG) {
+      var data = {};
+      var params = {
+        //FID 8488F : Meeting actions
+        //FID 8143,8400,8145,8144 : Inspection actions
+        //FID 8478F,8213F,8477R : Document actions
+        //FID 8487F : Activity actions
+        //FID 8132R : Work Flow
+        //FID 0008R : Licence Professional reference link (AAETA-699)
+        items: '0008,8488,8143,8400,8145,8144,8478,8213,8477,8487,8132'
+      };
+
+      loginAgency = AGENCY_TAB_CONFIG.loginUserModel.serviceProviderCode;
+      currentAgency = AGENCY_TAB_CONFIG.loginUserModel.serviceProviderCode;
+
+      dataService.send('GET_SECURITY_PROFILE', data, params)
+        .then(function (response) {
+          userSecurityProfile = {};
+          angular.forEach(response.data.result, function (value, agency) {
+            if (value.state !== 'OK' && value.message) {
+              throw new Error(sprintf('getUserSecurityProfile(%s): %s', agency, value.message));
+            }
+            userSecurityProfile[agency] = value.moduleFIDPermissions;
+          });
+
+          deferredSecurityProfile.resolve(userSecurityProfile);
+        }, function (error) { // already reported by HttpInterceptor
+          deferredSecurityProfile.reject(error);
+        });
+
+      return deferredSecurityProfile.promise;
+    }
+
+      /**
+       * Get Fid for application bar links
+       */
+
+      function getUserApplicationBarLinks(fid)
+      {
+          var data = {};
+          var params = {
+              items: fid
+          };
+          var deferred = $q.defer();
+        var grantAccess = false;
+        dataService.send('GET_SECURITY_PROFILE', data, params)
+            .then(function (response) {
+              if(response.data.result[currentAgency]){
+                var value = response.data.result[currentAgency];
+                if (value !== null && value.state !== 'OK' && value.message){
+                  throw new Error(value.message);
+                }
+                //If the fid comes back 'undef' even for 1 module then give admin permissions
+
+                _.forEach(value.moduleFIDPermissions, function(module) {
+                  _.find(module, function (fid) {
+                    if (!_.includes(fid, 'F')) {
+                      grantAccess = true;
+                      return;
+                    }
+                  });
+                });
+                deferred.resolve(grantAccess);
+              }
+
+
+            }, function (error){
+                  deferred.reject(error);
+              });
+          return deferred.promise;
+      }
+
+    /**
+     * Check security access.
+     * If accessLevel not provided, default to FULL.
+     * usage: <li ng-if="hasFID('8488', 'F', module)">some restricted link here</li>
+     */
+
+    function hasFID(fid, accessLevel, module) {
+      var moduleFIDS;
+      var result = false;
+      var agencyModules = userSecurityProfile[currentAgency];
+
+      if (agencyModules) {
+        moduleFIDS = agencyModules[module || 'DEFAULT'];
+
+        if (moduleFIDS) {
+          if ('F' === accessLevel) {
+            result = moduleFIDS[fid] === 'F';
+          } else if ('R' === accessLevel) {
+            result = moduleFIDS[fid] === 'F' || moduleFIDS[fid] === 'R';
+          }
+        } else {
+          console.warn(sprintf('hasFID(%s) : moduleFIDS[%s] not found', fid, module || 'DEFAULT'));
+        }
+      } else {
+        console.warn(sprintf('hasFID(%s) : agencyModules[%s] not found', fid, currentAgency));
+      }
+
+      return result;
+    }
+
+    /**
+     * Force switch to new UI, then Sign Out.
+     *
+     * Needed in case the current view is Classic Administration.
+     */
+    function signOut(url, isAdminView) {
+      if (isAdminView) {
+        switchToNewUI().then(function() {
+          $window.location.href = url;
+        });
+      } else {
+        $window.location.href = url;
+      }
+    }
+
+    /**
+     * Force switch to new UI.
+     */
+    function switchToNewUI() {
+      var params = {
+        newui: 'Y'
+      };
+
+      return adminDataService.send('SWITCH_UI', null, params);
+    }
+
+    /**
+     * Switch UI depending on returnState.
+     */
+    function switchUI(returnState) {
+      var params = {
+        action: 'OPEN_V360_ADMIN'
+      };
+
+      if (returnState) {
+    	params.action = 'CLOSE_V360_ADMIN';
+
+      }
+
+      return adminDataService.send('SWITCH_UI', null, params);
+    }
+
+    /**
+     * Called by TaskDashboardController when switching Agencies.
+     */
+    function setCurrentAgency(agency) {
+      currentAgency = agency;
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('USER-MANAGER');
+
+    // PUBLIC interface
+
+    return {
+      getUserApplicationBarLinks: getUserApplicationBarLinks,
+      getUserProfile: getUserProfile,
+      getUserSecurityProfile: getUserSecurityProfile,
+      hasFID: hasFID,
+      signOut: signOut,
+      switchToNewUI:  switchToNewUI,
+      switchUI: switchUI,
+      setCurrentAgency: setCurrentAgency,
+      deferredSecurityProfile: deferredSecurityProfile.promise
+    };
+  }
+})();

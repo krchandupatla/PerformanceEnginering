@@ -1,0 +1,11 @@
+[t65]
+FileName1=t65_base-filter.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/core/filters/base-filter.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_65.xml
+RequestHeaderFile=t65_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t65_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

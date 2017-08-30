@@ -1,0 +1,64 @@
+/**
+ * Click on Launchpad "All Pages" footer to show page list or favorites.
+ *
+ * dbalmer@accela.com
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .directive('aaFavoritePagesToggle', function($timeout) {
+      return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+
+          // PRIVATE data
+
+          var footer = element.parent().$('footer');
+
+          // PRIVATE methods
+
+          function clicked() {
+            if (footer.hasClass('active')) {
+              hidePageList();
+            } else {
+              showPageList();
+            }
+          }
+
+          function hidePageList() {
+            element.removeClass('hidden');
+            footer.removeClass('active');
+
+            footer.$('a').attr('aria-label', scope.i18n.Launchpad.ShowAllPages);
+            footer.$('.glyphicon').removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+
+            $('#all-pages').addClass('hidden');
+          }
+
+          function showPageList() {
+            element.addClass('hidden');
+            footer.addClass('active');
+
+            footer.$('a').attr('aria-label', scope.i18n.Launchpad.HideAllPages);
+            footer.$('.glyphicon').removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+
+            $timeout(function() {
+              $el('#all-pages input').focus();
+            }, 10, false);
+
+            $('#all-pages').removeClass('hidden');
+          }
+
+          // INITIALIZE
+
+          footer.on('click', clicked);
+
+          scope.$on('$destroy', function() {
+            footer.off('click', clicked);
+          });
+        }
+      };
+    });
+})();

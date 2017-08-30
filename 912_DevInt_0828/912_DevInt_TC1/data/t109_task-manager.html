@@ -1,0 +1,905 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .factory('TaskManager', service);
+
+  /**
+   * @ngInject
+   **/
+  function service($rootScope, $filter, $log, $q, DashboardModel, DataService, UserManager, CONFIG) {
+
+    // CONSTANTS
+
+    var ACTION = {
+      AGENDA: 'AGENDA',
+      ASSIGN: 'ASSIGN',
+      CANCEL: 'CANCEL',
+      CLAIM: 'CLAIM',
+      DELETE: 'DELETE',
+      DOWNLOAD: 'DOWNLOAD',
+      DUPLICATE: 'DUPLICATE',
+      PREVIEW: 'PREVIEW',
+      REASSIGN: 'REASSIGN',
+      REJECT: 'REJECT',
+      RELEASE: 'RELEASE',
+      REMOVE: 'REMOVE',
+      RESCHEDULE: 'RESCHEDULE',
+      RESULT: 'RESULT',
+      REVIEW: 'REVIEW',
+      SCHEDULE: 'SCHEDULE',
+      VIEWINFO: 'VIEWINFO'
+    };
+
+    // PRIVATE data
+
+    var tasks = [];
+    var model = DashboardModel;
+    var dataService = DataService.getInstance('TASKS');
+    var i18n = $rootScope.i18n;
+
+    // PRIVATE methods
+
+    function addMetaData(task) {
+      var action;
+      var hasLinks = false;
+
+      if (task.isActivity) {
+        //
+        // ACTIVITY
+        //
+        if (UserManager.hasFID('8487', 'F', task.module)) {
+          task.actions.push({
+            id: ACTION.DELETE,
+            label: i18n.Task.Delete
+          });
+        }
+
+        if (task.capId.customID && task.capId.customID.length) {
+          hasLinks = true;
+        }
+      } else if (task.isDocument) {
+        //
+        // DOCUMENT
+        //
+        if (checkDocumentActionRights(task, ACTION.ASSIGN)) {
+          task.actions.push({
+            id: ACTION.ASSIGN,
+            label: i18n.Task.Assign,
+            url: '/portlets/document/documentDetail.do?',
+            params: getOpenDocumentDetailParam(task, ACTION.ASSIGN)
+          });
+        }
+
+        if (checkDocumentActionRights(task, ACTION.DOWNLOAD)) {
+          task.actions.push({
+            id: ACTION.DOWNLOAD,
+            label: i18n.Task.Download,
+            url: task.downloadUrl + '&closeOpenerOnCancelAuth=true'
+          });
+        }
+
+        if (checkDocumentActionRights(task, ACTION.PREVIEW)) {
+          task.actions.push({
+            id: ACTION.PREVIEW,
+            label: i18n.Task.Preview,
+            url: task.previewUrl
+          });
+        }
+
+        if (checkDocumentActionRights(task, ACTION.REVIEW)) {
+          task.actions.push({
+            id: ACTION.REVIEW,
+            label: i18n.Task.Review,
+            url: task.reviewUrl + '&closeOpenerOnCancelAuth=true'
+          });
+        }
+
+        if (checkDocumentActionRights(task, ACTION.VIEWINFO)) {
+          task.actions.push({
+            id: ACTION.VIEWINFO,
+            label: i18n.Task.ViewDocInfo,
+            url: '/portlets/document/documentDetail.do?',
+            params: getOpenDocumentDetailParam(task, ACTION.VIEWINFO)
+          });
+        }
+
+        if (task.capId.customID && task.capId.customID.length) {
+          hasLinks = true;
+        }
+      } else if (task.isInspection) {
+        //
+        // INSPECTION
+        //
+        if (checkInspectionActionRights(task, ACTION.CANCEL)) {
+          action = {
+            id: ACTION.CANCEL,
+            label: i18n.Task.Cancel,
+            url: '/portlets/inspection/workloadInspectionMainStub.jsp?',
+            params: {
+              module: task.module,
+              fromDashBoard: 'true'
+            }
+          };
+          if (UserManager.hasFID('8400', 'F', task.module)) {
+            angular.extend(action, {
+              validationParams: {
+                mode: 'doValidate',
+                mType: 2,
+                isFromCAP: 'N'
+              }
+            });
+          } else {
+            angular.extend(action, {
+              validationParams: {
+                mode: 'doValidateCancelInspection',
+                mType: -1,
+                isFromCAP: 'N'
+              }
+            });
+          }
+          task.actions.push(action);
+        }
+
+        if (checkInspectionActionRights(task, ACTION.DELETE)) {
+          task.actions.push({
+            id: ACTION.DELETE,
+            label: i18n.Task.Delete
+          });
+        }
+
+        if (checkInspectionActionRights(task, ACTION.RESCHEDULE)) {
+          action = {
+            id: ACTION.RESCHEDULE,
+            label: i18n.Task.Reschedule
+          };
+          if (UserManager.hasFID('8400', 'F', task.module)) {
+            angular.extend(action, {
+              url: '/portlets/inspection/workloadingInspectionList.do?mode=doManage&doPending=true&RCAP=false&',
+              params: {
+                module: task.module,
+                fromDashBoard: 'true'
+              },
+              validationParams: {
+                mode: 'doValidate',
+                mType: 1,
+                isFromCAP: 'N'
+              }
+            });
+          } else {
+            angular.extend(action, {
+              url: '/portlets/inspection/taskManagementInspectionList.do?chk_INSP=0&mode=reschedule&',
+              params: getInspectionCommonParams(task)
+            });
+          }
+          task.actions.push(action);
+        }
+
+        if (checkInspectionActionRights(task, ACTION.RESULT)) {
+          task.actions.push({
+            id: ACTION.RESULT,
+            label: i18n.Task.Result,
+            url: '/portlets/inspection/taskManagementInspectionResult.do?mode=reEnterResultpage&calendarName=&chk_INSP=0&fromDashBoard=true&',
+            params: getInspectionCommonParams(task)
+          });
+        }
+
+        if (checkInspectionActionRights(task, ACTION.SCHEDULE)) {
+          action = {
+            id: ACTION.SCHEDULE,
+            label: i18n.Task.Schedule,
+            url: '/portlets/inspection/workloadingInspectionList.do?mode=doManage&doPending=true&RCAP=false&',
+            params: {
+              module: task.module,
+              fromDashBoard: 'true'
+            },
+            validationParams: {
+              mode: 'doValidate',
+              mType: 0,
+              isFromCAP: 'N'
+            }
+          };
+          angular.extend(action.validationParams, getInspectionCommonParams(task));
+          task.actions.push(action);
+        }
+
+        if (task.capId.customID && task.capId.customID.length) {
+          hasLinks = true;
+        }
+
+        if (task.contactName && task.contactName.length) {
+          hasLinks = true;
+        }
+      } else if (task.isMeeting) {
+        //
+        // MEETING
+        //
+        if (UserManager.hasFID('8488', 'F', task.module)) {
+          task.actions.push({
+            id: ACTION.REJECT,
+            label: i18n.Task.Reject,
+            validationParams: {
+              meetingGroupID: task.meetingGroupID,
+              meetingID: task.meetingID,
+              attendeeID: task.assignee
+            }
+          });
+        }
+      } else if (task.isRecord) {
+        //
+        // RECORD
+        //
+        task.actions.push({
+          id: ACTION.DUPLICATE,
+          label: i18n.Task.Duplicate,
+          url: '',
+          params: ''
+        });
+
+        task.actions.push({
+          id: ACTION.RESCHEDULE,
+          label: i18n.Task.Reschedule,
+          url: '',
+          params: ''
+        });
+
+        task.actions.push({
+          id: ACTION.REASSIGN,
+          label: i18n.Task.Reassign,
+          url: '',
+          params: ''
+        });
+
+        task.actions.push({
+          id: ACTION.REMOVE,
+          label: i18n.Task.Remove,
+          url: '',
+          params: ''
+        });
+
+      } else if (task.isWorkflow) {
+        //
+        // WORKFLOW
+        //
+        if (task.assignAction) {
+          task.actions.push({
+            id: ACTION.ASSIGN,
+            label: i18n.Task.Assign,
+            url: '',
+            params: ''
+          });
+        }
+
+        if (task.claimAction) {
+          task.actions.push({
+            id: ACTION.CLAIM,
+            label: i18n.Task.Claim,
+            url: '',
+            params: ''
+          });
+
+        }
+
+        if (task.releaseAction) {
+          task.actions.push({
+            id: ACTION.RELEASE,
+            label: i18n.Task.Release,
+            url: '',
+            params: ''
+          });
+        }
+
+        if (task.capId.customID && task.capId.customID.length) {
+          hasLinks = true;
+        }
+
+        if (task.contactName && task.contactName.length) {
+          hasLinks = true;
+        }
+      }
+
+      // AAETA-391 "hide the action menu when no actions"
+      // but only hide it if we have no links -- Ernesto
+      task.hideFlyout = (task.actions.length === 0 && hasLinks === false);
+
+      // determine whether task names are linkable
+
+      if (task.isActivity) {
+        task.isLinkable = UserManager.hasFID('8487', 'R', task.module);
+      } else if (task.isDocument) {
+        task.isLinkable = task.existEdmsPolicy;
+      } else if (task.isInspection) {
+        task.isLinkable = UserManager.hasFID('8143', 'R', task.module, true);
+      } else if (task.isMeeting) {
+        task.isLinkable = UserManager.hasFID('8488', 'R', task.module);
+      } else if (task.isWorkflow) {
+        task.isLinkable = UserManager.hasFID('8132', 'R', task.module, true);
+      }
+    }
+
+    function cancelInspection(task) {
+      var params = getInspectionCommonParams(task);
+
+      params.convertToJson = true;
+      params.mode = 'cancelInspectionsNoValidateToken';
+
+      return dataService.send('MANAGEMENT_INSPECTION', task, params);
+    }
+
+    function checkDocumentActionRights(task, actionId) {
+      var edmsDownloadRight, hasDownloadRight, isPdfFile;
+
+      if (undefined === task.capId.serviceProviderCode || null === task.capId.serviceProviderCode) {
+        return false;
+      }
+
+      if (!task.existEdmsPolicy) {
+        return false;
+      }
+
+      edmsDownloadRight = (task.downloadUrl.indexOf('&haveDownloadRight=no') <= 0);
+      hasDownloadRight = edmsDownloadRight && UserManager.hasFID('8213', 'F', task.module);
+      isPdfFile = task.isPDFfile;
+
+      switch (actionId) {
+        case ACTION.ASSIGN :
+          return UserManager.hasFID('8478', 'F', task.module);
+        case ACTION.DOWNLOAD :
+          return hasDownloadRight;
+        case ACTION.PREVIEW :
+          return hasDownloadRight && isPdfFile; //is pdf
+        case ACTION.REVIEW :
+          return hasDownloadRight && isPdfFile && UserManager.hasFID('8477', 'R', task.module);
+        case ACTION.VIEWINFO:
+          return true;
+      }
+    }
+
+    function checkInspectionActionRights(task, actionId) {
+      var result = false;
+
+      if (!UserManager.hasFID('8143', 'R', task.module)) {
+        return false;
+      }
+
+      //fix bug(#AATHETA-340) Inspections Pending Result Can be either Resulted or Deleted
+      var isPending=('Pending' === task.status);
+      switch (actionId) {
+        case ACTION.CANCEL:
+          if(!isPending)
+          {
+            result = UserManager.hasFID('8143', 'F', task.module) && ('COMPLETED' !== task.inspectionStatus && 'DENIED' !== task.inspectionStatus);
+          }
+          break;
+        case ACTION.DELETE:
+          if (UserManager.hasFID('8144', 'F', task.module)) {
+            result = true;
+          }
+          break;
+        case ACTION.RESCHEDULE:
+          if(!isPending)
+          {
+            if (UserManager.hasFID('8143', 'F', task.module) && ('Scheduled' === task.status)) {
+              result = true;
+            }
+          }
+          break;
+        case ACTION.RESULT:
+          if (UserManager.hasFID('8145', 'F', task.module) && ((UserManager.hasFID('8144', 'F', task.module) || ('COMPLETED' !== task.inspectionStatus && 'DENIED' !== task.inspectionStatus)))) {
+            result = true;
+          }
+          break;
+        case ACTION.SCHEDULE:
+          if (UserManager.hasFID('8143', 'F', task.module) && 'Pending' === task.status && UserManager.hasFID('8400', 'F', task.module)) {
+            result = true;
+          }
+          break;
+      }
+
+      return result;
+    }
+
+    function claimWorkflowTask(task) {
+      var params = getWorkflowParams(task);
+      return dataService.send('CLAIM_WORKFLOW', task, params);
+    }
+
+    function deleteActivity(task) {
+      var params = {
+        activityNumber: task.activityID,
+        module: task.module
+      };
+      return dataService.send('DELETE_ACTIVITY', task, params);
+    }
+
+    function deleteInspection(task) {
+      var params = {
+        ServProvCode: task.serviceProviderCode,
+        ID1: task.capId.ID1,
+        ID2: task.capId.ID2,
+        ID3: task.capId.ID3,
+        inspectionID: task.inspectionID,
+        module: task.module,
+        mode: 'deleteInsp4DashBoard',
+      };
+
+      return dataService.send('DELETE_INSPECTION_TASK', task, params);
+    }
+
+    function duplicateTask(task) {
+      return dataService.send('DUPLICATE', task);
+    }
+
+    function getActivityUrl(task) {
+      return dataService.getServiceUrl('ACCESS_ACTIVITY_DETAIL') + '&activityNumber=' + task.activityID;
+    }
+
+    function getAssignWorkflowTaskUrl(task) {
+      var paramsTemplate = '&chk=0' +
+        '&servProvCode=%s' +
+        '&Id1=%s' +
+        '&Id2=%s' +
+        '&Id3=%s' +
+        '&processId=%s' +
+        '&stepNumber=%s' +
+        '&fromTaskCard=true';
+
+      return dataService.getServiceUrl('ASSIGN_TASK', {}) + sprintf(paramsTemplate, task.serviceProviderCode, task.capId.ID1, task.capId.ID2, task.capId.ID3, task.processID, task.stepNumber);
+    }
+
+    function _getUrl(task, url, params) {
+      params.module = task.module;
+      params.serviceProviderCode = task.serviceProviderCode;
+
+      return url + Accela.Util.json2str(params);
+    }
+
+    function getCapDetailUrl(task) {
+      var params = {
+        mode: 'tabSummary',
+        ID1: task.capId.ID1,
+        ID2: task.capId.ID2,
+        ID3: task.capId.ID3,
+        requireNotice: 'YES',
+        clearForm: 'clearForm',
+        isFromCapList: true,
+        isGeneralCAP: 'Y'
+      };
+
+      return _getUrl(task, '/portlets/cap/capsummary/CapTabSummary.do?', params);
+    }
+
+    function getContactDetailUrl(task) {
+      var params = {
+        'mode': 'forward2PeopleDetail',
+        'peopleNbr': task.contactNbr,
+        'capID1': task.capId.ID1,
+        'capID2': task.capId.ID2,
+        'capID3': task.capId.ID3
+      };
+
+      return _getUrl(task, '/portlets/spa/dashboardTaskCards.do?', params);
+    }
+
+    function getOpenSpaceUrl(task) {
+      var url, params = {};
+
+      if (task.isInspection) {
+        url = '/portlets/inspection/inspectionDetail.do?';
+        params = {
+          mode: 'view',
+          capID1: task.capId.ID1,
+          capID2: task.capId.ID2,
+          capID3: task.capId.ID3,
+          inspectionID: task.inspectionID,
+          inspectionType: task.inspectionType,
+          scheduledDate: task.scheduleDate,
+          fromPage: 'inspectionDailyList',
+          isMyTaskFrame: 'Y',
+          fromDashBoard: 'true'
+        };
+      } else if (task.isMeeting) {
+        url = '/portlets/spa/dashboardMeetingDetail.do?value(mode)=Edit&';
+        params = {
+          modifyscope: 'onlyevent',
+          meetingID: task.meetingID,
+          meetingGroupID: task.meetingGroupID
+        };
+      } else if (task.isWorkflow) {
+        if (task.isAdhoc) {
+          url = '/portlets/workflow/workflowAdHocForm.do?';
+        } else {
+          url = '/portlets/workflow/workflowEdit.do?';
+        }
+        params = {
+          mode: 'edit',
+          pageFrom: 'myTaskList',
+          ID1: task.capId.ID1,
+          ID2: task.capId.ID2,
+          ID3: task.capId.ID3,
+          processID: task.processID,
+          stepNum: task.stepNumber,
+          taskName: task.taskName,
+          processCode: task.processCode
+        };
+      }
+
+      return _getUrl(task, url, params);
+    }
+
+    function getInspectionCommonParams(task) {
+      return {
+        ServProvCode: task.serviceProviderCode,
+        CAPID1: task.capId.ID1,
+        CAPID2: task.capId.ID2,
+        CAPID3: task.capId.ID3,
+        INSPID: task.inspectionID,
+        enabledCheck: 'Y',
+        fromTaskManagement: 'Y',
+        module: task.module,
+        fromDashBoard: 'true'
+      };
+    }
+
+    function getOpenDocumentDetailParam(task, actionId) {
+      var params = {
+        mode: 'popUp',
+        docSeqNbr: task.documentNo,
+        module: task.module,
+        entityType: 'MYDOCUMENT'
+      };
+
+      if (actionId === ACTION.ASSIGN) {
+        params.initialPage = 'assign';
+      } else if (actionId === ACTION.VIEWINFO) {
+        params.initialPage = 'detail';
+      }
+
+      return params;
+    }
+
+    function getOpenDocumentSlideoutInfo(task) {
+      return {
+        url: '/portlets/document/documentDetail.do?',
+        params: {
+          mode: 'popUp',
+          docSeqNbr: task.docSeqNbr,
+          module: task.moduleName,
+          entityType: 'MYDOCUMENT',
+          initialPage: 'detail'
+        }
+      };
+    }
+
+    function getGlobalSearchSpaceInfo(entity, from, serviceProviderCode) {
+      var url = '';
+      var params = {};
+      var spaceName = '';
+      var spaceIconType = '';
+      var ownerParts;
+
+      switch (from.toUpperCase()) {
+        case 'RECORD-GLOBALSEARCH':
+          var capIdArr = entity.id.split('-');
+          if (capIdArr.length !== 3){
+            return false;
+          }
+          if(entity.capClass.indexOf('INCOMPLETE') > -1) {
+        	  url = '/portlets/cap/CapBySingle.do?';
+              params.mode = 'editPartialCap';
+              params.serviceProviderCode = serviceProviderCode;
+              params.ID1 = capIdArr[0];
+              params.ID2 = capIdArr[1];
+              params.ID3 = capIdArr[2];
+              params.isPartialCap = 'Y';
+              params.isFromCapList = true;
+              params.isGeneralCAP = 'N';
+              params.module =  entity.moduleName;
+              params.CAP_INFO = entity.capClass;
+              spaceName = entity.number;
+          } else {
+        	  url = '/portlets/cap/capDetail.do?';
+              params.mode = 'view';
+              params.serviceProviderCode = serviceProviderCode;
+              params.ID1 = capIdArr[0];
+              params.ID2 = capIdArr[1];
+              params.ID3 = capIdArr[2];
+              params.requireNotice = 'YES';
+              params.clearForm = 'clearForm';
+              params.capDetail = 'YES';
+              params.isFromCapList = true;
+              params.module =  entity.moduleName;
+              params.customID = entity.number;
+              spaceName = entity.number;
+          }
+        break;
+        case 'RECORD-ADDRESS-GLOBALSEARCH':
+          url = '/portlets/address/refAddressForm.do?';
+          params['value(mode)'] = 'view';
+          params.refAddressId = entity.addressNumber;
+          params.sourceNumber = entity.sourceSeqNbr;
+          spaceIconType = 'Addresses';
+          spaceName = entity.addressNumber;
+          break;
+        case 'RECORD-ASSET-GLOBALSEARCH':
+          url = '/portlets/ams/asset/dataForm.do?';
+          params['value(mode)'] = 'edit';
+          params.assetID = entity.assetId;
+          params.g1AssetSequenceNumber = entity.assetNumber;
+          params.serviceProviderCode = serviceProviderCode;
+          params.module = 'AMS';
+          spaceIconType = 'Assets';
+          spaceName = entity.assetId; // AATHETA-1404
+          break;
+        case 'RECORD-CONTACT-GLOBALSEARCH':
+          url = '/portlets/contact/ref/refContactDetail.do?';
+          params['value(mode)'] = 'view';
+          params['value(contactSeqNumber)'] = entity.contactSeqNbr;
+          params['value(lookup)'] = false;
+          params.serviceProviderCode = serviceProviderCode;
+          spaceIconType = 'Contacts';
+          spaceName = entity.contactNumber;
+          break;
+        case 'RECORD-DOCUMENT-GLOBALSEARCH':
+//          AATHETA-1745
+//          url = '/portlets/document/documentDetail.do?';
+//          params.mode = 'viewDetails';
+//          params.entry = 'yes';
+//          params.docSeqNbr = entity.docSeqNbr;
+//          params.entityType = entity.entityType;
+//          capIdArr = entity.id.split('-');
+//          if (capIdArr.length !== 3){
+//            return false;
+//          }
+          url = '/portlets/cap/capsummary/CapTabSummary.do?';
+          params.mode = 'tabSummary';
+          params.serviceProviderCode = serviceProviderCode;
+          params.ID1 = entity.ID1;
+          params.ID2 = entity.ID2;
+          params.ID3 = entity.ID3;
+          params.requireNotice = 'YES';
+          params.clearForm = 'clearForm';
+          params.capDetail = 'YES';
+          params.isFromCapList = true;
+          params.module =  entity.moduleName;
+          params.customID = entity.altId;
+          spaceIconType = 'Documents';
+          spaceName = entity.altId;
+          break;
+        case 'RECORD-OWNER-GLOBALSEARCH':
+          url = '/portlets/owner/refOwnerForm.do?';
+          ownerParts = (entity.owner || '').replace('_', ',').split(',');
+          params['value(mode)'] = 'view';
+          params['value(refOwnerNumber)'] = ownerParts.length >= 2 ? ownerParts[1] : '';
+          params['value(sourceSeqNumber)'] = ownerParts.length >= 1 ? ownerParts[0] : '';
+          spaceIconType = 'Owners';
+          spaceName = params['value(refOwnerNumber)'];
+          break;
+        case 'RECORD-PARCEL-GLOBALSEARCH':
+          url = '/portlets/parcel/refParcelForm.do?';
+          params['value(mode)'] = 'view';
+          params['value(refParcelNumber)'] = entity.parcel || entity.parcelNumber;
+          spaceIconType = 'Parcels';
+          spaceName = entity.maskedParcel || entity.maskedParcelNumber;
+          break;
+        case 'RECORD-PROFESSIONAL-GLOBALSEARCH':
+          url = '/portlets/professional/ref/refProfessionalDetail.do?';
+          params['value(mode)'] = 'view';
+          params.licSeqNbr = entity.licSeqNbr;
+          params.serviceProviderCode = serviceProviderCode;
+          spaceIconType = 'Contacts';
+          spaceName = entity.licenseNumber;
+          break;
+        case 'RECORD-DOCUMENTDETAIL-GLOBALSEARCH':
+          url = '/portlets/document/documentDetail.do?';
+          params.mode = 'popUp';
+          params.docSeqNbr = entity.docSeqNbr;
+          params.entityType = entity.entityType;
+          params.module =  entity.moduleName;
+          params.initialPage = 'detail';
+          params.serviceProviderCode = serviceProviderCode;
+          spaceIconType = 'Documents';
+          spaceName = entity.altId + ' - ' + entity.name;
+          break;
+        case 'RECORD-DOCUMENTREVIEW-GLOBALSEARCH':
+            url = '/portlets/document/documentDetail.do?';
+            params.mode = 'popUp';
+            params.docSeqNbr = entity.docSeqNbr;
+            params.entityType = entity.entityType;
+            params.module =  entity.moduleName;
+            params.initialPage = 'detail';
+            params.serviceProviderCode = serviceProviderCode;
+            spaceIconType = 'Documents';
+            spaceName = entity.altId + ' - ' + entity.name;
+            params.autoReview = entity.autoReview;
+            break;
+      }
+
+      params.newUiFromSearch = true;
+
+      return {
+        spaceName: spaceName,
+        spaceIconType: spaceIconType,
+        spaceUrl: url + Accela.Util.json2str(params)
+      };
+    }
+
+    function getQuickQueries() {
+      return dataService.send('GET_QUICK_QUERIES');
+    }
+
+    function getTaskActionById(task, actionId) {
+      return _.find(task.actions, { 'id': actionId });
+    }
+
+    function getTaskFilterStatusList() {
+      var deferred = $q.defer();
+
+      dataService.send('GET_TASK_FILTER_STATUS_LIST')
+        .then(function (response) {
+          deferred.resolve(response.data.result);
+        }, function (error) { // already reported by HttpInterceptor
+          deferred.reject(error);
+        });
+
+      return deferred.promise;
+    }
+
+    function getTasks(taskOptions, agency) {
+      var deferred = $q.defer();
+      var data = {};
+      var params = {
+        start: '' + (taskOptions.start || 0),
+        end: '' + (taskOptions.end || 6),
+        serviceProviderCode: agency.name,
+        mode: 'initTask'
+      };
+
+      if (taskOptions.quickQuery) {
+        params.quickQueryId = taskOptions.quickQuery.value;
+      }
+
+      dataService.send('GET_TASKS', data, params, agency).then(function (response) {
+        deferred.resolve(processTasks(response));
+      }, function (error) { // already reported by HttpInterceptor
+        deferred.reject(error);
+      });
+
+      return deferred.promise;
+    }
+
+    function getTaskCounts() {
+      return dataService.send('GET_TASK_COUNTS');
+    }
+
+    function processTasks(response) {
+      var content = response.data.result;
+
+      var result = {
+        tasks: [],
+        page: content.page
+      };
+
+      angular.forEach(content.result, function (data) {
+        var task = model.Task.build(data);
+        addMetaData(task);
+        //$log.info(sprintf('task.taskCategory: %s, task.isLinkable: %s', task.taskCategory, task.isLinkable));
+        //$log.info('---');
+        result.tasks.push(task);
+      });
+
+      return result;
+    }
+
+
+    // add workflow task parameters
+    function getWorkflowParams(task) {
+      return {
+        chk: 0,
+        servProvCode: task.serviceProviderCode,
+        Id1: task.capId.ID1,
+        Id2: task.capId.ID2,
+        Id3: task.capId.ID3,
+        processId: task.processID,
+        stepNumber: task.stepNumber
+      };
+    }
+
+    function reassignTask(task) {
+      return dataService.send('REASSIGN', task);
+    }
+
+    function rejectMeeting(task) {
+      var params = {
+        meetingGroupID: task.meetingGroupID,
+        meetingID: task.meetingID,
+        attendeeID: task.assignee
+      };
+
+      return dataService.send('REJECT_MEETING', task, params);
+    }
+
+    function releaseWorkflowTask(task) {
+      var params = getWorkflowParams(task);
+      return dataService.send('RELEASE_WORKFLOW', task, params);
+    }
+
+    function removeTask(task) {
+      return dataService.send('REMOVE', task);
+    }
+
+    function rescheduleTask(task) {
+      return dataService.send('RESCHEDULE', task);
+    }
+
+    function setTaskAgenda(task) {
+      return dataService.send('SET_AGENDA', task);
+    }
+
+    function validateInspectionAction(task, action) {
+      var params = getInspectionCommonParams(task);
+      params.mode = action.validationParams.mode;
+      params.mType = action.validationParams.mType;
+      params.isFromCAP = action.validationParams.isFromCAP;
+      return dataService.send('MANAGEMENT_INSPECTION', task, params);
+    }
+
+    function validateRejectMeetingAction(task, action) {
+      return dataService.send('VALIDATE_REJECT_MEETING', task, action.validationParams);
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('TASK-MANAGER');
+
+    // PUBLIC interface
+
+    return {
+      ACTION: ACTION,
+      duplicateTask: duplicateTask,
+      getCapDetailUrl: getCapDetailUrl,
+      getContactDetailUrl: getContactDetailUrl,
+      getOpenSpaceUrl: getOpenSpaceUrl,
+      getTaskActionById: getTaskActionById,
+      getTaskFilterStatusList: getTaskFilterStatusList,
+      getTasks: getTasks,
+      getTaskCounts: getTaskCounts,
+      reassignTask: reassignTask,
+      removeBoundTask: function (task) {
+        tasks.splice(tasks.indexOf(task), 1);
+      },
+      removeTask: removeTask,
+      rescheduleTask: rescheduleTask,
+      setTaskAgenda: setTaskAgenda,
+
+      // Activity
+      deleteActivity: deleteActivity,
+      getActivityUrl: getActivityUrl,
+
+      // Document
+      getOpenDocumentDetailParam: getOpenDocumentDetailParam,
+      getOpenDocumentSlideoutInfo: getOpenDocumentSlideoutInfo,
+
+      // Inspection
+      cancelInspection: cancelInspection,
+      deleteInspection: deleteInspection,
+      validateInspectionAction: validateInspectionAction,
+
+      // Meeting
+      rejectMeeting: rejectMeeting,
+      validateRejectMeetingAction: validateRejectMeetingAction,
+
+      // Workflow
+      claimWorkflowTask: claimWorkflowTask,
+      getAssignWorkflowTaskUrl: getAssignWorkflowTaskUrl,
+      releaseWorkflowTask: releaseWorkflowTask,
+
+      // Quick Queries
+      getQuickQueries: getQuickQueries,
+
+      // CAGAMMA-1033 - method was not included in the PUBLIC interface
+      getGlobalSearchSpaceInfo: getGlobalSearchSpaceInfo
+    };
+  }
+})();

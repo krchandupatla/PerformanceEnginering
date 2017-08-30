@@ -1,0 +1,11 @@
+[t376]
+FileName1=t376_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=spaces.14042
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_376.xml
+RequestHeaderFile=t376_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t376_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

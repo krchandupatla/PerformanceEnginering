@@ -1,0 +1,22 @@
+/**
+ * Create an array overflow
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .filter('overflow', filter);
+
+  /**
+   * @ngInject
+   */
+  function filter() {
+    return function(arr, start) {
+      if(!arr || !Array.isArray(arr) || arr.length <= start) {
+        return arr;
+      }
+      return arr.slice(start, arr.length);
+    };
+  }
+})();

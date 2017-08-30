@@ -1,0 +1,11 @@
+[t62]
+FileName1=t62_work-space.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/core/entities/work-space.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_62.xml
+RequestHeaderFile=t62_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t62_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

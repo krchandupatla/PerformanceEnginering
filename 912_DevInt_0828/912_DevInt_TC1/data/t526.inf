@@ -1,0 +1,11 @@
+[t526]
+FileName1=t526_content-right-top.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/tab/content-right-top.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_526.xml
+RequestHeaderFile=t526_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t526_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

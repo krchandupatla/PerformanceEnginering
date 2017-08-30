@@ -1,0 +1,12 @@
+POST /security/getconfigs.do HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+Referer: https://aa-pt6245.dev.accela.com:5443/security/hostSignon.do?hostSignOn=true
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US
+Accept: */*
+Connection: Keep-Alive
+Host: aa-pt6245.dev.accela.com:5443
+Cookie: JSESSIONID=mtZvyhrwS9BFCBA6Fi+Yecv+; JSESSIONID=***************************; LASTEST_REQUEST_TIME=1503944840341; hostSignOn=true; g_current_language_ext=en_US; LATEST_WEB_SERVER=10.1.0.6; LATEST_SESSION_ID=40koDSz+4p2d-oZqzIsdKP+0
+Content-Length: 318
+

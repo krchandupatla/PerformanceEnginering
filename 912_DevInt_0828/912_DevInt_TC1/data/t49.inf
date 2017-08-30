@@ -1,0 +1,11 @@
+[t49]
+FileName1=t49_ct-ui-router-extras.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/bower_components/ui-router-extras/release/ct-ui-router-extras.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_49.xml
+RequestHeaderFile=t49_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t49_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,75 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .factory('SpaceRepository', service);
+
+  /**
+   * @ngInject
+   **/
+  function service($log, $q, DashboardModel, DataService, CONFIG) {
+
+    // PRIVATE data
+
+    var model = DashboardModel;
+    var dataService = DataService.getInstance('SPACES');
+
+    // PRIVATE methods
+
+    function createSpace(data) {
+      var space = model.WorkSpace.build(data);
+
+      return space;
+    }
+
+    function getPinnedSpaces() {
+      var deferred = $q.defer();
+
+      dataService.send('GET_SPACES')
+        .then(function (response) {
+          var list = [];
+          var obj = CONFIG.USE_MOCK_SERVICES ? response.data.result : angular.fromJson(response.data.result);
+
+          angular.forEach(obj, function (data) {
+            data.pinStatus = true;
+            list.push(model.WorkSpace.build(data));
+          });
+
+          deferred.resolve(list);
+        }, function (error) { // already reported by HttpInterceptor
+          deferred.reject(error);
+        });
+
+      return deferred.promise;
+    }
+
+    function updateSpaces(spaces) {
+      var list = [];
+
+      angular.forEach(spaces, function (space) {
+        if (space.pinStatus) {
+          list.push(space);
+        }
+      });
+
+      return dataService.send('UPDATE_SPACES', list);
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('SPACE-MANAGER');
+
+    // PUBLIC interface
+
+    return {
+      createSpace: createSpace,
+      getPinnedSpaces: getPinnedSpaces,
+      updateSpaces: updateSpaces
+    };
+  }
+})();
+
+
+
+

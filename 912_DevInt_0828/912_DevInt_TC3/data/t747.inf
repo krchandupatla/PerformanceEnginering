@@ -1,0 +1,11 @@
+[t747]
+FileName1=t747_recentlyViewed.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/recentlyViewed.do?mode=getRecentlyViewedItems
+Total=1
+ContentType=application/x-json
+SnapshotXmlFile=snapshot_747.xml
+RequestHeaderFile=t747_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t747_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

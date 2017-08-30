@@ -1,0 +1,331 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .directive('aaTaskFilter', function($document, $filter, $log, $position, $q, OverlayService) {
+      return {
+        restrict: 'E',
+        replace: true,
+        scope: {
+          filter: '=options',
+          applyFilter: '&'
+        },
+        templateUrl: 'views/automation/dashboard/task/task-filter.html',
+        link: function(scope, element, attrs) {
+          $(scope.filter.trigger).on('click', function(evt) {
+            if (scope.filter.isCollapsed) { // time to expand
+              OverlayService.show(evt, 'filterMenu');
+            } else { // time to collapse
+              OverlayService.hide(evt, 'filterMenu');
+            }
+          });
+        },
+        controller: function($scope, $element, $attrs, $log) {
+
+          // PRIVATE data
+
+          var button = $('.dashboard .btn-filter');
+          var panel = $('.dashboard .task-filter');
+          var wrapper = $('.task-filter-wrapper');
+
+          // PUBLIC methods
+
+          $scope.clearAll = function () {
+            $log.log('clearAll(TBD)');
+          };
+
+          /**
+           * Construct filter and return to caller.
+           */
+          $scope.constructAndApplyFilter = function () {
+            if ($scope.applyFilter && typeof $scope.applyFilter === 'function') {
+              $scope.applyFilter({
+                options: constructFilter()
+              });
+            }
+          };
+
+          $scope.saveFilter = function () {
+            $log.log('saveFilter(TBD)');
+          };
+
+          /**
+           * Show a selected tab on the Task Filter dialog
+           */
+          $scope.showTab = function (tab) {
+            // make all tabs inactive
+            angular.forEach($scope.filter.tabs, function (tab) {
+              tab.isActive = false;
+            });
+
+            // make all forms inactive
+            panel.$('form > div').removeClass('active');
+
+            // make selected tab active
+            tab.isActive = true;
+
+            // make selected form active
+            panel.$(sprintf('.%s-form', tab.id)).addClass('active');
+          };
+
+          /**
+           * Called when clicking on a Status option
+           */
+          $scope.statusSelected = function (model) {
+            $scope.$apply(function () {
+              updateCheckedItemsCount(model);
+            });
+          };
+
+          /**
+           * Called when clicking on a "Date Range" checkbox
+           */
+          $scope.toggleDateOptions = function (model) {
+            $scope.$apply(function () {
+              updateCheckedItemsCount(model);
+            });
+          };
+
+          /**
+           * Called when clicking on a SubType checkbox
+           */
+          $scope.toggleSubType = function (model) {
+            $scope.$apply(function () {
+              updateCheckedItemsCount(model);
+
+              updateStatusListItems(model.statusList, model.isChecked);
+
+              updateStatusCheckedCount();
+            });
+          };
+
+          /**
+           * Called when clicking on a Type checkbox
+           */
+          $scope.toggleType = function (model) {
+            var activeTab = getActiveTab();
+            var checkedItems = activeTab.checkedItems;
+
+            checkedItems += model.isChecked ? 1 : -1;
+
+            $scope.$apply(function () {
+              if (model.subTypes) { // clear any checked subTypes
+                angular.forEach(model.subTypes, function (subType) {
+                  if (subType.isChecked) {
+                    checkedItems -= 1;
+                    subType.isChecked = false;
+                    updateStatusListItems(subType.statusList, subType.isChecked);
+                  }
+                });
+              } else { // clear entries from $scope.filter.statusList
+                updateStatusListItems(model.statusList, model.isChecked);
+              }
+
+              setCheckedItemsCount(activeTab, checkedItems);
+
+              updateStatusCheckedCount();
+            });
+          };
+
+          // PRIVATE methods
+
+          function constructFilter() {
+            var filter = $scope.filter;
+
+            var result = {
+              taskTypes: [],
+              subTypes: [],
+              statusList: [],
+              dateRange: {}
+            };
+
+            angular.forEach(filter.taskTypes, function (taskType) {
+              if (taskType.isChecked) {
+                result.taskTypes.push(taskType.id);
+                if (taskType.subTypes) {
+                  angular.forEach(taskType.subTypes, function (subType) {
+                    if (subType.isChecked) {
+                      result.subTypes.push(subType.id);
+                    }
+                  });
+                }
+              }
+            });
+
+            angular.forEach(filter.statusList, function (status) {
+              if (status.isChecked) {
+                result.statusList.push(status.id);
+              }
+            });
+
+            constructDateRange(result, filter, 'assigned');
+            constructDateRange(result, filter, 'open');
+            constructDateRange(result, filter, 'due');
+            constructDateRange(result, filter, 'status');
+
+            return result;
+          }
+
+          function constructDateRange(result, filter, prop) {
+            var dateRange = filter.dateRange[prop];
+            if (dateRange.from || dateRange.to) {
+              result.dateRange[prop] = {};
+              if (dateRange.from) {
+                result.dateRange[prop].from = dateRange.from;
+              }
+              if (dateRange.to) {
+                result.dateRange[prop].to = dateRange.to;
+              }
+            }
+          }
+
+          function documentClickHandler(evt) {
+            if (!$scope.filter.isCollapsed) {
+              if (Accela.DOM.isClickOutsideOf(button, evt) && Accela.DOM.isClickOutsideOf(wrapper, evt)) {
+                $($scope.filter.trigger).triggerHandler('click');
+                OverlayService.hide();
+              }
+            }
+          }
+
+          /**
+           * Return a single tab from $scope.filter.tabs matching the passed "id"
+           */
+          function findTabById(id) {
+            return _.find($scope.filter.tabs, { 'id': id });
+          }
+
+          /**
+           * Return a single item from $scope.filter.statusList matching the passed "id"
+           */
+          function findStatusById(id) {
+            return _.find($scope.filter.statusList, { 'id': id });
+          }
+
+          /**
+           * Return the index of a single item from $scope.filter.statusList matching the passed "id"
+           */
+          function findStatusIndexById(id) {
+            var index = -1;
+
+            for (var i = 0; i < $scope.filter.statusList.length; i++) {
+              if ($scope.filter.statusList[i].id === id) {
+                index = i;
+              }
+            }
+
+            return index;
+          }
+
+          /**
+           * Get the active tab using the "data-index" attribute
+           */
+          function getActiveTab() {
+            var activeTabIndex = panel.$('.tabs li.active').attr('data-index');
+
+            return $scope.filter.tabs[activeTabIndex];
+          }
+
+          function hideFilter() {
+            var deferred = $q.defer();
+
+            $scope.filter.isCollapsed = true;
+
+            deferred.resolve();
+
+            return deferred.promise;
+          }
+
+          function setCheckedItemsCount(tab, count) {
+            tab.checkedItems = count;
+            updateTotalSelectedCount();
+          }
+
+          function showFilter() {
+            $scope.$apply(function () {
+              $scope.filter.isCollapsed = false;
+            });
+          }
+
+          function updateCheckedItemsCount(model) {
+            var tab = getActiveTab();
+            setCheckedItemsCount(tab, tab.checkedItems += model.isChecked ? 1 : -1);
+          }
+
+          function updateStatusCheckedCount() {
+            var list = $filter('filter')($scope.filter.statusList, function (status) {
+              return status.isChecked;
+            });
+
+            setCheckedItemsCount(findTabById('status'), list.length);
+          }
+
+          /**
+           * Add, update or remove a single Status item
+           */
+          function updateStatusListItem(existingStatus, newStatus, isChecked) {
+            if (newStatus) {
+              if (isChecked) {
+                if (existingStatus) {
+                  existingStatus.refCount += 1;
+                } else {
+                  $scope.filter.statusList.push({
+                    id: newStatus.id,
+                    label: newStatus.label,
+                    refCount: 1
+                  });
+                }
+              } else {
+                if (existingStatus) {
+                  if (existingStatus.refCount > 1) {
+                    existingStatus.refCount -= 1;
+                  } else {
+                    $scope.filter.statusList.splice(findStatusIndexById(existingStatus.id), 1);
+                  }
+                }
+              }
+            }
+          }
+
+          /**
+           * Add or remove a list of Statuses
+           */
+          function updateStatusListItems(list, isChecked) {
+            if (list) {
+              angular.forEach(list, function (status) {
+                updateStatusListItem(findStatusById(status.id), status, isChecked);
+              });
+            }
+          }
+
+          function updateTotalSelectedCount() {
+            var count = 0;
+
+            angular.forEach($scope.filter.tabs, function (tab) {
+              count += tab.checkedItems;
+            });
+
+            $scope.filter.selectedCount = count;
+          }
+
+          // INITIALIZE
+
+          $log = $log.getInstance('TASK-FILTER-DIRECTIVE');
+
+          OverlayService.register({
+            name: 'filterMenu',
+            kind: 'filter-menu',
+            show: showFilter,
+            hide: hideFilter
+          });
+
+          $document.on('click', documentClickHandler);
+
+          $scope.$on('$destroy', function () {
+            $document.off('click', documentClickHandler);
+          });
+        }
+      };
+    });
+})();

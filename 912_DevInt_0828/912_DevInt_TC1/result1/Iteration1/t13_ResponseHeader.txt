@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Content-Type: text/xml; charset=utf-8
+Content-Encoding: gzip
+Server: Microsoft-IIS/10.0
+X-ActivityId: 24353aeb-3b21-45cf-9381-73c545ad09c0
+Access-Control-Allow-Origin: *
+X-AspNet-Version: 4.0.30319
+X-Powered-By: ASP.NET
+Cache-Control: public, max-age=562
+Date: Mon, 28 Aug 2017 18:38:06 GMT
+Content-Length: 723
+Connection: keep-alive
+Vary: Accept-Encoding
+

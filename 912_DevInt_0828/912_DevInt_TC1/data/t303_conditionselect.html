@@ -1,0 +1,645 @@
+/**
+ *  Accela Automation
+ *	File: conditionselect.js
+ *	Accela, Inc.
+ *	Copyright (C): 2008-2014
+ *	
+ *	Description: 
+ *		This javascript proccess select types when you hava already selected group
+ *	
+ *	Notes:
+ *	    $Id: conditionselect.js 87167 2008-05-21 03:40:10Z ACHIEVO\nicholas.luo $
+ *	
+ *	Revision History:
+ *	5/21/2008, Bob Wang,  Initial Version.
+ * 
+ */
+var xhr;
+var initialied=false;
+var isFirst4SetSeveritysByStatus = true;
+
+function setConditionGroupOriginalValue()
+{
+	var groupOriginalValue = document.getElementById("group_original_value");
+	var groupSelect = document.getElementById("selectConditionGroup");
+	if(typeof(groupOriginalValue) != undefined && groupOriginalValue != null
+			&& typeof(groupSelect) != undefined && groupSelect != null
+			&& groupOriginalValue.value != groupSelect.value)
+	{
+		groupOriginalValue.value = groupSelect.value;
+	}
+}
+
+function groupPropertyChanged()
+{
+	//Fix Bug 38167(SF:11ACC-05444). If setting condition group by expression, condition type need to be initialized.
+    if(initialied) return;
+	var groupOriginalValue = document.getElementById("group_original_value");
+	var groupSelect = document.getElementById("selectConditionGroup");
+	if(typeof(groupOriginalValue) == undefined || groupOriginalValue == null
+			|| typeof(groupSelect) == undefined || groupSelect == null
+			|| groupOriginalValue.value == groupSelect.value)
+	{
+		return false;
+	}
+	else
+	{
+		initialied = true; //Just run once.
+	}
+    groupSelectedChange(null,null,'initialize');
+}
+
+function groupSelectedChange(language,isApplyPermission,from)
+{
+	var groupSelect = document.getElementById("selectConditionGroup");
+	if (groupSelect == null){
+		return false;
+	}
+		
+	//reset template
+	if (typeof(isChangeConditionGroup) != 'undefined' && from!='initialize')
+	{
+		if (!isChangeConditionGroup())
+		{
+			return false;
+		}
+	}
+
+	var browser = navigator.appName; 
+	if(browser == "Microsoft Internet Explorer"){ 
+		xhr = new ActiveXObject("Microsoft.XMLHTTP"); 
+	}else{ 
+		xhr = new XMLHttpRequest(); 
+	}
+
+	var groupName = groupSelect[groupSelect.selectedIndex].value;
+		
+	var url;
+	if(language)
+	{
+		var language = document.getElementById(language).value;
+		url = "/portlets/condition/getTypesByGroup.do?mode=getTypes&groupName=" + encodeURIComponent(groupName) +"&portlet_language=" + language;
+	}
+	else
+	{
+		url = "/portlets/condition/getTypesByGroup.do?mode=getTypes&groupName=" + encodeURIComponent(groupName);
+	}
+ 	
+	url = url +"&module="+ encodeURIComponent(currModule);
+	
+	if(isApplyPermission!=null)
+	{
+		url = url +"&isApplyPermission="+isApplyPermission;
+	}
+ 	xhr.open("GET", url, true);		
+	xhr.onreadystatechange = getTypesByGroup;
+	xhr.send(null);
+	scrollBarIssue.autoAdjustOuterContainer();
+}
+
+function getTypesByGroup()
+{
+	if (xhr.readyState ==4)
+	{
+		if (xhr.responseText =="false")
+		{
+			return false;
+		}
+		var selectOption=document.getElementById("selectConditionType");
+		var valueTemp = selectOption.value;
+		if (selectOption == null)
+		{
+			return false;
+		}
+		var response = eval(xhr.responseText);    	
+		selectOption.innerText="";	
+		var oOption=new Option(getTextlable("common.select.label"),"");
+		selectOption.options[0]=oOption;			
+		for(var i=0;i<response.length;i++)
+		{						
+			var oOption=new Option(response[i].typeName,response[i].typeValue);					
+			selectOption.options[i+1]=oOption;
+			if(valueTemp == response[i].typeValue)
+			{
+				selectOption.value = response[i].typeValue;
+			}
+		}
+		
+		var groupSelect = document.getElementById("selectConditionGroup");
+		if (groupSelect == null){
+			return false;
+		}
+		var groupName = groupSelect[groupSelect.selectedIndex].value;
+		if (groupName == "")
+		{
+			selectOption.value="";
+		}
+			 
+	}
+}
+
+function typeSelectedChange(language)
+{
+	var typeSelect = document.getElementById("selectConditionType");
+	if (!changeTemplate4CondtionType(typeSelect))
+	{
+		return false;
+	}
+	if (typeSelect == null){
+		return false;
+	}
+	var typeName = typeSelect[typeSelect.selectedIndex].value;
+	var url;
+	if(language)
+	{
+		var language = document.getElementById(language).value;
+		url = "/portlets/condition/getTypesByGroup.do?mode=getGroupsByType&typeName=" + encodeURIComponent(typeName) +"&portlet_language=" + language;
+	}
+	else
+	{
+		url = "/portlets/condition/getTypesByGroup.do?mode=getGroupsByType&typeName=" + encodeURIComponent(typeName);
+	}
+	
+	remoteAccessNoForm(url,getGroupsByType);
+	return false;
+}
+
+/******* this method is also invoked when initiating standard condition detail or creating a new standard condition *******/
+function getGroupsByType(groups)
+{
+	groups = eval('(' + groups + ')');
+	var txtareaConditionGroup= document.getElementsByName("value(stdConditionModel*conditionGroup)")[0];
+	if (txtareaConditionGroup == null)
+	{
+		return false;
+	}
+	txtareaConditionGroup.value="";
+	if(groups.length > 0)
+	{
+		var colWidth = 0;
+		for(var i=0;i<groups.length;i++)
+		{
+			if(groups[i].groupName.length > colWidth)
+			{
+				colWidth = groups[i].groupName.length;
+			}
+			txtareaConditionGroup.value = txtareaConditionGroup.value + groups[i].groupName + "\n";						
+		}
+		if(colWidth*8 > 150)
+		{
+			txtareaConditionGroup.style.width = colWidth*8 + "px";
+		}
+		else
+		{
+			txtareaConditionGroup.style.width = "150px";
+		}
+	}
+	else
+	{
+		txtareaConditionGroup.style.width = "150px";
+	}
+}
+//Following codes for service lock in professional and reference address condition,Begin by Daivd Wang 07/11/2008
+
+var xhrservice;
+var conditionNameObject;
+
+/**
+*
+* Function changeComponent():
+* If severity is 'ServiceLock',Condition Name component will be drop-down list.
+* otherwise,Comdition name component will be Input-box.
+*
+**/
+function changeComponent()
+{
+	var allow_lock = '';
+	var isReadOnly=false;
+	var isFreeFormCondition = '';
+	if (document.getElementById("ALLOW_SERVICE_LOCK_SEVERITY"))
+	{
+		allow_lock = document.getElementById("ALLOW_SERVICE_LOCK_SEVERITY").value;
+	}
+	if(document.getElementById("IS_FREE_FORM_CONDITION"))
+	{
+		isFreeFormCondition = document.getElementById("IS_FREE_FORM_CONDITION").value;
+	}
+	
+	var isFilterServiceLockFromSetConditionEditPortlet='';
+	if(document.getElementById("isFilterServiceLockFromSetConditionEditPortlet"))
+	{
+		isFilterServiceLockFromSetConditionEditPortlet=document.getElementById("isFilterServiceLockFromSetConditionEditPortlet").value;		
+	}		
+	if("true"==isFilterServiceLockFromSetConditionEditPortlet.toLowerCase()||!('yes'==allow_lock.toLowerCase()||'y'==allow_lock.toLowerCase()))
+	{
+		isReadOnly=true;
+	}	
+	
+	var selectedOption = document.getElementById("selectImpactCode");
+	var selectedOptionValue = '';
+	if (selectedOption)
+	{
+		selectedOptionValue = selectedOption[selectedOption.selectedIndex].value; 
+	}	
+	var conditionElementIdText =document.getElementById("conditionElementId");
+	conditionNameObject = document.getElementById("oldConditionDescription");
+	var resConditionNameObject = document.getElementById("oldResConditionDescription");
+	var oldImpactObject = document.getElementById("oldSeverityValue");
+	
+	if('SrvLock'==selectedOptionValue)
+	{
+		if(isReadOnly || "false"==isFreeFormCondition.toLowerCase())
+		{
+			if(conditionNameObject==null)
+			{
+				conditionNameObject = document.getElementById("value(conditionDescription)");
+			}
+			conditionElementIdText.innerHTML="<select id='value(conditionDescription)' name='value(conditionDescription)' disabled></select>";
+		}
+		else
+		{
+			conditionElementIdText.innerHTML="<select id='value(conditionDescription)' name='value(conditionDescription)'></select>";
+		}
+		getServicesByTypes();
+	}
+	else
+	{
+	    var conditionDescription = document.getElementById("value(conditionDescription)");
+	    // save the origial width then restore it back after refresh the component by innerHTML
+	    var customizedWidth = conditionDescription.style.width;
+	    if("false" == isFreeFormCondition.toLowerCase())
+	    {
+	    	conditionElementIdText.innerHTML="<input type='text' id='value(conditionDescription)' name='value(conditionDescription)' maxlength='255' size='60' value='' class='portlet-form-input-field' readonly='true'>";
+	    }
+	    else
+	    {
+	    	conditionElementIdText.innerHTML="<input type='text' id='value(conditionDescription)' name='value(conditionDescription)' maxlength='255' size='60' value='' class='portlet-form-input-field'>";
+	    }
+		var newConditionNameObject = document.getElementById("value(conditionDescription)");
+		newConditionNameObject.style.width = customizedWidth;
+		if(conditionDescription.value!=''&&conditionDescription.value!='null')
+        {
+			newConditionNameObject.value = conditionDescription.value;
+        }
+        else if(resConditionNameObject!=null&&resConditionNameObject.value!='')
+        {
+            if(oldImpactObject!=null&&oldImpactObject.value!='SrvLock')
+            {
+				newConditionNameObject.value = resConditionNameObject.value;
+            }
+        }
+	}
+	readOnlyObj.resetReadOnly([conditionElementIdText]);
+	scrollBarIssue.autoAdjustOuterContainer(document);
+}
+
+/**
+*
+* Search service name for condition name drop-down list.
+*
+**/
+function getServicesByTypes() 
+{ 
+
+	var browser = navigator.appName; 
+	if(browser == "Microsoft Internet Explorer")
+	{ 
+		xhrservice = new ActiveXObject("Microsoft.XMLHTTP"); 
+	}else
+	{ 
+		xhrservice = new XMLHttpRequest(); 
+	}
+
+	var searchService = document.getElementById("SEARCH_SERVICE_NAME").value;
+	var portlet_language = document.getElementById("portlet_language").value;
+	if (searchService == null)
+	{
+		return false;
+	}
+  	var url = "/portlets/condition/getServicesByTypes.do?mode=getServices&searchService=" + encodeURIComponent(searchService) + "&portlet_language=" + portlet_language;
+ 	xhrservice.open("GET", url, true);
+	xhrservice.onreadystatechange = setServicesForSelect;
+	xhrservice.send(null);
+}
+
+/**
+*
+* Setting service name list into Condition name drop-down list.
+*
+**/
+function setServicesForSelect()
+{
+	if (xhrservice.readyState ==4)
+	{
+		if (xhrservice.responseText =="false")
+		{
+			return false;
+		}
+		var selectOption=document.getElementById("value(conditionDescription)");
+		if (selectOption == null)
+		{
+			return false;
+		}
+		var response = eval(xhrservice.responseText);
+		selectOption.innerText="";	
+		var oOption=new Option(getTextlable("common.select.label"),"");
+		selectOption.options[0]=oOption;	
+		for(var i=0;i<response.length;i++)
+		{					
+			var oOption=new Option(response[i].typeName,response[i].typeValue);					
+			selectOption.options[i+1]=oOption;
+			if(conditionNameObject!=null)
+			{
+				var conditionName = conditionNameObject.value;
+				if(conditionName!='null'&&conditionName==response[i].typeValue)
+				{
+					oOption.selected = true;
+				}
+			}
+		}
+	}
+}
+//End by Daivd Wang 07/11/2008
+
+function changeStautsDate()
+{
+	if(document.getElementById("date(statusDate)"))
+	{
+		document.getElementById("date(statusDate)").value= getAgencyDate();
+	}
+}
+
+//add by sandy zhu,use ajax way when change status drop-down object in daily condition or reference condition page.    
+var ajax={
+		/**
+		 * To show Severitys by indicated status.
+		 * Note:
+		 * @param: idStatus  : status object.
+		 * @param: idSeverity: severity object.
+		 */
+		setSeveritysByStatus : function(idStatus, idSeverity, onLoadFlag, selectedVal)
+		{
+			var status = document.getElementById(idStatus);
+			if(!status && 'resetSeverity' != idStatus )
+			{
+				return;
+			}
+			
+			// These codes is used to fix bug 52855. This bug is injected by the bug 51914.
+			// Do not execute changeStatusDate when initialize the condition page.
+			if (isFirst4SetSeveritysByStatus)
+			{
+				isFirst4SetSeveritysByStatus = false;
+			}
+			else
+			{
+				changeStautsDate();
+			}
+			
+			var url ='';			
+			var statusObj = document.getElementById('value(conditionStatusAndType)');
+			if(statusObj==null)
+			{
+				statusObj=document.getElementById('value(capConditionModel*conditionStatusAndTypeValue)');
+			}
+			if('resetSeverity' == idStatus || ('resetSeverity' == onLoadFlag && '' == status.value))
+			{
+				url = "/portlets/condition/getServicesByStatus.do?value(mode)=getServices&conditionStatusAndType=applied&conditionStatus=applied"
+			}
+			else
+			{
+				if (statusObj){
+					var statusValue = statusObj.value;
+					url = "/portlets/condition/getServicesByStatus.do?value(mode)=getServices&conditionStatusAndType="
+						  +statusValue;
+					
+				}else{
+					statusObj = document.getElementById('value(conditionStatus)');
+					if(!statusObj)
+					{
+						statusObj = document.getElementById('value(capConditionModel*conditionStatus)');
+					}
+					var statusValue = statusObj.value;
+					url = "/portlets/condition/getServicesByStatus.do?value(mode)=getServices&conditionStatus="
+						  +statusValue;		
+				}
+			}
+			var params='';
+			var isDailyConditionObj = document.getElementById('isDailyCondition');
+			if (isDailyConditionObj)
+			{
+				params ='&isDailyCondition='+isDailyConditionObj.value;
+			}
+			
+			if(selectedVal)
+			{
+				params = params +'&initImpactcode='+selectedVal;
+			}
+			
+			var oldImpactCodeObj = document.getElementById('oldImpactCode');
+			if (oldImpactCodeObj)
+			{
+				params = params +'&oldImpactCode='+oldImpactCodeObj.value;
+			}
+			
+			var searchServiceNameObj = document.getElementById('SEARCH_SERVICE_NAME');
+			if (searchServiceNameObj)
+			{
+				params = params +'&SEARCH_SERVICE_NAME='+searchServiceNameObj.value;
+			}
+			
+			var doeditpageObj = document.getElementById('DOEDITPAGE');
+			if (doeditpageObj)
+			{
+				params = params +'&DOEDITPAGE='+doeditpageObj.value;
+			}
+			
+			var allowServiceLockSeverityObj = document.getElementById('ALLOW_SERVICE_LOCK_SEVERITY');
+			if (allowServiceLockSeverityObj)
+			{
+				params = params +'&ALLOW_SERVICE_LOCK_SEVERITY='+allowServiceLockSeverityObj.value;
+			}
+			
+			var moduleObj = document.getElementById('module');
+			if (moduleObj)
+			{
+				params = params +'&module='+moduleObj.value;
+			}
+			
+			url = url +params;
+			var result =  eval('(' +sendHttpRequest(url, null, false)+ ')');
+			if (result.isSuccess)
+			{
+				ajax.drawSeveritys(result, idSeverity);
+				ajax.setSelectedServity(result, idSeverity,selectedVal);
+			}
+		},
+		setConditionStatusByApporval:function(apporvalFlag,idStatus)
+		{
+			var apporvalFlag = document.getElementById(apporvalFlag);
+			var apporvalFlagValue = apporvalFlag.checked;
+			var url='/portlets/condition/getConditionStatusByApporval.do?value(mode)=getConditionStatus&apporvalFlag='+apporvalFlagValue;
+			var result =  eval('(' +sendHttpRequest(url, null, false)+ ')');
+			if (result.isSuccess)
+			{
+				ajax.drawConditionStatus(result, idStatus);
+			}
+			var severityComp=document.getElementById("value(capConditionModel*impactCode)");
+			ajax.setSeveritysByStatus('resetSeverity', 'value(capConditionModel*impactCode)')
+		},
+		//To draw conditionStatu.
+		drawConditionStatus : function(result, idStatus)
+		{
+			var statusComp = document.getElementById(idStatus);
+			if(!statusComp)
+			{
+				return;
+			}
+			var object = dojo.json.evalJson(result);
+			var conditionStatus = object.CONDITIONSTATUS_OPTIONS;
+			
+			statusComp.options.length = 1;
+			for(var i = 0; i < conditionStatus.length; i++)
+			{
+				var status = conditionStatus[i];
+				var oOption = new Option(status.CONDITIONSTATUS_VALUE, status.CONDITIONSTATUS_ID);		
+				statusComp.options[i+1] = oOption;
+			}
+		},
+		//To draw severitys.
+		drawSeveritys : function(result, idSeverity)
+		{
+			var severityComp = document.getElementById(idSeverity);
+			if (!severityComp) {
+				return;
+			}
+			var selectSeverity = severityComp.value;
+			var object = dojo.json.evalJson(result);
+			var severitys = object.SEVERITY_OPTIONS;
+			severityComp.options.length = 1;
+			for(var i = 0; i < severitys.length; i++)
+			{
+				var severity = severitys[i];
+				var oOption = new Option(severity.SEVERITY_NAME, severity.SEVERITY_ID);					
+				severityComp.options[i+1] = oOption;
+			}
+		},
+		//Set selected value for severity drop-down options
+		setSelectedServity : function(resultArray,idSeverity,selectedVal)
+		{
+			if(!selectedVal || selectedVal =='' || resultArray == '' )
+			{
+				return ;
+			}
+			
+			var curObj = document.getElementById(idSeverity);
+			if(curObj)
+			{
+				var object = dojo.json.evalJson(resultArray);
+				var severitys = object.SEVERITY_OPTIONS;
+				for(var i = 0; i < severitys.length; i++)
+				{
+					if(severitys[i].SEVERITY_ID == selectedVal)
+					{
+						curObj.options[1+i].selected=true;
+				      	return ;
+					}
+				}
+			}
+			
+		}
+		
+};
+
+function changeRequired(stdChoiceCOAValue, stdChoiceConditionValue, selectLabel)
+{
+	var conditionOfApprovalObj = document.getElementById("value(stdConditionModel*conditionOfApproval)");
+	var impactCodeOptions = document.getElementById("value(stdConditionModel*impactCode)").options;
+	var optionObj = document.createElement("OPTION");
+	optionObj.text = selectLabel;
+	optionObj.value = "Required";
+
+	//stdChoiceCOAValue means the description of standard choice 'Conditions of Approval' value
+	//stdChoiceConditionValue means the description of standard choice 'Conditions' value
+	//define a two status 'from' and 'to', which means the check box status be changed when click it.
+	//if the status change 'Y' to 'N', it means need add the 'Required' option.
+	//if the status change 'N' to 'Y', it means need delete the 'Required' option.
+	var from = conditionOfApprovalObj.checked ? stdChoiceConditionValue : stdChoiceCOAValue;
+	var to = conditionOfApprovalObj.checked ? stdChoiceCOAValue : stdChoiceConditionValue;
+	var isHaveRequired = false;
+	if(from == "Y" && to == "N")
+	{
+		//add
+		for(var i=0; i<impactCodeOptions.length; i++)
+		{
+			if(impactCodeOptions[i].value == "Required")
+			{
+				isHaveRequired = true;
+				break;
+			}
+		}
+		if(!isHaveRequired)
+		{
+			impactCodeOptions.add(optionObj);
+		}
+	}
+	if(from == "N" && to == "Y")
+	{
+		//delete
+		impactCodeOptions.remove(impactCodeOptions.length-1);
+	}
+}
+
+function onAfterReset()
+{
+	var txtContent = document.getElementById("value(additionalInformation)");
+	if(txtContent && txtContent.nodeName.toLowerCase() == 'textarea')
+	{
+		editor_setHTML("value(additionalInformation)",document.getElementById("value(additionalInformation)").value);
+	}
+	
+	var txtStdContent = document.getElementById("value(stdConditionModel*additionalInformation)");
+	if(txtStdContent && txtStdContent.nodeName.toLowerCase() == 'textarea')
+	{
+		editor_setHTML("value(stdConditionModel*additionalInformation)",document.getElementById("value(stdConditionModel*additionalInformation)").value);
+	}
+}
+
+function insertStdCommentToEditor(commentObject)
+{
+	if (commentObject && commentObject.name && commentObject.name == 'value(additionalInformation)')
+	{
+		commentObject.value += "<br><br>";
+		editor_setHTML("value(additionalInformation)",  document.getElementById("value(additionalInformation)").value);
+	}
+}
+
+function htmlEditorIntercepterSubmit(a)
+{
+	var contentStdText = document.getElementById("value(stdConditionModel*additionalInformation)");
+	if (contentStdText && contentStdText.value)
+	{
+		if ('<p>&nbsp;</p>' == contentStdText.value.toLowerCase())
+		{
+			contentStdText.value = "";
+		}
+		// convert html tag to avoid security check, for example: <script>--> &lt;script&gt;
+		contentStdText.value = Base64.encode(contentStdText.value);
+	}
+	
+	var contentText = document.getElementById("value(additionalInformation)");
+	if (contentText && contentText.value)
+	{
+		if ('<p>&nbsp;</p>'  == contentText.value.toLowerCase())
+		{
+			contentText.value = "";
+		}
+
+		//convert html tag to avoid security check, for example: <script>--> &lt;script&gt;
+		contentText.value = Base64.encode(contentText.value);
+	}
+
+	return true;
+}
+
+

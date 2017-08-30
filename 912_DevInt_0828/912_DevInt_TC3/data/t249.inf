@@ -1,0 +1,11 @@
+[t249]
+FileName1=t249_calendar_medium.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/reskin/calendar_medium.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_249.xml
+RequestHeaderFile=t249_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t249_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

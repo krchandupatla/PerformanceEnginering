@@ -1,0 +1,11 @@
+[t932]
+FileName1=t932.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/security/signoff.do
+Total=1
+RequestHeaderFile=t932_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t932_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_932.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

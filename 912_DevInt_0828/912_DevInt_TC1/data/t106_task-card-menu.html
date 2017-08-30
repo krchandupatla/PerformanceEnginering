@@ -1,0 +1,173 @@
+/**
+ * Task Card action menu -- dbalmer@accela.com
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .directive('aaTaskCardMenu', function($position, $q, $timeout, $window, OverlayService) {
+      return {
+        restrict: 'A',
+        replace: false,
+        link: function (scope, element, attrs) {
+
+          // PRIVATE data
+
+          var offset;
+          var tabIndex;
+          var animating = false;
+          var wrapper, card, menu, link;
+          var cardMenuWidth, mainMenuWidth;
+          var cardClass = 'task-card-'+ attrs.aaTaskCardMenu;
+          var cardName = cardClass + '-' + attrs.index;
+
+          // PRIVATE methods
+
+          /**
+           * Show the overlay with active card on top, then show the menu.
+           *
+           * Deferred is required by OverlayService.
+           */
+          function show() {
+            var deferred = $q.defer();
+
+            card.css('left', offset);
+            link.addClass('active');
+            menu.addClass('active');
+            wrapper.addClass('layer-6');
+            link.attr('aria-expanded', true);
+
+            $timeout(function() {
+              animating = false;
+            }, Accela.animationDelay);
+
+            deferred.resolve();
+
+            return deferred.promise;
+          }
+
+          /**
+           * Hide the menu, restore the card and hide the overlay.
+           */
+          function hide() {
+            var deferred = $q.defer();
+            var animationDelay = Accela.animationDelay;
+
+            link.removeClass('active');
+            menu.removeClass('active');
+
+            if (offset) { // card was moved
+              animationDelay = 0;
+            }
+
+            $timeout(function() { // wait until transition is done
+              card.css('left', 0);
+              wrapper.removeClass('layer-6');
+              link.attr('aria-expanded', false);
+              animating = false;
+              deferred.resolve();
+            }, animationDelay, false);
+
+            return deferred.promise;
+          }
+
+          /**
+           * Toggle the menu.
+           */
+          function toggle(evt) {
+            var pos = $position.offset(wrapper);
+            var cardRightEdge = pos.left + pos.width;
+            var activities = $position.offset($('.dashboard aside'));
+            var availableSpace = $window.innerWidth - (cardRightEdge + activities.width);
+
+            if (!animating) { // prevent double click
+              animating = true;
+
+              if (document.dir.toLowerCase() === 'rtl') {
+                availableSpace -= mainMenuWidth;
+              }
+
+              // if not enough space to display the flyout, slide card to the left
+              offset = (availableSpace < cardMenuWidth) ? (cardMenuWidth * -1) + 'px' : 0;
+
+              if (menu.hasClass('active')) {
+                OverlayService.hide(evt, cardName);
+
+                // remove tabindex settings
+                if (tabIndex) {
+                  menu.$('[tabindex]').attr('tabindex', null);
+                }
+              } else {
+                OverlayService.show(evt, cardName);
+
+                // restore tabindex settings
+                if (tabIndex) {
+                  menu.$('[tabindex]').attr('tabindex', tabIndex);
+                }
+              }
+            }
+          }
+
+          /**
+           * Toggle the menu on keypress.
+           *
+           * TODO: if tabbing out of card and active, toggle
+           */
+          function keyToggle(evt) {
+            if (evt.key === 'Enter') {
+              evt.stopPropagation();
+              toggle(evt);
+            } else if (evt.key === 'Tab' && evt.shiftKey) { // back-tab
+              if (menu.hasClass('active')) {
+                evt.stopPropagation();
+                toggle(evt);
+              }
+            }
+          }
+
+          // INITIALIZE
+
+          $timeout(function() {
+            wrapper = $('#task-card-wrapper-' + attrs.index);
+            card = wrapper.$('.task-card');
+            menu = card.$('.task-flyout');
+            link = card.$('.task-flyout-toggle');
+
+            cardMenuWidth = menu.prop('offsetWidth');
+            mainMenuWidth = $position.offset($('#main-menu')).width;
+
+            if (menu.$('[tabindex]')) {
+              // capture current tabindex (assumes that all are the same)
+              tabIndex = menu.$('[tabindex]').attr('tabindex');
+
+              // remove any explicit tabindex settings
+              menu.$('[tabindex]').attr('tabindex', null);
+            }
+
+            card.addClass(cardClass);
+
+            // to show popover border the same color as the icon border
+            if (scope.task.conditionSeverity) {
+              element.addClass('task-condition-' + scope.task.conditionSeverity);
+            }
+
+            OverlayService.register({
+              name: cardName,
+              kind: 'task-card',
+              show: show,
+              hide: hide
+            });
+
+            link.on('click', toggle);
+            link.on('keypress', keyToggle);
+
+            scope.$on('destroy', function() {
+              link.off('click', toggle);
+              link.off('keypress', keyToggle);
+            });
+          });
+        }
+      };
+    });
+})();

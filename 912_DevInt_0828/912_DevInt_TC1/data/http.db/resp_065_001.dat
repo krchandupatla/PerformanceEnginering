@@ -1,0 +1,38 @@
+(function() {
+  'use strict';
+
+  /**
+   * LAUNCHPAD PAGE - dependency injection handled by DashboardModel.
+   */
+  Accela.module('Entity.LaunchpadPage', function() {
+
+    // DEFINE class
+
+    function LaunchpadPage(data) {
+      this.pageCategory = data.pageCategory || null;
+      this.i18npageCategory = data.i18npageCategory || null;
+      this.pageName = data.pageName || null;
+      this.i18npageName = data.i18npageName || null;
+      this.url = data.url || null;
+      // meta data
+      this.isFavorite = data.isFavorite;
+      this.isVisible = true; // changed by "All Pages" filter
+      this.isFavoriteVisible = true; // changed by "Favorite Pages" filter
+    }
+
+    // PRIVATE METHODS
+
+    // STATIC METHODS - assigned to class
+
+    /**
+     * Constructor for objects of this class
+     */
+    LaunchpadPage.build = function (data, isFavorite) {
+      data = data || {};
+      data.isFavorite = isFavorite || false;
+      return new LaunchpadPage(data);
+    };
+
+    return LaunchpadPage;
+  });
+})();

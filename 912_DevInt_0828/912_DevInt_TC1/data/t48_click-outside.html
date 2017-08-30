@@ -1,0 +1,60 @@
+/**
+ * callback borrowed from ngCLick
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('aaClickOutside', function($document, $parse, $rootScope) {
+      return {
+        restrict: 'A',
+        link: function(scope, element, attributes) {
+          var fn = attributes.aaClickOutside ? $parse(attributes.aaClickOutside) : null;
+          var additionalElement = attributes.alsoOutsideOf ? $(attributes.alsoOutsideOf) : null;
+
+          function handle(evt) {
+            var callback = function() {
+              fn(scope, { $event: evt });
+            };
+
+            if ($rootScope.$$phase) {
+              scope.$evalAsync(callback);
+            } else {
+              scope.$apply(callback);
+            }
+          }
+
+          function handler(evt) {
+            if (isNotHidden()) {
+              if (additionalElement) { // click must be outside both elements
+                if (Accela.DOM.isClickOutsideOf(element, evt) && Accela.DOM.isClickOutsideOf(additionalElement, evt)) {
+                  handle(evt);
+                }
+              } else if (Accela.DOM.isClickOutsideOf(element, evt)) {
+                handle(evt);
+              }
+            }
+          }
+
+          function isNotHidden() {
+            var hidden = element.hasClass('ng-hide');
+
+            if (!hidden && additionalElement) {
+              hidden = additionalElement.hasClass('ng-hide');
+            }
+
+            return !hidden;
+          }
+
+          if (typeof fn === 'function') {
+            $document.on('click', handler);
+
+            scope.$on('$destroy', function() {
+              $document.off('click', handler);
+            });
+          }
+        }
+      };
+  });
+})();

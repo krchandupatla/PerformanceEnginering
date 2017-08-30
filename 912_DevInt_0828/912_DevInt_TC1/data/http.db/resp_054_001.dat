@@ -1,0 +1,32 @@
+/**
+ * Limit content to n characters, and add ellipsis and title if more -- dbalmer@accela.com
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('aaContentLimitTo', function($timeout) {
+      return {
+        restrict: 'A',
+        link: function(scope, element, attrs) {
+          var limitTo = attrs.aaContentLimitTo || '';
+
+          if (!isNaN(limitTo)) {
+            element.addClass('hidden');
+
+            $timeout(function() { // defer until after ngBind
+              var text = element.text().trim() || '';
+              var limit = parseInt(limitTo, 10);
+
+              if (text.length > limit) {
+                element.attr('title', text).text(text.substr(0, limit) + '...');
+              }
+
+              element.removeClass('hidden');
+            });
+          }
+        }
+      };
+  });
+})();

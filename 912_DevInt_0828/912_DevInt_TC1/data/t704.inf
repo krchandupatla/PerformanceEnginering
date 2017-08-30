@@ -1,0 +1,11 @@
+[t704]
+FileName1=t704.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/ssoAdapter/logoutAction.do?servProvCode=FLAGSTAFF&successURL=%2Fsecurity%2FhostSignon.do%3FsignOff%3Dtrue
+Total=1
+RequestHeaderFile=t704_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t704_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_704.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

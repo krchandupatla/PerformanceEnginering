@@ -1,0 +1,11 @@
+[t88]
+FileName1=t88_spaces-controller.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/automation/controllers/spaces-controller.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_88.xml
+RequestHeaderFile=t88_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t88_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

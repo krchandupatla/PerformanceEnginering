@@ -1,0 +1,95 @@
+
+
+
+
+
+
+
+
+
+<html>
+	<head>
+		<meta http-equiv="refresh" content="10;URL=/ssoAdapter/logoutAction.do?servProvCode=FLAGSTAFF&successURL=%2Fsecurity%2FhostSignon.do%3FsignOff%3Dtrue"/>
+		<script>
+			<!--
+			totalUrls = '1';
+			returned = 0;
+			function signedOff()
+			{
+				returned++;
+				if(returned == totalUrls)
+				{
+					sendHttpRequest("/jetspeed/portal?action=JClearCookie", null, false);
+					document.location.href = '/ssoAdapter/logoutAction.do?servProvCode=FLAGSTAFF&successURL=%2Fsecurity%2FhostSignon.do%3FsignOff%3Dtrue';
+				}	
+			}
+
+			function sendHttpRequest(url, param, sync)
+			{
+				var returnData = "";
+				var xmlHttp = createXMLHttpRequest();
+				if (!xmlHttp) 
+				{
+					throw new Error("XMLHttp object could be created.");
+				}
+				
+				xmlHttp.open("POST", url, sync);
+				xmlHttp.onreadystatechange = callBack;
+				xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+				xmlHttp.send(param);
+				if(!sync)
+				{
+					callBack();
+				}
+				
+				return returnData;
+				
+				function callBack()
+				{
+					if(xmlHttp.readyState == 4)
+					{
+						if (xmlHttp.status == 200)
+						{
+							returnData = xmlHttp.responseText;
+						}
+					}
+				}
+			}
+
+			function createXMLHttpRequest()
+			{
+				var xmlHttp = false;
+				if (window.XMLHttpRequest)   // Mozilla, Safari, ...
+				{
+					xmlHttp = new XMLHttpRequest();
+				}
+				else if (window.ActiveXObject)  // IE
+				{
+					try
+					{
+				 		xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+					}
+					catch(e1)
+					{
+						try
+						{
+							xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+						}
+						catch(e2)
+						{
+							xmlHttp = false;
+						}
+					}
+				}
+				
+				return xmlHttp;
+			}
+			//-->
+		</script>
+	</head>
+	<body>
+		
+			<img src="https://aa-pt6245.dev.accela.com:5443/portlets/security/signout.do" onLoad="signedOff()" onError="signedOff()" alt=""/>
+		
+	</body>
+</html>

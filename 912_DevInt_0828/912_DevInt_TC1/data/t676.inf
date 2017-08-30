@@ -1,0 +1,11 @@
+[t676]
+FileName1=t676_treeLPlus.gif
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/tree/treeLPlus.gif
+Total=1
+ContentType=image/gif
+SnapshotXmlFile=snapshot_676.xml
+RequestHeaderFile=t676_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t676_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

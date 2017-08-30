@@ -1,0 +1,11 @@
+[t931]
+FileName1=t931_refresh-hover.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/reskin/refresh-hover.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_931.xml
+RequestHeaderFile=t931_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t931_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

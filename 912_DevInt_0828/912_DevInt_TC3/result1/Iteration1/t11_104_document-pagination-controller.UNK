@@ -1,0 +1,42 @@
+/**
+ * Created by frederick.zhang on 11/19/2014.
+ *
+ * Refactored into separate controller by dbalmer@accela.com
+ */
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.globalsearch')
+    .controller('DocumentPaginationController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($scope, GlobalSearchService) {
+
+    // PUBLIC methods
+
+    $scope.pageChanged = function (pageNum) {
+      var searchText = $scope.search.text;
+      var tabSearchResult = $scope.searchResult.document;
+      var start = (pageNum - 1) * tabSearchResult.limit;
+
+      tabSearchResult.currentPage = pageNum;
+
+      tabSearchResult.offset = start + 1;
+
+      tabSearchResult.to = start + tabSearchResult.limit;
+
+      if (tabSearchResult.to > tabSearchResult.totalCount) {
+        tabSearchResult.to = tabSearchResult.totalCount;
+      }
+
+      tabSearchResult.isLastPage = (tabSearchResult.to === tabSearchResult.totalCount);
+
+      GlobalSearchService.searchDocument(searchText, start).then(function (response) {
+        $scope.searchResult.document.items = response.data.documentRecords;
+      });
+    };
+  }
+})();

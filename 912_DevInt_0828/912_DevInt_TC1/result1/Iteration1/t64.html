@@ -1,0 +1,1405 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<!doctype html>
+    <html class="no-js" lang="en" dir="ltr" id="ng-app" ng-app="accela.automation" ng-strict-di="" xmlns:ng="http://angularjs.org">
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+	
+    <!--<link rel="stylesheet" href="/portlets/spa/styles/bootstrap/bootstrap.css" media="screen" />-->
+    <!--<link rel="stylesheet" href="styles/bootstrap/bootstrap-rtl.css" />-->
+    <script src="/portlets/spa/js/lib/showModalDialog.js"></script> 	
+    <script src="/portlets/spa/js/lib/windowCloseOverride.js"></script>
+
+<script language="JavaScript">
+var oldUI = false;
+var profile=new Object();
+profile.agency='FLAGSTAFF';
+profile.isEnabled508=false;
+profile.language='en_US';
+profile.theme='sky_blue';
+profile.enableSecurityDefense=false;
+profile.disableExpressionSection508=false;
+
+
+  //
+  // added by dbalmer@accela.com
+  //
+  function getDocumentIFrameById(doc, id) {
+    var listIFrame = doc.frames[id] || doc.getElementById(id);
+  }
+
+</script>
+
+
+
+
+
+
+<script language="JavaScript">
+
+var toDoNav = false;
+var navFrames = new Array();
+var doNavigation;
+var navScript;
+var isClear= true;
+var lastCapModule = 'Building';
+var currModule ='Building';
+var param="";
+var runOrder ;
+
+var isAjaxRefreshNavScript = false;
+
+function clearNavigation()
+{
+	parent.navFrames = new Array();
+	parent.toDoNav = false;
+	doNavigation=undefined;	
+}
+
+
+	if(parent)
+	{
+		if(parent.toDoNav&&parent.navFrames.length>0)
+		{
+			if(frameElement&&frameElement.id)
+			{
+				if(frameElement.id==parent.navFrames[0])
+				{
+					toDoNav = true;
+					runOrder = parent.runOrder;
+					if(parent.navFrames.length==1)
+					{
+						eval('doNavigation=function(){'+parent.navScript+'}');
+					}
+					else
+					{
+						for(var i=1;i<parent.navFrames.length;i++)
+						{
+							navFrames.push(parent.navFrames[i]);
+						}
+						navScript = parent.navScript;						
+					}
+				}
+			}
+			if(frameElement&&frameElement.id&&frameElement.id=='capForm'&&top.switchModule)
+			{
+				top.switchModule(lastCapModule);
+			}
+		}
+		if(parent.param && parent.param.length>0)
+		{
+			param = parent.param;
+		}
+	}
+	
+	if(runOrder=='before')
+	{
+		if(doNavigation)
+		{
+			doNavigation();
+			if(isClear)
+			{
+				clearNavigation();
+				frameElement.scrollIntoView(true);
+			}		
+		}
+	}
+</script>
+
+
+<script type="text/javascript" src="/portlets/framework/includes/javascript/jquery/jquery-1.11.0.min.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/Ac360ToolManager.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360base.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/widget/widget.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/memoryLeakPatch.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360InputBoxHotKey.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/popup/popup.js"></script>
+
+
+
+<script type="text/javascript">
+<!--
+var pageLoadingCircle = false;
+//-->
+</script>
+
+		<script language="JavaScript">
+			var currModule = 'Building';
+			var formName = 'taskListActionForm';
+		</script>
+	
+
+<!--[if gte IE 8]>
+   <script type="text/javascript">
+      IEVersion = 8;
+   </script>
+<![endif]-->
+<!--[if IE 7]>
+   <script type="text/javascript">
+      IEVersion = 7;
+   </script>
+<![endif]-->
+
+
+	
+		<title>
+			Workflow Task List
+		</title>
+		
+			<link rel="stylesheet" href="/portlets/spa/styles/bootstrap/bootstrap.css" media="screen" />
+		
+		
+		<link rel="stylesheet" type="text/css" href="/portlets/images/sky_blue/styles.css" id="stylesId"/>
+		<link rel="stylesheet" type="text/css" href="/portlets/images/sky_blue/print-styles.css" media="print"/>
+
+		<link rel="stylesheet" type="text/css" href="/portlets/spa/styles/re-skin-v2.css" id="stylesId" media="screen" />
+<script type="text/javascript" src="/portlets/framework/includes/javascript/opos.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/masked.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/myTask.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/menubar.js"></script><script type="text/javascript" src="/docs/AAHELP.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/watermark.js"></script>
+		
+
+<script type="text/javascript">
+
+/**
+ * Support open window in IE8.
+ * If user's browser is IE 8, pass the session cookie to the child window.
+ */
+function windowOpen(targetURL,name,parameters,jsessionid,path,secure)
+{	
+    var newURL = targetURL;
+	if (isIE8())
+	{	   
+	   var newtargetURL = encodeURIComponent(targetURL);	
+	   newURL = "/portlets/datapicker/popupWindow.jsp?&targetURL=" + newtargetURL;
+	   
+	   var _jsessionid = "vZkludqgj8ZjGM2oojONEkOJ";
+	   var _path = "/portlets";
+	   var _secure = "true";
+	   
+	   if (typeof(jsessionid) != 'undefined')
+	   {
+	   		_jsessionid = jsessionid;
+	   }
+	   if (typeof(path) != 'undefined')
+	   {
+	   		_path = path;
+	   }
+	   if (typeof(secure) != 'undefined')
+	   {
+	   		_secure = secure;
+	   }	   
+	   newURL = newURL + "&jsessionid=" + _jsessionid + "&path=" + _path + "&secure=" + _secure;	  
+	}	
+	return window.open(newURL, name, parameters);	
+}
+</script>
+
+		<script type="text/javascript">
+		if(!pageLoadingCircle)
+		{
+			var processBarObj = new UI.ProcessBar();
+			processBarObj.forceDestroyExceptPageLoading(processBarObj.getTargetDoc().targetDoc);
+		}
+
+		function isIE8()
+		{
+		    var ie8 = false;
+			// In firefox, we cannot get the variable 'IEVersion' defined in layoutTab.jsp
+			if (typeof(IEVersion) != 'undefined' && IEVersion == 8) 
+			{		
+				ie8 = true;
+			}	
+			return ie8;
+		}
+		<!--
+		
+		//-->
+		</script>
+
+			<script language="JavaScript">
+			var pendoOptions = '{"product":"Accela Core","userID":"e9af1fa5171aed0adbee00284a455086465aa31fc36563edabf646e11d55a6088095a23efeee0ca56703d10969d3ac54e979ab211892ee56defc91c468476a08","module":"Building","environment":"INTERNAL","serviceURL":"https://d3accju1t3mngt.cloudfront.net/js/pa.min.js","serviceID":"567a146e-65ac-46a5-7a13-b32474a4f67b","userGroup":"BuildingAdmin","agency":"FLAGSTAFF","version":"av.9.1.3.170801"}';
+			if(pendoOptions!= undefined && pendoOptions!= null && pendoOptions.length!=0){
+				var pendoData = JSON.parse(pendoOptions);
+				if(pendoData.serviceID != undefined && pendoData.serviceID != null && pendoData.serviceID.length != 0){
+					window.pendo_options = {
+					apiKey: pendoData.serviceID,
+					usePendoAgentAPI: false,
+					visitor: {
+					id: pendoData.userID,
+					userGroup: pendoData.userGroup,
+					userId: pendoData.userID
+					},
+					account: {
+					id: pendoData.agency,
+					productId: pendoData.product,
+					productVersion: pendoData.version,
+					environment: pendoData.environment,
+					module: pendoData.module
+					}
+					};
+					(function() {
+					var script = document.createElement('script');
+					script.type = 'text/javascript';
+					script.async = true;
+					script.src = pendoData.serviceURL;
+					var firstScript = document.getElementsByTagName('script')[0];
+					firstScript.parentNode.insertBefore(script, firstScript);
+					})();
+				}
+			}
+			</script>
+
+
+		<script language="JavaScript">
+						
+			var jetspeedTop = getTopIframe(this);			
+			function doPageInit()
+			{
+				try{
+					InitializeEbaCombos();
+				}catch(error){}				
+				resizePictureIFrame();
+				setFocusElement();
+				scrollBarIssue.resizeIframeNoScrollBar(scrollBarIssue.getFrameElement(document));
+			}
+						
+			var starttime = 0;
+			var showTimerID;
+			var menuheadout = true;
+			var menuentryout = true;
+
+			function delaymenu(divID, srcId)
+			{
+				if (divID == null || divID == 'undefined')
+				{
+					divID = 'Spacer';
+				}
+				//showTimerID = setInterval("showmenu('"+divID+"', '" + srcId + "')", 10);				
+				document.getElementById(divID).style.visibility = "";
+				document.getElementById(divID).style.display = "";
+				UI.positionMgr.show(srcId, divID);
+			}
+			
+			function cancelmenu()
+			{
+				clearInterval(showTimerID);
+			}
+			function hidemenu(divID)
+			{
+				if (menuheadout && menuentryout) {
+					obj = MM_findObj(divID);
+					if(obj)
+					{
+						if(obj.style.display == "none")
+						{
+							return;
+						}
+						obj.style.display = "none";
+					}					
+					MM_showHideLayers(divID,'','hidden');
+				}
+			}
+
+			function updatetime()
+			{
+				now = new Date();
+				starttime = now.getMilliseconds();
+			}
+			function hidenAsContactFloatMenu(divID)
+			{
+				if(menuentryout)
+				{
+					MM_showHideLayers(divID,'','hidden');
+				}				
+			}
+			
+		</script>
+
+	</head>
+	<body class="MarginLRXY0px srbgcolor srbgcolor" onLoad="doPageInit()">
+		<script type="text/javascript">
+			$(document).ready(function () {
+				function hideLoadingMask(){
+					window.top.$('.spinner').addClass("ng-hide");
+				}
+				try{try{
+					if(isWorkflowPage==undefined || isWorkflowPage==null || isWorkflowPage==false)
+					hideLoadingMask();
+				}catch(errtext){hideLoadingMask();}}catch(err){}
+			});
+			$(document).on("click", "#dTabsTable a", function(e){
+				try{
+					window.top.$('.spinner').removeClass("ng-hide");
+				}catch(err){}
+			});
+
+			$(window).focus(function() {
+				$.ajax({
+				type: "GET",
+				url: "/portlets/spa/session.do?mode=activateSpace&spaceName=" + 'spaces.c7ae1',
+				success: function (data) {}
+				});
+			});
+
+			new UI.ProcessBar({"pageLoadingCircle" : pageLoadingCircle}).pageLoadingCircle();
+		</script>
+		<form id="taskListActionForm" name="taskListActionForm" method="post" action="/portlets/workflow/workflowTaskList.do?module=Building" onsubmit="enableAllSelect" enctype="application/x-www-form-urlencoded" target="_self">
+		<input type="hidden" name="value(FirstEntryURL)" value="/portlets/workflow/workflowTaskList.do?&amp;module=Building&amp;mode=list">
+		<input type="hidden" name="value(CurrentEntryURL)" value="/portlets/workflow/workflowTaskList.do?&amp;module=Building&amp;mode=list">
+		<input type="hidden" id="portlet_language" name="portlet_language" value="en_US">
+		<input type="hidden" id="refresh_target" name="refresh_target" value=""/>
+		<input type="hidden" id="refresh_url" name="refresh_url" value=""/>
+		<input type="hidden" id="buttonName" name="buttonName" value=""/>
+		<input type="hidden" id="modeName" name="modeName" value=""/>
+		<input type="hidden" id="module" name="module" value="Building"/>
+		<input type="hidden" name="accelasubmitbuttonname" id="accelasubmitbuttonname" value=""/>
+		<input type="hidden" name="itemName" id="itemName" value=""/>
+		<input type="hidden" id="CurrentViewID" name="CurrentViewID" value=""/>
+		<input type="hidden" id="exceptionLogID" name="exceptionLogID" value=""/>
+
+
+		<script>
+			var pageTitle = '' === 'null' ? null : '';
+			var spaceTitle = (parent && parent.frameElement && parent.frameElement.dataset) ? parent.frameElement.dataset.spaceTitle : undefined;
+			var titleToUse = pageTitle || spaceTitle;
+			if(titleToUse) {
+				document.write('<header class="header"><h1><a href="#" onclick="returnListView()"><i class="arrow-back"></i></a><span>');
+				document.write(titleToUse + ('null' === 'null' ? '': ' - null'));
+				document.write('</span></h1><a class="refresh" href="javascript: location.reload();"></a></header>');
+			}
+		</script>
+			
+		<div class="work-space">
+	    
+		<!--<div id="work-spaces" style="height:680px">-->
+		<div class="workspace-no-utility-menu">
+		
+		<table border="0" cellpadding="0" cellspacing="0" width="100%"  ignore="all" id="top-menu-bar">
+		<tr>
+			<td>
+			<table border="0" cellpadding="0" cellspacing="0" width="100%" id="menu_bar_">
+					
+				</table>
+			</td>
+   		</tr>
+		
+		        <tr id="_error_msg_tr">
+		            <td nowrap="nowrap">
+		            	<div tabindex="0" id="err_msg">
+			                
+			            </div>
+						<div tabindex="0" id="msg">
+			                
+			            </div>
+		           </td>
+		        </tr>
+				<tr>
+					<td style="xxx-padding-left: 10px;">
+							
+					<a name="maincontent" id="maincontent" tabindex="-1"></a>
+					<table id="displayBody" border="0" cellpadding="0" cellspacing="0" width="100%">
+						<tr>
+							<td>
+								
+
+
+ 
+ 
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+
+	function openReport(reportInfo)
+	{					
+		var reportOrginalInfo = reportInfo;
+		var viewID = document.getElementsByName("CurrentViewID")[0];
+		var reportInfo=reportInfo+",null";
+		var reportInfos=reportInfo.split(",");	
+		if(viewID.value == "30025")
+		{
+			return SimulateClick('1', 'accelasubmitbuttonname','','action','/portlets/batch/invoiceDetail.do?mode=print&reportID='+reportInfos[0]+'&reportInfo='+reportOrginalInfo);
+		}
+		if(viewID.value == "30021" )
+		{
+			return SimulateClick('1', 'accelasubmitbuttonname','','action','/portlets/batch/invoice.do?mode=listPrint&reportID='+reportInfos[0]+'&reportInfo='+reportOrginalInfo);
+		}			
+		var lengthR=reportInfos.length;
+		if(lengthR==3)
+		{
+			openFormReport(reportInfos[0],reportInfos[1]);
+		}	
+		else if(lengthR==2)
+		{
+			openFormReport(reportInfos[0]);
+		}
+		else
+		{
+			var reportId=reportInfos[0];
+			var singleWindow=reportInfos[2];
+			var ids=getIDs();			
+			openListReport(reportId,singleWindow,ids,reportInfos[1],reportInfos[3]);
+		}			
+		return false;
+	}
+	
+//-->
+</SCRIPT>
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+djConfig = {
+		baseScriptUri: "https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo/"
+}
+</script>
+<script type="text/javascript" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo/dojo.js">
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+	//close window 4 WorkflowDetail.
+	function closeWindow4Task()
+	{
+		var toClose = false;
+		if(window.opener)
+		{
+			if(window.opener.name == "taskManagementList")
+			{
+				toClose = true;
+			}
+		}
+		if(toClose)
+		{
+			window.opener = null;
+			window.close();
+		}
+		else
+		{
+			window.location.href ="/portlets/workflow/workflowStatusList.do?module=" + 'Building';
+		}
+	}
+
+</script>
+
+
+
+
+<div id="treePanel">
+
+<script language="JavaScript">
+	var popUpValue = getCookieValue("window_pop_up");
+	var needFocus = true;
+	if(popUpValue == "yes")
+	{
+		needFocus = false;
+	}
+</script>
+<table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img align='top' border='0' class='treeIcon' SRC='/portlets/images/tree/root.gif' alt='Workflow Tasks'><font class=PageTitle>&nbsp;Workflow Tasks</font></table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-1"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=1&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Submit Application"><td valign=middle align=left nowrap><img src="/portlets/images/active.gif" border=0 width=8 alt="Task Active"><A href = "javascript:formSubmit('/portlets/workflow/workflowEdit.do?module=Building&processID=3613&stepNum=1&isTreeLink=Y&mode=edit','Submit+Application','B_RES_NEW');"><font class=SpecialInfo>Submit Application</font></A></table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-20"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=20&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Structure Plan Review"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Structure Plan Review</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-21"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=21&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Plan Review"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Plan Review</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-22"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=22&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Fire Code Review"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Fire Code Review</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-23"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=23&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Transportation"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Transportation</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-24"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=24&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Refuse Collection"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Refuse Collection</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-25"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=25&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Zoning"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Zoning</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-26"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=26&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Recreation and Parks"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Recreation and Parks</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-27"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=27&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Sewers and Drains"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Sewers and Drains</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-28"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=28&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Electrical Review"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Electrical Review</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-40"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=40&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Permit Pre-Issue"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Permit Pre-Issue</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-52"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=52&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Issue Permit"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Issue Permit</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-60"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=60&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Inspections"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Inspections</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-70"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=70&status=1&module=Building')"><img src="/portlets/images/tree/treeTPlus.gif" border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Certificate of Occupancy"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Certificate of Occupancy</table><table border=0 cellspacing=0 cellpadding=0><tr><th align=middle nowrap><img src="/portlets/images/tree/treeWhite.gif" alt=""><A id="3613-99"  href="javascript:formSubmit('/portlets/workflow/workflowTaskList.do?processID=3613&stepNumber=99&status=1&module=Building')"><img src="/portlets/images/tree/treeLPlus.gif"  border=0 alt="Expand"></A><img src="/portlets/images/tree/treeFolder.gif" class='treeIcon' border=noborder alt="Closed"><td valign=middle align=left nowrap><img src="/portlets/images/white.gif" border=0 width=8 alt="">Closed</table>
+		<br><br>
+		There currently are no ad hoc tasks defined.
+		<input type="hidden" name="value(ID1)" value="" id="value(ID1)">
+		<input type="hidden" name="value(ID2)" value="" id="value(ID2)">
+		<input type="hidden" name="value(ID3)" value="" id="value(ID3)">
+		<input type="hidden" name="value(serviceProviderCode)" value="" id="value(serviceProviderCode)"> 
+</div>
+<script language="JavaScript">
+	//list name
+	var list4TM = "taskManagementList";
+	//pop-out window opener's name
+	var detail4TM = "taskManagementDetail";
+	//portlet name
+	var portlet4TM = "taskmanagements";
+
+	var myTaskPane = top.document.getElementById("mytasks");
+
+	var taskManagementPane = top.document.getElementById(portlet4TM);
+
+	refresh4Workflow(myTaskPane,'myTaskListForm');
+
+	refresh4Workflow(taskManagementPane,list4TM);
+
+	refresh4OpenerWin(detail4TM,list4TM,portlet4TM);
+
+	//Refresh target for workflow update.
+	//pane: portlet object.
+	//targetName: refresh target Name.
+	function refresh4Workflow(pane,targetName)
+	{
+		if(pane)
+		{
+			var targetWin = getTargetFrame(pane,targetName);
+			refreshTargetWin(targetWin);
+		}	
+	}
+
+	//Refresh target window.
+	function refreshTargetWin(targetWin)
+	{
+		if (targetWin != null)
+		{
+			var href = targetWin.contentWindow.location.href;
+			if (href.indexOf("/meeting/meetingTaskAgendaList") > 0)
+			{
+				return null;
+			}
+			if (href.indexOf("needRefresh=true") < 0) 
+			{
+				href += "&needRefresh=true";
+			}
+			var noRefresh = targetWin.contentWindow.document.getElementById("noRefresh");
+			if (!(noRefresh && 'true'==noRefresh.value))
+			{
+				targetWin.contentWindow.location.href = href;
+			}
+		}
+	}
+
+	//Get target's Frame. 
+	function getTargetFrame(pane,targetName)
+	{
+		try {
+			var frameArr = pane.contentWindow.document.getElementsByTagName('IFRAME');
+
+			for(i=0; i<frameArr.length; i++)
+			{
+				if (frameArr[i].contentWindow.name == targetName)
+				{
+					return frameArr[i];
+				}
+			}
+		}
+		catch (error){}
+		return null;
+	}
+
+	//Refresh opener for pop-out window.
+	function refresh4OpenerWin(winName,openerWinName,openerPortletName)
+	{
+		if(top.name == winName)
+		{
+			if(top.opener && top.opener.name == openerWinName)
+			{
+				var pane = top.opener.top.document.getElementById(openerPortletName);
+				refresh4Workflow(pane,openerWinName);
+			}
+		}
+	}
+	
+	
+	//response to click tree node.
+	function formSubmit()
+	{
+		var url = "";
+		var argArr =formSubmit.arguments;		
+		if (argArr.length < 1)
+		{
+			return false;
+		}
+		url = argArr[0];
+
+		//set select id to send save in parent  to support for section 508
+		splitUrlForStepNum(url);
+		
+		if (argArr.length > 1 && argArr[1] != null && argArr[1] != undefined)
+		{
+			url = url+"&taskName="+encodeURIComponent(argArr[1])
+		}
+		if (argArr.length > 2 && argArr[2] != null && argArr[2] != undefined)
+		{
+			url = url+"&processCode="+encodeURIComponent(argArr[2])
+		}
+		if(true)
+		{
+			var start = url.indexOf("workflowTaskList.do");
+			if(start != -1)
+			{
+				parent.frames['workflowTaskTreeFrame'].location = url;
+			}
+			else
+			{
+				url = url + '&rememberUrl=true';
+				SimulateClick('1','accelasubmitbuttonname','','action',url, 'target', '_parent');
+			}
+		}
+		else
+		{
+			SimulateClick('1','accelasubmitbuttonname','','action',url);
+		}	
+	}
+
+	// adjust tree frame height.
+	 function adjustTreeFrameOnload()
+	{
+		if(true)
+		{
+			// after right part is loaded completely.
+			parent.document.onreadystatechange = function()
+			{
+				var container = parent.document.getElementById("listContainer");
+				if(container)
+				{
+					var formResized = parent.document.getElementById("isFormResized");
+					if(formResized && formResized.value == "true")
+					{
+						width = container.style.width;
+						try
+						{
+							//If capForm is hidden, it may cause error here. Add a try..catch block.
+							container.style.width = parseInt(width) - 310;
+						}
+						catch(error){}
+					}
+					formResized.value = "false";
+				}
+				var workflowTaskTreeFrame = parent.document.getElementById('workflowTaskTreeFrame');
+				if(scrollBarIssue.judgeIsObj(workflowTaskTreeFrame))
+				{
+					if (needFocus)
+					{
+						try
+						{
+							//If capForm is hidden, it may cause error here. Add a try..catch block.
+							workflowTaskTreeFrame.focus();
+						}
+						catch(error){}
+					}
+				}
+			}
+			resizeWorkflowTaskTreeFrame();
+		}	
+		prepareVirtualBuffer();	
+
+		//get select id from parent and set focus to support for section 508
+		var parentHiddenInput = parent.document.getElementById('stepNumber');
+		if(!isUndefined(parentHiddenInput))
+		{
+			setFocusById(parentHiddenInput.value);
+		}
+	}
+
+	function resizeWorkflowTaskTreeFrame(){
+		var workflowTaskTreeFrame = parent.document.getElementById('workflowTaskTreeFrame');
+		if(scrollBarIssue.judgeIsObj(workflowTaskTreeFrame)){
+			var treeTD = parent.document.getElementById("treeTD");
+			var currentStyleObj = scrollBarIssue.getCurrentStyle(document, treeTD);
+			var treeTDPaddingTop = currentStyleObj.paddingTop;
+			var treeTDPaddingBottom = currentStyleObj.paddingBottom;
+			var rightPart_height = treeTD.offsetHeight;
+			var rightPart_width = treeTD.offsetWidth;
+			var regExec = /^\d+(\.\d+)?(px)?$/;
+			if(regExec.test(treeTDPaddingTop)){
+				rightPart_height -= parseInt(treeTDPaddingTop);
+			}
+			if(regExec.test(treeTDPaddingBottom)){
+				rightPart_height -= parseInt(treeTDPaddingBottom);
+			}
+			if(rightPart_height > 0){
+				workflowTaskTreeFrame.style.height = rightPart_height;
+			}
+			
+			if(rightPart_width > 0){
+				workflowTaskTreeFrame.style.width = "";
+			}
+		}
+	}
+	
+	//split url to get process id step number,use the step number as id to find for focus  to support for section 508
+	function splitUrlForStepNum(url)
+	{
+		var stepNumber = "";
+		if(url != "")
+		{
+			var splitUrl = new Array();
+			splitUrl = url.split("&");
+			for(i=0; i<splitUrl.length; i++)
+			{
+				var splitForStepNumber = new Array();
+				splitForStepNumber = splitUrl[i].split("=");
+				if(splitForStepNumber.length > 1)
+				{
+					var subSplitArray = new Array();
+					subSplitArray = splitForStepNumber[0].split(".");
+					if(subSplitArray.length > 1 && "do?processID" == subSplitArray[1])
+					{
+						stepNumber += splitForStepNumber[1];
+					}
+					if("stepNumber" == splitForStepNumber[0])
+					{
+						stepNumber += "-";
+						stepNumber += splitForStepNumber[1];
+						if (!isUndefined(parent.document.getElementById('stepNumber')))
+						{
+							parent.document.getElementById('stepNumber').value = stepNumber;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	function isUndefined(value) 
+	{   
+		var undef;
+		return value == undef; 
+	}
+	addEvent(this,'load',adjustTreeFrameOnload);
+	tableCorner.addTreeCornerListener('treePanel');
+	setInterval(function(){resizeWorkflowTaskTreeFrame();},200);
+</script>
+
+							</td>
+						</tr>
+					</table>
+				
+					</td>
+				</tr>
+			</table>
+			
+		</table>
+		</div>
+	</div>
+</form>	
+<script type="text/javascript">
+<!--
+
+function returnListView()
+{
+	parent.showList();
+}
+
+function showPrevious()
+{	
+	var numb = "";
+	
+	var listIFrameName = null;
+	var listIFrame = null;
+	var aListLink = null;
+
+	if(parent.document.frames['contactList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['contactList'];
+		listIFrameName = 'contactList';
+		aListLink = 'ContactListLink';
+	}
+	else if(parent.document.frames['activityList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['activityList'];
+		listIFrameName = 'activityList';
+		aListLink = 'ActivityListLink';
+	}
+	else if(parent.document.frames['trustAccountList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['trustAccountList'];
+		listIFrameName = 'trustAccountList';
+		aListLink = 'TrustAccountListLink';
+	}
+	else if(parent.document.frames['ownerList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['ownerList'];
+		listIFrameName = 'ownerList';
+		aListLink = 'RefOwnerListLink';
+	}
+	else if(parent.document.frames['refParcelList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['refParcelList'];
+		listIFrameName = 'refParcelList';
+		aListLink = 'RefParcelListLink';
+	}
+	else if(parent.document.frames['addressList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['addressList'];
+		listIFrameName = 'addressList';
+		aListLink = 'RefAddressListLink';
+	}
+	else if(parent.document.frames['feeSetList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['feeSetList'];
+		listIFrameName = 'feeSetList';
+		aListLink = 'feeSetListLink';
+	}
+	else if(parent.document.frames['professionalList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['professionalList'];
+		listIFrameName = 'professionalList';
+		aListLink = 'professionalListLink';
+	}
+	else
+	{
+    // modified by dbalmer@accela.com
+    listIFrame = getDocumentIFrameById(parent.document, 'capList');
+		listIFrameName = 'capList';
+	}
+
+	
+	var accelaMTable = listIFrame.document.getElementById('AccelaMainTable');
+	if(accelaMTable)
+	{
+		var aList = listIFrame.document.getElementsByName(aListLink);
+		var previous = null;
+		for(var i = 0; i < aList.length ; i++)
+		{
+			if(aList[i].id == numb)
+			{
+				if(aList[i-1])
+				{
+					previous = aList[i-1].id;
+					break;
+				}
+				else
+				{
+					previous = null;
+				}
+			}
+		}
+	
+		if(previous == null)
+		{
+			var previouspage = listIFrame.document.getElementById('PreviousPage');
+			if(previouspage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var aList2 = listIFrame.document.getElementsByName(aListLink);
+					if(aList2)
+					{
+						aList2[aList2.length-1].click();
+					}
+				};
+				previouspage.click();
+			}
+		}
+		else
+		{
+			var previousRecord = listIFrame.document.getElementById(previous);
+			previousRecord.click();
+		}
+	}
+	else
+	{
+		var currentRows = listIFrame.document.getElementsByName(numb);
+
+		var currentRowId = currentRows[0].id;
+		var index = currentRowId.substr(numb.length+1);
+		var previousIndex = Number(index);
+		if(previousIndex == 0)
+		{
+			var previouspage = listIFrame.document.getElementById('PreviousPage');
+			if(previouspage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var accelaTable = listIFrame.document.getElementsByClassName('AccelaMainTable');
+					var count = null;
+					if(accelaTable)
+					{
+						var accelaTBody = accelaTable[0].getElementsByTagName('tbody');
+						if(accelaTBody)
+						{
+							var singleRow = accelaTBody[0].getElementsByClassName('singleRow');
+							var doubleRow = accelaTBody[0].getElementsByClassName('doubleRow');
+							if(doubleRow && doubleRow.length > 0)
+							{
+								count = singleRow.length + doubleRow.length;
+							}
+							else
+							{
+								if(singleRow.length)
+								{
+									count = singleRow.length;
+								}
+							}
+						}
+					}
+					if(count != null)
+					{
+						listIFrame.document.getElementById('table-row-'+ count).getElementsByTagName('a')[0].click();
+					}
+				};
+				previouspage.click();
+			}
+		}
+		else
+		{
+			var aLink = listIFrame.document.getElementById('table-row-'+ previousIndex).getElementsByTagName('a');
+			aLink[0].click();
+		}
+	}
+}
+
+function showNext()
+{
+	var numb = "";
+	
+	var listIFrameName = null;
+	var listIFrame = null;
+	var aListLink = null;
+
+	if(parent.document.frames['contactList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['contactList'];
+		listIFrameName = 'contactList';
+		aListLink = 'ContactListLink';
+	}
+	else if(parent.document.frames['activityList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['activityList'];
+		listIFrameName = 'activityList';
+		aListLink = 'ActivityListLink';
+	}
+	else if(parent.document.frames['trustAccountList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['trustAccountList'];
+		listIFrameName = 'trustAccountList';
+		aListLink = 'TrustAccountListLink';
+	}
+	else if(parent.document.frames['ownerList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['ownerList'];
+		listIFrameName = 'ownerList';
+		aListLink = 'RefOwnerListLink';
+	}
+	else if(parent.document.frames['refParcelList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['refParcelList'];
+		listIFrameName = 'refParcelList';
+		aListLink = 'RefParcelListLink';
+	}
+	else if(parent.document.frames['addressList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['addressList'];
+		listIFrameName = 'addressList';
+		aListLink = 'RefAddressListLink';
+	}
+	else if(parent.document.frames['feeSetList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['feeSetList'];
+		listIFrameName = 'feeSetList';
+		aListLink = 'feeSetListLink';
+	}
+	else
+	{
+		listIFrame = parent.document.frames['capList'];
+		listIFrameName = 'capList';
+	}
+
+	
+	var accelaMTable = listIFrame.document.getElementById('AccelaMainTable');
+
+	if(accelaMTable)
+	{
+		var aList = listIFrame.document.getElementsByName(aListLink);
+		var hasNext = true;
+		var next = null;
+		for(var i = 0; i < aList.length ; i++)
+		{
+			if(aList[i].id == numb)
+			{
+				if(aList[i+1])
+				{
+					next = aList[i+1].id;
+					break;
+				}
+				else
+				{
+					next = null;
+				}
+			}
+		}
+	
+		if(next == null)
+		{
+			var nextpage = listIFrame.document.getElementById('NextPage');
+			if(nextpage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var aList2 = listIFrame.document.getElementsByName(aListLink);
+					if(aList2)
+					{
+						aList2[0].click();
+					}
+				};
+				nextpage.click();
+			}
+		}
+		else
+		{
+			var nextRecord = listIFrame.document.getElementById(next);
+			nextRecord.click();
+		}
+	}
+	else
+	{
+		var currentRows = listIFrame.document.getElementsByName(numb);
+
+		var currentRowId = currentRows[0].id;
+		var index = currentRowId.substr(numb.length+1);
+		var nextIndex = Number(index)+2;
+		
+		var accelaTable = listIFrame.document.getElementsByClassName('AccelaMainTable');
+		var count = null;
+		if(accelaTable)
+		{
+			var accelaTBody = accelaTable[0].getElementsByTagName('tbody');
+			if(accelaTBody)
+			{
+				var singleRow = accelaTBody[0].getElementsByClassName('singleRow');
+				var doubleRow = accelaTBody[0].getElementsByClassName('doubleRow');
+				if(doubleRow && doubleRow.length > 0)
+				{
+					count = singleRow.length + doubleRow.length;
+				}
+				else
+				{
+					if(singleRow.length)
+					{
+						count = singleRow.length;
+					}
+				}
+			}
+		}
+		
+		
+		if(nextIndex <= count)
+		{
+			var aLink = listIFrame.document.getElementById('table-row-'+ nextIndex).getElementsByTagName('a');
+			aLink[0].click();
+		}
+		else
+		{
+			var nextPage = listIFrame.document.getElementById('NextPage');
+			if(nextPage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					listIFrame.document.getElementById('table-row-1').getElementsByTagName('a')[0].click();
+				};
+				nextPage.click();
+			}
+		}
+	}
+}
+//-->
+</script>
+
+<script language="javascript">
+<!--
+
+tableCorner.addTabListen("_$mainContent");
+	function appendParamToURL(frm, url)
+	{
+		var tmp = url;
+		try
+		{
+			if (frm.document.forms[0].isGeneralCAP
+				&& frm.document.forms[0].isGeneralCAP.value == 'Y')
+			{
+				if (tmp.indexOf("isGeneralCAP") == -1)
+				{
+					tmp += tmp.indexOf("?") == -1 ? "?" : "&";
+					tmp += "isGeneralCAP=Y";
+				}
+			}
+		}
+		catch(e)
+		{
+		}
+		return tmp;
+	}
+	
+try{
+
+	
+	var myname=self.name;
+	var isBlank=true;
+	var isBlankObj=getParentObject("isBlankThird");
+	if(isBlankObj !=null && isBlankObj.value=="No")
+	{
+		isBlank=false;
+	}		
+	
+	if(myname == null || (myname!="mydataForm" && myname!="myassetForm" && myname!="assetInspectionFormDetail"&& myname!="assetCAFormDetail" 
+		&& myname!="professionalDataForm" && myname != "addressdataForm" && myname != "refParceldataForm"))
+	{
+		if(isBlank && parent!=null && (parent.frames != null))
+		{
+			var blankPageUrlStr = "/portlets/framework/includes/error/blank.jsp";
+			if (parent.frames["mydataForm"] != null && myname != "myassetdataForm")
+			{
+				d=parent.frames["mydataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["myassetForm"] != null && myname != "myassetdataForm")
+			{
+				d=parent.frames["myassetForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["assetInspectionFormDetail"] != null)
+			{
+				d=parent.frames["assetInspectionFormDetail"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["assetCAFormDetail"] != null)
+			{
+				d=parent.frames["assetCAFormDetail"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["professionaldataForm"] != null)
+			{
+				d=parent.frames["professionaldataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["addressdataForm"] != null)
+			{
+				d=parent.frames["addressdataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["refParceldataForm"] != null)
+			{
+				d=parent.frames["refParceldataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+		}
+		else
+		{
+			if (isBlankObj !=null)
+			{
+				isBlankObj.value="Yes";
+			}
+		}	
+	}
+	else if(myname != null && (myname=="mydataForm" || myname=="myassetForm" || myname=="assetInspectionFormDetail" || myname=="assetCAFormDetail"))
+	{
+		if (parent.frames["blank"] != null)
+			{
+				d=parent.frames["blank"];
+				d.location.href="/portlets/framework/includes/error/blank.jsp";				
+			}
+	}
+	//end-Lytton Cheng 2005-07-22
+	}catch(err){
+	}
+	//-->
+</script>	
+
+<script language="javascript">
+<!--
+adjustListContainer();
+
+
+Ac360.attachEvent(document,'onreadystatechange',fnStartInit);
+
+var pageFocusd = false;
+function fnStartInit()
+{	
+	try{
+		if (document.readyState=="complete")
+		{
+			var fromPortal = isFromJetspeed();
+
+			if(!pageFocusd && (!fromPortal || ((typeof(top.finishLoading) == "undefined") || top.finishLoading)) || window.name.indexOf("ifr_popup") > -1)
+			{
+				focusInputableElement(document);
+				pageFocusd = true;
+			}
+			if(top.finishLoading && !top.setGlobalFocus)
+			{
+				top.jetspeedOnLoad();
+			}
+		}
+	}catch(E){
+		focusInputableElement(document);
+	}
+}
+
+	//-->	
+</script>
+
+		<script language="JavaScript1.2" defer>
+
+			<!--
+			try
+			{
+				if(onAfterLoad!=null && onAfterLoad!="undefined")
+				{
+					onAfterLoad();
+				}
+			}catch(E){}
+			
+
+
+     
+			//-->
+			
+			
+			
+		</script>		
+           
+	</body>
+	<noscript>
+		Do not support the scripting.
+	</noscript>
+	<!--  %@ include file="timeout.jsp" %-->
+</html>
+	
+	<script type="text/javascript" src="/portlets/framework/includes/javascript/layoutPublic.js"></script>
+	<script language="JavaScript">
+	<!--
+	if(doNavigation)
+	{
+		window.setTimeout(doNavigation,350);
+		if(isClear)
+		{
+			clearNavigation();
+			frameElement.scrollIntoView(true);
+		}		
+	}
+
+	try
+	{
+		//execute script from create new for ajax  
+		if (parent.isAjaxRefreshNavScript && typeof(parent.navScript) != 'undefined' && parent.navScript != null && parent.navScript != "" )
+		{
+			eval(parent.navScript);
+			parent.isAjaxRefreshNavScript = false;
+		}
+	}
+	catch(e){}
+
+
+//------------------reset readonly style begin----------------------------
+	readOnlyObj.resetReadOnly();
+//------------------reset readonly style end------------------------------
+//------------------reset session time out--------------------------------
+if (top && top.setTimeoutTimer)
+{
+	top.sessionTimeOutWarnObj.renewSession();
+	top.setTimeoutTimer();
+}
+
+//------------------reset session time out--------------------------------
+//------------------reset bellow height begin-----------------------------
+//tabHandle.resizeTab();
+//scrollBarIssue.init();
+//------------------reset bellow height end--------------------------------
+	//-->
+	</script>
+
+
+
+
+
+
+

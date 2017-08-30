@@ -1,0 +1,11 @@
+[t518]
+FileName1=t518.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/owner/refOwnerForm.do?mode=viewCondition&module=Building&refOwnerNumber=927284289
+Total=1
+RequestHeaderFile=t518_RequestHeader.txt
+RequestBodyFile=t518_RequestBody.txt
+ResponseHeaderFile=t518_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_518.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,11 @@
+[t267]
+FileName1=t267_Map.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/Map.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_267.xml
+RequestHeaderFile=t267_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t267_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

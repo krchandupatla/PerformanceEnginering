@@ -1,0 +1,108 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .controller('SpaceController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($scope, spaceDetails, SpaceManager, $state, $log, PortletSessionStateService, $rootScope, ServerSessionService, SpaceConfiguration) {
+    $scope.spaceName = spaceDetails.routeName;
+    $scope.spaceDetails = spaceDetails;
+    $scope.spaceType = spaceDetails.spaceType || 'portlet';
+    $scope.containerName = spaceDetails.viewName.replace('@spaces', '');
+
+
+    if ($scope.spaceType === 'intake') { // use routes defined in "js/automation/record/module.js"
+      $state.go(spaceDetails.spaceState.name, spaceDetails.spaceState.params);
+    }
+
+    // this is a hack around the ui-router-extras sticky spaces, if
+    // we did not have this code, when you "re-open" a space, the old
+    // space contents would still be visible.
+    $scope.$on('$stateChangeSuccess', function (event, toState) {
+      if (toState.name === $scope.spaceName) {
+        $scope.spaceDetails = _.chain(SpaceManager.spaces)
+          .where({routeName: $scope.spaceName})
+          .first()
+          .value();
+
+        if ($scope.spaceDetails.portletSessionStateUpdateUrl) {
+          $rootScope.$broadcast('portlet-session-state-update:started');
+
+          if (SpaceConfiguration.sessionStateService === 'ServerSessionService') {
+            ServerSessionService.activate($scope.spaceName).then(function () {
+              $rootScope.$broadcast('portlet-session-state-update:completed');
+            });
+          } else {
+            PortletSessionStateService.update($scope.spaceDetails.portletSessionStateUpdateUrl).then(function () {
+              $rootScope.$broadcast('portlet-session-state-update:completed');
+            });
+          }
+        }
+      }
+    });
+
+    $scope.$on('$stateChangeStart', function (event, toState) {
+
+      if (toState.name === $scope.spaceName) {
+        $scope.spaceDetails = null;
+      }
+    });
+
+    $scope.$on('spaces:space-closed', function (event, closedSpace) {
+      if (closedSpace.routeName === $scope.spaceName) {
+        $scope.spaceDetails = {
+          spaceUrl: '/portlets/framework/includes/error/blank.jsp'
+        };
+        $scope.portletSessionStateUpdateUrl = null;
+
+        if (SpaceConfiguration.sessionStateService === 'ServerSessionService') {
+          ServerSessionService.end($scope.spaceName);
+        }
+      } else { // CAGAMMA-1166
+        if (SpaceConfiguration.sessionStateService === 'ServerSessionService') {
+          ServerSessionService.end(closedSpace.routeName);
+        }
+      }
+    });
+
+    $log = $log.getInstance('SPACE-CONTROLLER');
+
+    function tabLoaded(tabInfo) {
+      if ($scope.containerName !== tabInfo.container) {
+        return;
+      }
+
+      if (SpaceConfiguration.sessionStateService !== 'ServerSessionService') {
+        var updateInfo = PortletSessionStateService.getUpdateInfo($scope.spaceDetails, tabInfo.url);
+        if (updateInfo) {
+          $scope.$apply(function () {
+            $scope.spaceDetails.portletSessionStateUpdateUrl = updateInfo;
+          });
+        }
+      }
+
+      $scope.$apply(function () {
+        $rootScope.$broadcast('space-status:loaded');
+      });
+    }
+
+    function tabClicked() {
+      $scope.$apply(function () {
+        $rootScope.$broadcast('space-status:loading');
+      });
+    }
+
+    Accela.PortletInterface.register('tabLoaded', tabLoaded);
+    Accela.PortletInterface.register('tabClicked', tabClicked);
+
+    $scope.$on('$destroy', function (event) {
+      Accela.PortletInterface.unregister('tabLoaded', tabLoaded);
+      Accela.PortletInterface.unregister('tabClicked', tabClicked);
+      $log.info('destroyed');
+    });
+  }
+})();

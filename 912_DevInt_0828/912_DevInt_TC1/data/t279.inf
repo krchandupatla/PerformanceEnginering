@@ -1,0 +1,11 @@
+[t279]
+FileName1=t279_table-header-left-top-200-8.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/menu/table-header-left-top-200-8.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_279.xml
+RequestHeaderFile=t279_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t279_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

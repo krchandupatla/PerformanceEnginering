@@ -1,0 +1,11 @@
+[t477]
+FileName1=t477.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/cap/capsummary/CapTabSummary.do?mode=tabSummary&serviceProviderCode=FLAGSTAFF&ID1=17BLD&ID2=00000&ID3=00100&requireNotice=YES&clearForm=clearForm&module=Building&isFromCapList=true&isGeneralCAP=Y
+Total=1
+RequestHeaderFile=t477_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t477_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_477.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

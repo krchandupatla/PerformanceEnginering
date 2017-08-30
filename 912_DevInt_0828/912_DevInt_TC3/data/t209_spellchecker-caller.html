@@ -1,0 +1,166 @@
+//Accela Automation
+//File: spellchecker-caller.js
+//Accela, Inc.
+//Copyright (C): 2009-2010
+//
+//Description: This file needs to be included on the page 
+//that contains the fields that require spell checking.
+//
+//Notes:     
+//
+//Revision History:
+//2009-08-27, Kane Deng,  Initial Version.
+
+/*
+ * Function to be called by the form that requires spell checking.
+ *
+ * The caller should pass in an array of form elements that require spell checking.
+ */
+function startSpellCheck( baseUrl, /* Array of Form Elements */ elements, elemIndex)
+{
+    var params='?op=1';
+    for( var x = 0; x < elements.length; x++ )
+    {
+        var elementName = encodeURIComponent(elements[x].name);
+    	if(elemIndex == null || elemIndex == undefined)
+    	{
+    		elemIndex = 0;
+    	}
+    	params = params + '&element_' + x + '=getElementsByName(\''+ elementName + '\')['+ elemIndex +']';
+    }
+    
+    var languageInput = getObjectByIdOrName("portlet_language", 0);
+    if(languageInput)
+    {
+    	params = params + "&portlet_language=" + languageInput.value;
+    }
+    openCenteredWindow( baseUrl + 'spellchecker-entry.jsp' + params, 300, 200 );
+    
+}
+
+function getObjectByIdOrName(objName, i)
+{
+	var obj, index = 0;
+	if(i != null && i != undefined)
+	{
+		index = i;
+	}
+	var oArray = document.getElementsByName(objName);
+	if(oArray)
+	{
+		obj = oArray[index];
+	}
+	return obj;
+}
+
+/*
+ * get textarea object actual index in getElementsByName Array,
+ * because there are other objects with same name of the text area in one page, 
+ * we can not add the spell check logic to these objects.
+ * 
+ */
+function getTextareaIndex(objName, elemIndex)
+{
+	if(elemIndex  == null || elemIndex == undefined)
+	{
+		elemIndex = 0;
+	}
+	var textareaIndex = 0;
+	var oArray = document.getElementsByName(objName);
+	if(oArray)
+	{
+		for(var i=0; i<oArray.length; i++)
+		{
+			var obj = oArray[i];
+			if(obj.tagName == 'TEXTAREA')
+			{
+				if(textareaIndex == elemIndex)
+				{
+					return i;
+				}
+				textareaIndex ++ ;
+			}
+		}
+	}
+	return null;
+}
+
+function doSpellCheck(baseUrl, textareaName)
+{
+	var elemIndex;
+	var objName = textareaName;
+	var names  = textareaName.split('_SpellCheckerTextareaObjectArrayIndex_');
+	if (names.length > 1)
+	{
+		objName   = names[0];
+		elemIndex = names[1];
+	}
+	var elements = new Array(0);
+	elemIndex = getTextareaIndex(objName, elemIndex);
+	elements[elements.length] = getObjectByIdOrName(objName, elemIndex);
+	startSpellCheck(baseUrl, elements, elemIndex);
+}
+
+/*
+ * Finds the index of the form in the document.forms collection.
+ * 
+ * This is necessary because you can not get the form name from form.name if
+ *  there is a field in that form called name.
+ */
+function getFormsNumber( form )
+{
+    var forms = document.forms;
+    for( var x = 0; x < forms.length; x++ )
+    {
+        if( forms[x] == form )
+            return x;
+    }
+    
+    return -1; // Form not found
+}
+
+
+/*
+ * Function to open a window in the middle of the current window.
+ *
+ */
+function openCenteredWindow( url, width, height )
+{
+    var left = 0;
+    var top = 0;
+
+    var topDoc = getTopDocument();
+    if (window.ActiveXObject || "ActiveXObject" in window)
+    {	
+      top = topDoc.parentWindow.screenTop + (topDoc.body.clientHeight/2) - (height/2);
+      left = topDoc.parentWindow.screenLeft + (topDoc.body.clientWidth/2) - (width/2);
+    }
+    else
+    {
+      top = topDoc.screenY + (window.outerWidth/2) - (height/2);
+      left = topDoc.screenX + (window.outerHeight/2) - (width/2);
+    }
+    var newWin = window.open( url,"spellcheckerwindow","height=" + (height) + ",width=" + (width) +",left=" +left+",top="+top+",location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=yes,toolbar=no");
+    return newWin;
+}
+
+/**
+ * get the parent window document.
+ * @returns
+ */
+function getTopDocument()
+{
+  var win = window, preWin, topDocument;
+  try 
+  {
+	  while(win && win != preWin) 
+	  {
+		  topDocument = win.document;
+		  preWin = win;
+		  win = win.parent;
+	  }
+  } catch(e) {
+	  return topDocument;
+  }
+  return topDocument;
+}

@@ -1,0 +1,116 @@
+{
+  "result": {
+    "taskTypes": [
+      {
+        "id": "INSPECTION",
+        "label": "Inspection",
+        "subTypes": [
+          {
+            "id": "HOME_INSPECTION",
+            "label": "Home Inspection",
+            "statusList": [
+              { "id": "APPROVED", "label": "Pass" },
+              { "id": "APPROVED", "label": "Partial Approval" },
+              { "id": "DENIED", "label": "Failed" },
+              { "id": "PENDING", "label": "In Pending" }
+            ]
+          },
+          {
+            "id": "SEWER_INSPECTION",
+            "label": "Sewer Inspection",
+            "statusList": [
+              { "id": "APPROVED", "label": "Pass" },
+              { "id": "APPROVED", "label": "Partial Approval" },
+              { "id": "DENIED", "label": "Failed" },
+              { "id": "PENDING", "label": "In Pending" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "WORKFLOW",
+        "label": "Workflow",
+        "subTypes": [
+          {
+            "id": "APPLICATION_ACCEPTANCE",
+            "label": "Application Acceptance",
+            "statusList": [
+              { "id": "ACCEPTED - REVIEW FEE NOT REQ", "label": "Accepted - Review Fee Not Req" },
+              { "id": "APPLICATION ACCEPTED", "label": "Application Accepted" },
+              { "id": "PLAN REVIEW DEPOSIT NOT REQ", "label": "Plan Review Deposit Not Req" },
+              { "id": "PLAN REVIEW DEPOSIT PAID", "label": "Plan Review Deposit Paid" }
+            ]
+          },
+          {
+            "id": "UTILITY_APPLICATION",
+            "label": "Utility Application",
+            "statusList": [
+              { "id": "GENERATED", "label": "Generated" },
+              { "id": "NOT REQUIRED", "label": "Not Required" },
+              { "id": "PENDING", "label": "Pending" }
+            ]
+          },
+          {
+            "id": "BUILDING_REVIEW",
+            "label": "Building Review",
+            "statusList": [
+              { "id": "APPROVED", "label": "Approved" },
+              { "id": "ASSIGNED TO PAUL BANKEN", "label": "Assigned to Paul Banken" },
+              { "id": "ASSIGNED TO SHAUNNA MOZINGO", "label": "Assigned to Shaunna Mozingo" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "DOCUMENT",
+        "label": "Document",
+        "statusList": [
+          { "id": "APPROVED", "label": "Approved" },
+          { "id": "DENIEND", "label": "Deniend" },
+          { "id": "PENDING", "label": "Pending" }
+        ]
+      },
+      {
+        "id": "MEETING",
+        "label": "Meeting",
+        "subTypes": [
+          {
+            "id": "AMS_BIDDING",
+            "label": "AMS BIDDING",
+            "statusList": [
+              { "id": "DENIED", "label": "Deferred" },
+              { "id": "APPROVED", "label": "Meeting Complete" },
+              { "id": "PENDING", "label": "REVIEW" }
+            ]
+          },
+          {
+            "id": "BUILDING_BIDDING",
+            "label": "building bidding",
+            "statusList": [
+              { "id": "DENIED", "label": "Deferred" },
+              { "id": "APPROVED", "label": "Meeting Complete" },
+              { "id": "PENDING", "label": "REVIEW" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ACTIVITY",
+        "label": "Activity",
+        "statusList": [
+          { "id": "NOTSTARTED", "label": "Not Started" },
+          { "id": "PROCESS", "label": "In Process" },
+          { "id": "COMPLETED", "label": "Completed" },
+          { "id": "WAITING", "label": "Waiting" },
+          { "id": "DEFERRED", "label": "Deferred" }
+        ],
+        "subTypes": [
+          { "id": "BASE_ACTIVITY_TYPE", "label": "Base Activity Type" },
+          { "id": "BASE_PARCEL_ACTIVITY_TYPE", "label": "Base Parcel Activity Type" },
+          { "id": "BASE_OWNER_ACTIVITY_TYPE", "label": "Base Owner Activity Type" },
+          { "id": "WAITING", "label": "Waiting" }
+        ]
+      }
+    ]
+  }
+}

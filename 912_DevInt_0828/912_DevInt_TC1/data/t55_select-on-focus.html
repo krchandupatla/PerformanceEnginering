@@ -1,0 +1,22 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('aaSelectOnFocus', function($timeout) {
+      return {
+        restrict: 'A',
+        link: function(scope, element, attrs) {
+          function setFocus() {
+            element[0].select();
+          }
+          element.bind('focus', function() {
+            $timeout(setFocus, 100, false); // 10ms delay caused IE to focus/select then lose focus
+          });
+          element.bind('$destroy', function() {
+            element.unbind('focus', setFocus);
+          });
+        }
+      };
+  });
+})();

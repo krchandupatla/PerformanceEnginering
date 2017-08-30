@@ -1,0 +1,11 @@
+[t541]
+FileName1=t541.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/professional/ref/refProfessionalList.do?mode=quickQuery&lookup=false
+Total=1
+RequestHeaderFile=t541_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t541_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_541.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,763 @@
+(function (global) {
+  'use strict';
+
+  /**
+   * Block this method because it messes up our portlet slideout when expanding the Inspection Calendar.
+   */
+  global.windowSize = function () {
+    //console.log('windowSize() called');
+  };
+
+  /**
+   * Provide DOM helper methods
+   */
+  global.$id = function (id) {
+    return document.getElementById(id);
+  };
+
+  global.$el = function (selector, domElement) {
+    var element = domElement || document;
+    return element.querySelector(selector);
+  };
+
+  global.$all = function (selector, domElement) {
+    var element = domElement || document;
+    return element.querySelectorAll(selector);
+  };
+
+  global.$ = function (selector, domElement) {
+    var results = angular.element($all(selector, domElement));
+    return results.length ? results : results[0];
+  };
+
+  angular.element.prototype.$ = function (selector) {
+    return $(selector, this[0]);
+  };
+
+  String.prototype.format = function() {
+    return vsprintf(this, Array.prototype.slice.apply(arguments));
+  };
+
+  String.prototype.wtf = function() {
+    var args = Array.prototype.slice.apply(arguments);
+    return vsprintf(this, args);
+  };
+
+  if (!global.Accela) {
+    global.Accela = (function () {
+      var settings = {};
+
+      function init(options) {
+        settings = angular.extend(settings, options);
+
+        matchBrowser();
+      }
+
+      function matchBrowser() {
+        var tem;
+        var ua = navigator.userAgent;
+        var M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*([\d\.]+)/i) || [];
+
+        if (/trident/i.test(M[1])) {
+          tem = /\brv[ :]+(\d+(\.\d+)?)/g.exec(ua) || [];
+          return 'IE ' + (tem[1] || '');
+        }
+
+        M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
+
+        if ((tem = ua.match(/version\/([\.\d]+)/i)) !== null) {
+          M[2] = tem[1];
+        }
+
+        settings.browser = M[0];
+        settings.browserVersion = M[1];
+      }
+
+      /**
+       * Create a module within the namespace
+       * usage: var foo = Accela.module("xxx.yyy", { foo: 'bar' });
+       * usage: var foo = Accela.module("xxx.yyy", function() {...});
+       * then you can reference Accela.xxx.yyy
+       */
+      function module(name, value) {
+        return _.set(this, name, value); // jshint ignore:line
+      }
+
+      // PUBLIC interface
+
+      return {
+        init: init,
+        module: module,
+        settings: settings,
+        STATUS: { // used by backend API responses
+          ERROR: 'ERROR',
+          SUCCESS: 'SUCCESS'
+        },
+        translations: {},
+        animationDelay: Modernizr.csstransitions ? 350 : 0 // same as css transition duration
+      };
+    })();
+  }
+
+  Accela.module('DOM', (function () {
+    var clickOutsideHandlers = {};
+
+    /**
+     * Determine whether click event is outside of an area.
+     *
+     * Bounding rect includes margin and padding...
+     *
+     * When calling triggerHandler('click'), clientX and clientY values are <= 0
+     * so don't consider these to be outside.
+     */
+    function isClickOutsideOf(element, evt) {
+      var rect, outside;
+
+      if (element) {
+        rect = element[0].getBoundingClientRect();
+
+        outside = {
+          left: evt.clientX <= 0 ? false : evt.clientX < rect.left,
+          right: evt.clientX <= 0 ? false : evt.clientX > rect.right,
+          top: evt.clientY <= 0 ? false : evt.clientY < rect.top,
+          bottom: evt.clientY <= 0 ? false : evt.clientY > rect.bottom
+        };
+
+        return (outside.left || outside.right || outside.top || outside.bottom);
+      } else {
+        return false;
+      }
+    }
+
+    /**
+     * Get access to nested iframes.
+     *
+     * usage: Accela.DOM.portletQuerySelector('#dataForm->table[id^="elementTableContainer"]');
+     * usage: Accela.DOM.portletQuerySelector('#capForm->#menuFrame->#documentDetail->#assignList');
+     */
+    function portletQuerySelector(selectors, rootSelector) {
+      var el = $el(rootSelector || '#iframe-page-container');
+
+      selectors.split('->').forEach(function (s) {
+        if (el) {
+          el = el.contentDocument.querySelector(s);
+        }
+      });
+
+      return el;
+    }
+
+    return {
+      portletQuerySelector: portletQuerySelector,
+      isClickOutsideOf: isClickOutsideOf,
+      ClickOutsideHandlers: {
+        execute: function (evt) {
+          var handler;
+          var isOutside = false;
+
+          for (var id in clickOutsideHandlers) {
+            if (clickOutsideHandlers.hasOwnProperty(id)) {
+              handler = clickOutsideHandlers[id];
+
+              for (var i = 0; i < handler.selectors.length; i++) {
+                if (!isOutside) {
+                  isOutside = isClickOutsideOf($(handler.selectors[i]), evt);
+                }
+              }
+
+              if (isOutside) {
+                if (handler.callback && typeof handler.callback === 'function') {
+                  handler.callback();
+                }
+              }
+            }
+          }
+        },
+        register: function (handler) {
+          setTimeout(function () {
+            clickOutsideHandlers[handler.id] = handler;
+          }, 100);
+        },
+        unregister: function (handler) {
+          setTimeout(function () {
+            delete clickOutsideHandlers[handler.id];
+          }, 100);
+        }
+      }
+    };
+  })());
+
+  Accela.module('PortletInterface', (function () {
+    var tabs = [];
+    var listeners = {
+      tabClicked: [],
+      tabLoaded: [],
+      events: []
+    };
+
+    function bindTabClick(elements) {
+      tabs = elements;
+
+      for (var i = 0; i < tabs.length; i++) {
+//        console.log('bindTabClick(' + i + ')');
+        tabs[i].addEventListener('click', tabClicked);
+      }
+    }
+
+    function unbindTabClick() {
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].removeEventListener('click', tabClicked);
+      }
+    }
+
+    function tabClicked(evt) {
+      var tabName = evt.target.text;
+      angular.forEach(listeners.tabClicked, function (fn) {
+        fn(tabName);
+      });
+    }
+
+    function tabLoaded(tabName) {
+      angular.forEach(listeners.tabLoaded, function (fn) {
+        fn(tabName);
+      });
+    }
+
+    function eventPropagation(event) {
+      angular.forEach(listeners.events, function (fn) {
+        fn(event);
+      });
+    }
+
+    return {
+      bindTabClick: bindTabClick,
+      tabClicked: tabClicked,
+      tabLoaded: tabLoaded,
+      event: eventPropagation,
+      register: function (id, fn) {
+        if (typeof listeners[id] !== 'undefined') {
+          if (listeners[id].indexOf(fn) === -1) {
+			  if('event'===eventPropagation && listeners[id].length>0){
+				  return;
+			  }
+            listeners[id].push(fn);
+          }
+        }
+      },
+      unregister: function (id, fn) {
+        var index;
+        if (typeof listeners[id] !== 'undefined') {
+          index = listeners[id].indexOf(fn);
+          if (index >= 0) {
+            listeners[id].splice(index, 0);
+            if (id === 'tabClick') {
+              unbindTabClick();
+            }
+          }
+        }
+      }
+    };
+  })());
+
+  Accela.module('Util', (function () {
+
+    var windowRefs = [];
+
+    /**
+     * Determine whether object exists or is empty.
+     */
+    function isEmpty(obj) {
+      var empty = false;
+
+      if (obj) {
+        if (angular.isDefined(obj)) {
+          if (angular.isArray(obj)) {
+            empty = angular.equals([], obj);
+          } else if (angular.isObject(obj)) {
+            empty = angular.equals({}, obj);
+          }
+        } else {
+          empty = true;
+        }
+      } else {
+        empty = true;
+      }
+
+      return empty;
+    }
+
+    /**
+     * Serialize an object to a JSON string
+     * for get parameters like: mode=doManage&doPending=true
+     */
+    function json2str(obj) {
+      var arr = [];
+
+      var fmt = function (s) {
+        if (typeof s === 'object' && s !== null) {
+          return json2str(s);
+        }
+        return s;
+      };
+
+      for (var field in obj) {
+        arr.push(field + '=' + fmt(obj[field]));
+      }
+
+      return arr.join('&');
+    }
+
+    function openPopup(name, url) {
+      var width = document.documentElement.clientWidth - 150;
+      var height = document.documentElement.clientHeight - 150;
+      var features = 'top=120,left=120,width=%s,height=%s,location=no,menubar=no,toolbar=no,scrollbars=yes,resizable=yes';
+
+      openWindow(url, name, sprintf(features, width, height));
+    }
+
+    function closeWindow(url) {
+      var w = windowRefs[url] || null;
+      if (w) {
+        try {
+          w.close();
+          w = null;
+        } catch (ignore) {}
+      }
+    }
+
+    function openWindow(url, name, features) {
+      closeWindow(url);
+      windowRefs[url] = window.open(url, name || '_blank', features || '');
+    }
+
+    function showI18NHelp(helpID) { // modified from "ui/portlets/docs/AAHELP.js"
+      var content = Accela.XHR.getHelpData(helpID);
+      if (content.length > 0) {
+    	  var contentArray = content.split(',');
+    	  var contextId = contentArray[0];
+    	  var docsWar = contentArray[1];
+     	
+    	  var url = docsWar + '/docs/index.html?contextId=' + contextId;
+    	  return window.open(url, 'newwin', 'width=830,height=540,scrollbars=yes,resizable=no,toolbar=no,status=no,menubar=no,top=150,right=300');
+        }
+      
+    }
+
+    return {
+      isEmpty: isEmpty,
+      json2str: json2str,
+      openPopup: openPopup,
+      openWindow: openWindow,
+      showI18NHelp:  showI18NHelp,
+      /**
+       * Append querystring to an existing url.
+       */
+      appendQuerystring: function (url, params) {
+        return url + (url.indexOf('?') === -1 ? '?' : '&') + json2str(params);
+      },
+      getFirstProperty: function (obj) {
+        return obj[Object.keys(obj)[0]];
+      },
+      isNotEmpty: function (obj) {
+        return !isEmpty(obj);
+      },
+      /**
+       * Nullable toUpperCase.
+       */
+      toUpperCase: function (str) {
+        return (str || '').toUpperCase();
+      }
+    };
+  })());
+
+  Accela.module('XHR', (function () {
+
+    /**
+     * Used for sending error details to the server
+     * and for unit testing with mock data.
+     */
+    function createXHRObject() {
+      try {
+        return new XMLHttpRequest();
+      } catch (ex) {
+        try {
+          return new ActiveXObject('Msxml2.XMLHTTP');
+        }
+        catch (ex) {
+          try {
+            return new ActiveXObject('Microsoft.XMLHTTP');
+          } catch (ex) {
+            throw new Error('No XHR object found in this environment.');
+          }
+        }
+      }
+    }
+
+    return {
+      /**
+       * Make synchronous request to load help file
+       */
+      getHelpData: function (helpID) {
+        var data = null;
+        var xhr = createXHRObject();
+        var url = '/portlets/menu/menuForm.do?value(mode)=helpid&helpId=' + helpID;
+
+        xhr.open('POST', url, false);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send(null);
+
+        if (xhr.status === 200) {
+          data = xhr.responseText;
+        }
+
+        return data;
+      },
+      /**
+       * Make synchronous request to load json files
+       * defined in karma.conf.js under "files: [ { pattern : } ]"
+       */
+      getMockData: function (serviceUrl) {
+        var data = {};
+        var xhr = createXHRObject();
+
+        xhr.open('GET', 'base/' + serviceUrl, false); // 'base/' prefix required to locate files
+        xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+        xhr.send(null);
+
+        if (xhr.status === 200) {
+          data = angular.fromJson(xhr.responseText);
+        }
+
+        return data;
+      },
+      /**
+       * Make async request to send log details to server
+       */
+      post: function (url, logData, accesskey) {
+        var xhr = createXHRObject();
+
+        xhr.open('POST', url, true); // async request
+        xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+
+        if (accesskey) {
+          xhr.setRequestHeader('accesskey', accesskey);
+        }
+
+        xhr.send(JSON.stringify(logData));
+      }
+    };
+  })());
+
+  Accela.module('PortletNavigation', (function () {
+    var _maxSpinnerDurationInSeconds = 30;
+    return function () {
+      var _window, _history, _document, _portletInterface, _portletDetails, _currentFrame, _initialLoadCompleted, _container;
+
+      function showList() {
+        if (_history.length > 1) {
+          _history.pop();
+        }
+
+        _currentFrame = _history[_history.length - 1];
+        showFrame();
+        _portletInterface.tabLoaded('');
+      }
+
+      function convertNodeListToArray(nodeList) {
+        var arr = [];
+        for (var i = 0, ref = arr.length = nodeList.length; i < ref; i++) {
+          arr[i] = nodeList[i];
+        }
+        return arr;
+      }
+
+      function addHistoryItem(name) {
+        var itemExists = _.any(_history, function (item) {
+          return item === name;
+        });
+
+        if (!itemExists) {
+          _history.push(name);
+        }
+      }
+
+      function getCurrentContainer() {
+        var containerNode = _.get(_window, '.frameElement.parentElement.parentElement.parentElement');
+        if (!containerNode) {
+          containerNode = _window.top.document.querySelector('iframe').parentElement.parentElement.parentElement;
+        }
+        
+        return containerNode ? containerNode.getAttribute('ui-view') : null;
+      }
+
+      function showFrame() {
+        _portletDetails.frames.forEach(function (frameToHide) {
+          if (_document.getElementById(frameToHide)) {
+            _document.getElementById(frameToHide).style.display = 'none';
+          }
+        });
+
+        var currentFrameElement = _document.getElementById(_currentFrame);
+        currentFrameElement.style.display = 'block';
+
+        if(_portletDetails.alsoOpen) {
+          _portletDetails.alsoOpen.forEach(function(alsoOpen) {
+            if(alsoOpen.when === _currentFrame) {
+              var alsoOpenFrame = _document.getElementById(alsoOpen.then);
+              alsoOpenFrame.style.display = 'block';
+            }
+          });
+        }
+
+        addHistoryItem(_currentFrame);
+      }
+
+      function showFrameExternal(frameName) {
+        _currentFrame = frameName;
+        showFrame();
+      }
+
+      function setLoadingStatus(status) {
+        if (status === 'loading') {
+          _document.documentElement.classList.add('portlet-loading');
+        }
+        else {
+          _document.documentElement.classList.remove('portlet-loading');
+        }
+      }
+
+      function determineIfNavigatedFromList(frameName, doc) {
+        var shouldShowBackNavigation = _history.length > 1;
+        if (shouldShowBackNavigation) {
+          var header = doc.querySelector('.header');
+          if (header) {
+            header.classList.add('from-list');
+          }
+        }
+      }
+
+      function getAllFramesOnThePage() {
+        return convertNodeListToArray(_document.querySelectorAll('iframe')).map(function (frame) {
+          return frame.id;
+        });
+      }
+
+      // this allows us to attach click handlers to show specific frames based on the config passed in.
+      function attachCustomClickHandlers(nameOfFrame) {
+        if (!_portletDetails.clickHandlers) {
+          return;
+        }
+
+        _portletDetails.clickHandlers.forEach(function (clickHandler) {
+          var handlerElements = convertNodeListToArray(_document.getElementById(nameOfFrame)
+            .contentDocument
+            .querySelectorAll(clickHandler.selector));
+
+          handlerElements.forEach(function (handlerElement) {
+            handlerElement.addEventListener('click', function () {
+              _currentFrame = clickHandler.targetFrame;
+              showFrame();
+            });
+          });
+        });
+      }
+
+      function getFrameCurrentUrl(frameName) {
+        var frameElement = _document.getElementById(frameName);
+        return frameElement.contentDocument.URL;
+      }
+
+      var init = function (_window_, _document_, _history_, _portletInterface_, _portletDetails_) {
+        _window = _window_;
+        _document = _document_;
+        _portletInterface = _portletInterface_;
+        _portletDetails = _portletDetails_;
+        _history = [];
+        _initialLoadCompleted = false;
+
+        _portletDetails.frames = getAllFramesOnThePage();
+        _container = getCurrentContainer();
+
+        _currentFrame = _portletDetails.initial;
+        showFrame(_portletDetails.initial);
+
+        var initialFrameLoadingTimer = setTimeout(function () {
+          setLoadingStatus('loaded');
+        }, (_maxSpinnerDurationInSeconds * 1000));
+
+        setLoadingStatus('loading');
+
+        // for each frame on the page
+        _portletDetails.frames.forEach(function (frameName) {
+
+          // each frame loaded event
+          _document.getElementById(frameName).addEventListener('load', function () {
+
+            determineIfNavigatedFromList(frameName, this.contentDocument);
+
+            if (frameName === _portletDetails.initial) {
+              setLoadingStatus('loaded');
+              clearTimeout(initialFrameLoadingTimer);
+
+              var currentFrameUrl = getFrameCurrentUrl(_currentFrame);
+              _portletInterface.tabLoaded({
+                url: currentFrameUrl,
+                container: _container
+              });
+
+              // there is some legacy code that shows frames, which doesn't play nicely with
+              // our this code, so we allow our consumers to hide a specific frame after
+              // the initial page loads
+              if (_portletDetails.frameToHideAfterInitialLoad) {
+                setTimeout(function () {
+                  if (!_initialLoadCompleted) {
+                    _document.getElementById(_portletDetails.frameToHideAfterInitialLoad).style.display = 'none';
+                    _initialLoadCompleted = true;
+                  }
+                }, 1);
+              }
+            }
+
+            var otherFrames = _portletDetails.frames.filter(function (frame) {
+              return frame !== frameName;
+            });
+
+            //for each other frame
+            otherFrames.forEach(function (frame) {
+
+              // get a list of links with target set to the current other frame
+              var anchorList = convertNodeListToArray(_document.getElementById(frameName)
+                .contentDocument
+                .querySelectorAll('a[target="' + frame + '"]'));
+
+              anchorList.forEach(function (anchor) {
+                if (!(anchor.hasAttribute('title') && anchor.getAttribute('title') === 'SuperAgency')) {
+                  anchor.addEventListener('click', function () {
+                    _currentFrame = frame;
+                    _portletInterface.tabClicked({
+                      target: {
+                        text: _currentFrame
+                      }
+                    });
+
+                    var frameLoadingTimer = setTimeout(function () {
+                      showFrame();
+                      setLoadingStatus('loaded');
+                    }, (_maxSpinnerDurationInSeconds * 1000));
+
+                    setLoadingStatus('loading');
+
+                    // when the frame is loaded
+                    _document.getElementById(frame).addEventListener('load', function () {
+                      if (frame === _currentFrame) {
+                        clearTimeout(frameLoadingTimer);
+
+                        var defaultUrl = '/portlets/framework/includes/error/blank.jsp';
+                        var currentFrameUrl = getFrameCurrentUrl(frame);
+                        var isCurrentUrlTheDefaultUrl = currentFrameUrl.indexOf(defaultUrl) >= 0;
+
+                        if (isCurrentUrlTheDefaultUrl) {
+                          _currentFrame = _portletDetails.initial;
+                        }
+
+                        _portletInterface.tabLoaded({
+                          url: currentFrameUrl,
+                          container: _container
+                        });
+
+                        showFrame();
+                        setLoadingStatus('loaded');
+                        determineIfNavigatedFromList(frameName, this.contentDocument);
+                        attachCustomClickHandlers(frame);
+                      }
+                    });
+                  });
+                }
+              });
+
+              attachCustomClickHandlers(frameName);
+            });
+
+            showFrame();
+          });
+
+        });
+      };
+      return {
+        init: init,
+        showList: showList,
+        showFrame: showFrameExternal
+      };
+    };
+  })());
+
+  Accela.module('Bootstrapper', (function () {
+
+    /**
+     * Send data requests for deferredBootstrapper.
+     */
+
+    function getAgencySwitchConfig($http, $q) { // for agency switch ddl
+      var deferred = $q.defer();
+      var endPoint = AccelaConfig.USE_MOCK_SERVICES ? 'mockEndPoint' : 'endPoint';
+      var serviceUrl = AccelaConfig.SERVICES.AGENCY.SWITCH_LIST[endPoint];
+      var url = (AccelaConfig.USE_MOCK_SERVICES ? '' : AccelaConfig.API_URL) + serviceUrl;
+
+      $http.get(url).then(function(response) {
+        deferred.resolve(response.data.result);
+      });
+
+      return deferred.promise;
+    }
+
+    function getAgencyTabConfig($http, $q) { // for dashboard tabs
+      var deferred = $q.defer();
+      var endPoint = AccelaConfig.USE_MOCK_SERVICES ? 'mockEndPoint' : 'endPoint';
+      var serviceUrl = AccelaConfig.SERVICES.AGENCY.TAB_LIST[endPoint];
+      var url = (AccelaConfig.USE_MOCK_SERVICES ? '' : AccelaConfig.API_URL) + serviceUrl;
+
+      $http.get(url).then(function(response) {
+        AccelaConfig.CurrentAgency = { name: response.data.result.loginUserModel.serviceProviderCode };
+
+        deferred.resolve(response.data.result);
+      });
+
+      return deferred.promise;
+    }
+
+    function getI18NConfig($http, $q) {
+      var deferred = $q.defer();
+      var set, key, request = {};
+      var template = 'AANewUX_%s_%s';
+      var endPoint = AccelaConfig.USE_MOCK_SERVICES ? 'mockEndPoint' : 'endPoint';
+      var serviceUrl = AccelaConfig.SERVICES.I18N.LOCALIZED_TEXT[endPoint] + '?mode=localizedText';
+      var url = (AccelaConfig.USE_MOCK_SERVICES ? '' : AccelaConfig.API_URL) + serviceUrl;
+
+      function addKey(str) {
+        request[sprintf(template, set, str.split('|')[0])] = '';
+      }
+
+      for (set in AccelaConfig.i18nKeys) {
+        if (AccelaConfig.i18nKeys.hasOwnProperty(set)) {
+          AccelaConfig.i18nKeys[set].forEach(addKey);
+        }
+      }
+
+      $http.post(url, request).then(function(response) {
+        deferred.resolve(response.data.result);
+      }, function(error) {
+        AccelaConfig.i18nError = sprintf('%s - %s', error.data, error.config.url);
+        deferred.resolve();
+      });
+
+      return deferred.promise;
+    }
+
+    return {
+      getAgencyTabConfig: getAgencyTabConfig,
+      getAgencySwitchConfig: getAgencySwitchConfig,
+      getI18NConfig: getI18NConfig
+    };
+  })());
+
+})(window);

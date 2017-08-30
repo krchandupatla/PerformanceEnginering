@@ -1,0 +1,11 @@
+[t39]
+FileName1=t39_ng-csv.min.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/bower_components/ng-csv/build/ng-csv.min.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_39.xml
+RequestHeaderFile=t39_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t39_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

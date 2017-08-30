@@ -1,0 +1,257 @@
+//Accela Automation
+//File: commonConditionUtil.js
+//Accela, Inc.
+//Copyright (C): 2009
+//
+//Description: For common condition javascript utility functions.
+//
+//Notes:
+//$Id: commonConditionUtil.js 126985 2009-04-14 02:34:51Z ACHIEVO\kane.deng $
+//
+//Revision History:
+
+function HashMap()
+{
+    // members
+    this.keyArray = new Array(); // Keys
+    this.valArray = new Array(); // Values
+        
+    // methods
+    this.put = HashMap_put;
+    this.get = HashMap_get;
+    this.size = HashMap_size;  
+    this.clear = HashMap_clear;
+    this.keySet = HashMap_keySet;
+    this.valSet = HashMap_valSet;
+    this.showMe = HashMap_showMe;   // returns a string with all keys and values in map.
+    this.findIt = HashMap_findIt;
+    this.remove = HashMap_remove;
+}
+
+function HashMap_put( key, val )
+{
+    var elementIndex = this.findIt( key );
+    
+    if( elementIndex == (-1) )
+    {
+        this.keyArray.push( key );
+        this.valArray.push( val );
+    }
+    else
+    {
+        this.valArray[ elementIndex ] = val;
+    }
+}
+
+function HashMap_get( key )
+{
+    var result = null;
+    var elementIndex = this.findIt( key );
+
+    if( elementIndex != (-1) )
+    {   
+        result = this.valArray[ elementIndex ];
+    }  
+    
+    return result;
+}
+
+function HashMap_remove( key )
+{
+    var result = null;
+    var elementIndex = this.findIt( key );
+
+    if( elementIndex != (-1) )
+    {
+        this.keyArray = this.keyArray.removeAt(elementIndex);
+        this.valArray = this.valArray.removeAt(elementIndex);
+    }  
+    
+    return ;
+}
+
+function HashMap_size()
+{
+    return (this.keyArray.length);  
+}
+
+function HashMap_clear()
+{
+    for( var i = 0; i < this.keyArray.length; i++ )
+    {
+        this.keyArray.pop(); this.valArray.pop();   
+    }
+}
+
+function HashMap_keySet()
+{
+    return (this.keyArray);
+}
+
+function HashMap_valSet()
+{
+    return (this.valArray);   
+}
+
+function HashMap_showMe()
+{
+    var result = "";
+    
+    for( var i = 0; i < this.keyArray.length; i++ )
+    {
+        result += "Key: " + this.keyArray[ i ] + "\tValues: " + this.valArray[ i ] + "\n";
+    }
+    return result;
+}
+
+function HashMap_findIt( key )
+{
+    var result = (-1);
+
+    for( var i = 0; i < this.keyArray.length; i++ )
+    {
+        if( this.keyArray[ i ] == key )
+        {
+            result = i;
+            break;
+        }
+    }
+    return result;
+}
+
+function HashMap_removeAt( index )
+{
+  var part1 = this.slice( 0, index);
+  var part2 = this.slice( index+1 );
+
+  return( part1.concat( part2 ) );
+}
+
+Array.prototype.removeAt = HashMap_removeAt;
+
+
+//Common condition update function, used for APO/LP/etc., except CAP
+function commonUpdateCondition(elementId, paras, the_url, optional_looplength_eval)
+{
+	//check if the condition column exists
+	if (checkUpdateCondition()!='true')
+	{
+		return false;
+	}
+	
+	//check if this page has forms and the id column exists
+	if (! (document.forms[0] && document.forms[0][elementId]) )
+	{
+		return false;
+	}
+
+	var para_keys = paras.keySet();
+	
+	var looplength = 0;
+	
+	if (!optional_looplength_eval)
+	{
+		looplength = document.forms[0][elementId].length-1;
+	}
+	else
+	{
+		looplength = eval(optional_looplength_eval);
+	}
+	
+	for(i=0; i<looplength; i++)
+	{
+		var para_values = new HashMap();
+		var remote_url = the_url;
+		
+		for (j=0; j<para_keys.length; j++)
+		{
+			//check if this is special handling - starts with elementId
+			if (para_keys[j].indexOf(elementId + ".") == 0)
+			{
+				var realKey = para_keys[j].substring(elementId.length + 1);
+				var theParaValue = eval(realKey);
+				para_values.put(paras.get(para_keys[j]), theParaValue);
+				
+				continue;
+			}
+			
+			//get value according to the form fields name
+			if (document.forms[0][para_keys[j]][i])
+			{
+				para_values.put(paras.get(para_keys[j]), document.forms[0][para_keys[j]][i].value);
+			}
+			else
+			{
+				para_values.put(paras.get(para_keys[j]), document.forms[0][para_keys[j]].value);
+			}
+		}
+		
+		//construct url parameters for invoking remote url
+		var para_values_keys = para_values.keySet();
+		
+		for (h=0; h<para_values_keys.length; h++)
+		{
+			if ( para_values.get(para_values_keys[h]) != "null" )
+			{
+				remote_url = remote_url + "&" + encodeURIComponent(para_values_keys[h]) + "=" + encodeURIComponent(para_values.get(para_values_keys[h]));
+			}
+		}
+		
+		remoteAccess(remote_url, handleConditionResult, document.forms[0])
+	}
+	
+	return false;	
+}
+
+
+//Common function for updating CAP condition
+function commonCapUpdateCondition()
+{
+	if (checkUpdateCondition()!='true')
+	{
+		return false;
+	}
+	var num = document.forms[0].ac360_list_id.length;
+	for (i = 0 ; i < num; i++)
+	{
+		var ind = document.forms[0].ac360_list_id[i].value;
+		var str_capID1 = "value(CAPID1," + ind + ")";
+		var capID1 = document.forms["0"].elements[str_capID1].value;
+		var str_capID2 = "value(CAPID2," + ind + ")";
+		var capID2 = document.forms["0"].elements[str_capID2].value;
+		var str_capID3 = "value(CAPID3," + ind + ")";
+		var capID3 = document.forms["0"].elements[str_capID3].value;
+		
+		var url = "/portlets/condition/capConditionList.do?mode=viewByCap&module=<%=CommonUtil.getCurrentModule(request)%>&capid1=" + encodeURIComponent(capID1) + "&capid2=" + encodeURIComponent(capID2) + "&capid3=" +encodeURIComponent(capID3) + "&idx=" + ind;
+		remoteAccess(url, handleConditionResult, document.forms["0"]);
+	}
+	
+	return false;
+}
+
+
+//update the condition column after receiving the contents from server side
+function handleConditionResult(data)
+{
+	var mix = data.split("@");
+	var condition = mix[0];
+	var idx = mix[1];
+	var condId = "condition" + idx;
+	
+	var allCon = document.getElementsByName(condId);
+	
+	if(allCon && allCon.length > 0)	{
+		for (i=0;i<allCon.length ;i++ )
+		{
+			allCon[i].innerText = condition;
+		}
+	} else {
+		var aCon = document.getElementById(condId);
+		
+		if(aCon){
+			aCon.innerText = condition;
+		}
+	}
+	
+	adjustListContainer();
+}	

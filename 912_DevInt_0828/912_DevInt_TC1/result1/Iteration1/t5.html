@@ -1,0 +1,373 @@
+
+
+
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+<!--
+.tblr 
+{
+	border: 1px dotted #999999;
+}
+.style1 
+{
+	font-size: 1.13em;
+	color: #003366;
+}
+.style2 
+{
+	font-size: 0.75em
+}
+.style3 
+{
+	font-size: 1.125em;
+	font-weight: bold;
+}
+.text {
+	font-family: Arial, Helvetica, Verdana, sans-serif;
+	font-size: 1.034em;
+	line-height: 15px;
+	color: #606264;
+}
+-->
+</style>
+
+
+<html>
+	<head>
+		<title>Accela Automation</title>
+		<link rel="stylesheet" href="https://use.typekit.net/c/2e9066/1w;proxima-nova,2,b5x:R:i4,b61:R:i7,b5w:R:n4,bBh:R:n7/l?3bb2a6e53c9684ffdc9a9af1195b2a62d69a4fbfbedecc7b6a1ca4a2f465fc6de1e789e0f31638c0f2c06cab515671a39937bdd0377dcc75d96fbefdaf06299c28ca55726044c37fd1" media="all">
+		<link rel="stylesheet" TYPE="text/css" HREF="includes/login.css">		
+		<script type="text/javascript" src="/portlets/framework/includes/javascript/dojo/dojo.js"></script>
+		<script type="text/javascript" src="javascript/sso.js"></script>
+		<script language="JavaScript">
+<!--
+			function setFocus()
+			{
+				adjustPwdLength();
+				var username = document.getElementById("username");
+				var password = document.querySelector("input[name=password]");
+				var servProvCode = "null";
+				if(servProvCode == null || servProvCode == 'null')
+				{
+					document.signonBean.servProvCode.value = document.signonBean.cookieAgencyName.value;
+					servProvCode = document.signonBean.servProvCode.value;
+				}
+				inputServProvCode(servProvCode);
+
+					document.signonBean.username.value = document.signonBean.cookieUserName.value;
+
+				if(document.signonBean.servProvCode.value=="")
+				{
+					document.signonBean.servProvCode.focus();
+				}
+				else if(document.signonBean.username.value == '')
+				{
+					document.signonBean.username.focus();
+				}
+				else
+				{
+					document.signonBean.password.focus();
+				}
+			}
+			
+			function getEnableCookiesFlag()
+			{
+
+				return navigator.preference("network.cookie.cookieBehavior");
+
+			}
+				
+			function adjustPwdLength()
+			{
+				var   objnav   =   window.navigator;
+				if(objnav.appMinorVersion==";SP2;" && objnav.appName=="Microsoft Internet Explorer" && objnav.platform=="Win32")
+				{
+					document.signonBean.password.size=30;  							
+				}
+				else if(objnav.appMinorVersion==";SP1;" && objnav.appName=="Microsoft Internet Explorer" && objnav.platform=="Win32")
+				{
+					document.signonBean.password.size=30;  							
+				}
+				else if(window.navigator.appVersion.substring(window.navigator.appVersion.indexOf("MSIE")+5,window.navigator.appVersion.indexOf("MSIE")+8) >=7.0 && 
+							objnav.appName=="Microsoft Internet Explorer" && objnav.platform=="Win32")
+				{						
+					document.signonBean.password.size=30;  							
+				}
+			}		
+			function checkInput()//Fixbug 34549
+			{
+				dojo.require("dojo.string");
+				document.signonBean.servProvCode.value=dojo.string.trim(document.signonBean.servProvCode.value);
+				document.signonBean.username.value=dojo.string.trim(document.signonBean.username.value);
+				return true;
+			}		
+//-->      
+		</script>
+
+	</head>
+	<body onLoad="setFocus()">
+		<form name="signonBean" method="post" action="/security/hostSignon.do?hostSignOn=true" onsubmit="return checkInput();">
+		<input type="hidden" name="action" value="signon">
+		<input type="hidden" name="successUrl" value="https://aa-pt6245.dev.accela.com:5443/portlets/spa/dashboard.do">
+		<input type="hidden" name="cookieUserName" value="">
+		<input type="hidden" name="cookieAgencyName" value="">
+		<input type="hidden" name="requestToken" value="1a303d47a74cd">
+		<input type="hidden" name="requestLanguageToken" value="1a4375bb20b5c" id="requestLanguageToken">
+		
+		<!--Add a hidden password field to avoid IE11 to remember the password, IE11 do not support 'autocomplete' attribute again. -->
+		<div style="display:none">
+				<input type="password" id="password1" name="password1"/>
+		</div>
+		
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td >
+					<table width="216" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+					<tr>
+						<td class="logo"><img src="images/accela_logo_v2.jpg" alt=""></td>
+					</tr>
+					
+					<tr>
+						<td><table width="216" border="0" cellspacing="0" cellpadding="0">
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							<tr class="login_form_spacer">
+								<td><img src="images/spacer.gif" alt="" width="16" height="16"></td>
+							</tr>
+							<tr>
+								<td class="login_form_spacer"><img src="images/spacer.gif" width="16" height="16" alt=""/></td>
+								<td><table width="182" border="0" cellspacing="0" cellpadding="0" id="login_form">
+									<tr>
+										<td bgcolor="f1f4f8" class="tblr"> 
+											<form><table width="182" border="0" cellpadding="0" cellspacing="0">
+												<tr id="login_bar">
+													<td colspan="3"><img src="images/login-bar.gif" width="182" height="30" alt=""/></td>
+												</tr>
+												<tr>
+													<td><p><img src="images/spacer.gif" width="8" height="8" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="166" height="12" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="8" height="8" alt=""></p></td>
+												</tr>
+												<tr>
+													<td>&nbsp;</td>
+													<td><p><strong class="form-label">Agency:</strong></p></td>
+													<td>&nbsp;</td>
+												</tr>
+												<tr>
+													<td>&nbsp;</td>
+													<td class="form-input"><input type="text" name="servProvCode" ID="servProvCode" size="30" value="" onchange="inputServProvCode(this.value);"></td>
+													<td>&nbsp;</td>
+												</tr>
+												<tr>
+													<td><img src="images/spacer.gif" width="8" height="8" alt=""></td>
+													<td><img src="images/spacer.gif" width="166" height="12" alt=""></td>
+													<td><img src="images/spacer.gif" width="8" height="8" alt=""></td>
+												</tr>
+												<tr>
+													<td><p>&nbsp;</p></td>
+													<td><p>
+													<label for="label9"><strong class="form-label">User Name:</strong></label>
+													</p></td>
+													<td><p>&nbsp;</p></td>
+												</tr>
+												<tr>
+													<td><p><img src="images/spacer.gif" width="8" height="2" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="166" height="2" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="8" height="2" alt=""></p></td>
+												</tr>
+												<tr>
+													<td><p>&nbsp;</p></td>
+													<td class="form-input"><input type="text" name="username" ID="username" size="30" value="" autocomplete='off'></td>
+													<td><p>&nbsp;</p></td>
+												</tr>
+												<tr>
+													<td><p><img src="images/spacer.gif" width="8" height="8" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="166" height="12" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="8" height="8" alt=""></p></td>
+												</tr>
+												<tr>
+													<td><p>&nbsp;</p></td>
+													<td><p> 
+													<label for="label10"><strong class="form-label">Password:</strong></label>
+													</p></td>
+													<td><p>&nbsp;</p></td>
+												</tr>
+												<tr>
+													<td><p><img src="images/spacer.gif" width="8" height="2" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="166" height="2" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="8" height="2" alt=""></p></td>
+												</tr>
+												<tr>
+													<td><p>&nbsp;</p></td>
+													<td class="form-input"><input type="password" name="password" size="30" value="" autocomplete='off'></td>
+													<td><p>&nbsp;</p></td>
+												</tr>
+												<tr>
+													<td><p><img src="images/spacer.gif" width="8" height="12" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="166" height="12" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="8" height="12" alt=""></p></td>
+												</tr>
+												
+												<tr id="langtr0" style="display:none">
+													<td><p>&nbsp;</p></td>
+													<td><p> 
+													<label for="label10" ><strong class="form-label">Language:</strong></label>
+													</p></td>
+													<td><p>&nbsp;</p></td>
+												</tr>
+												<tr id="langtr1" style="display:none">
+													<td><p><img src="images/spacer.gif" width="8" height="2" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="166" height="2" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="8" height="2" alt=""></p></td>
+												</tr>
+												<tr id="langtr2" style="display:none">
+													<td><p>&nbsp;</p></td>
+													<td class="form-input">
+														<SELECT name="accela_select_language" onchange="selectLanguage()" title="Language" style="visibility:hidden"></SELECT>
+														<input type="hidden" name="action" value="JSwitchLanguage"/>
+														<input type="hidden" name="switchLanguageForV360" value="false"/>
+													</td>
+													<td><p>&nbsp;</p></td>
+												</tr>
+													
+												<tr id="langtr3" style="display:none">
+													<td><p><img src="images/spacer.gif" width="8" height="12" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="166" height="12" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="8" height="12" alt=""></p></td>
+												</tr>
+												
+												<tr>
+													<td><p><img src="images/spacer.gif" width="8" height="24" alt=""></p></td>
+													<td>
+													
+														<input name="submit_" id="submit_" type="submit" alt="" value="Login">
+													</td>
+													<td><p><img src="images/spacer.gif" width="8" height="24" alt=""></p></td>
+												</tr>
+												<tr>
+													<td><p><img src="images/spacer.gif" width="8" height="12" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="166" height="12" alt=""></p></td>
+													<td><p><img src="images/spacer.gif" width="8" height="12" alt=""></p></td>
+												</tr>
+												
+												
+											</table></form>
+										</td>	
+									</tr>
+								</table></td>
+								<td><img src="images/spacer.gif " width="16" height="16" alt=""></td>
+							</tr>
+							<tr>
+								<td>&nbsp;</td>
+								<td>&nbsp;</td>
+								<td>&nbsp;</td>
+							</tr>
+						</table></td>
+					</tr>
+					<tr class="login_form_add_to_favorites">
+						<td>
+							<center>
+							<a class="text" style='cursor:hand;text-decoration:underline;' onclick="window.external.AddFavorite(parent.location.href,document.title);">
+							Add this page to your favorites
+							</a>
+							</center>
+						</td>
+					</tr>
+					<tr>
+						<td class="support_login">
+							<center>
+							<span class="text">Looking for <a href="https://na4.salesforce.com/secur/login_portal.jsp?orgId=00D300000000B1r&portalId=060600000004fKT" target = "_top">Support Login?</a></span>
+							</center>
+						</td>
+					</tr>
+				</table></td>
+			</tr>
+		</table>
+		</form>
+	</body>
+	
+	<script language="JavaScript">
+		<!--
+		dojo.require("dojo.json");
+		dojo.require("dojo.string");
+	    
+		function selectLanguage(){
+		    dojo.io.bind({
+				url: '/jetspeed/portal',
+				formNode: document.forms[0],
+				sync: true,
+				load: function(type, data){
+					document.forms[0].switchLanguageForV360.value='true';
+					document.forms[0].target = "_top";
+		    		document.forms[0].submit();
+				},
+			    error:function(type,error) {alert(error);} , 
+			    timeout: function(type) { alert("timeout"); }
+			});
+		}
+	          
+					
+		dojo.io.bind({
+		    url: '/security/getconfigs.do',
+		    formNode: document.forms[0],
+		    sync: true,
+		    load: function(type, data){
+				var object=dojo.json.evalJson(data);
+				if(object.I18N_SETTING_I18N_ENABLED){
+					document.forms[0].accela_select_language.style.visibility="";
+					document.getElementById("langtr0").style.display="";
+					document.getElementById("langtr1").style.display="";
+					document.getElementById("langtr2").style.display="";
+					document.getElementById("langtr3").style.display="";
+					for(i=0;i<object.I18N_AGENCY_LANGS.length;i++)
+					{
+						var option=new Option(object.I18N_AGENCY_LANGS[i][1],object.I18N_AGENCY_LANGS[i][0]);
+						document.forms[0].accela_select_language.options[i] = option;
+						
+						if(object.I18N_AGENCY_LANGS[i][0] == 'en_US')
+						{
+							object.SESSION_LANGUAGE='en_US';
+						}
+						
+						if(object.SESSION_LANGUAGE==object.I18N_AGENCY_LANGS[i][0]){
+							option.selected=true;
+						}
+					}
+				}
+		     },
+		    error:function(type,error) {
+			alert(error);
+			} ,
+		    timeout: function(type) {
+			alert("timeout");
+			}
+		});
+		
+		var directUrl;
+		
+
+			
+			
+			
+		
+		//-->
+	</script>
+</html>
+

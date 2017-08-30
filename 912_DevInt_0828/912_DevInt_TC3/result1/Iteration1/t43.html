@@ -1,0 +1,12403 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<!doctype html>
+    <html class="no-js" lang="en" dir="ltr" id="ng-app" ng-app="accela.automation" ng-strict-di="" xmlns:ng="http://angularjs.org">
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+	
+    <!--<link rel="stylesheet" href="/portlets/spa/styles/bootstrap/bootstrap.css" media="screen" />-->
+    <!--<link rel="stylesheet" href="styles/bootstrap/bootstrap-rtl.css" />-->
+    <script src="/portlets/spa/js/lib/showModalDialog.js"></script> 	
+    <script src="/portlets/spa/js/lib/windowCloseOverride.js"></script>
+
+<script language="JavaScript">
+var oldUI = false;
+var profile=new Object();
+profile.agency='FLAGSTAFF';
+profile.isEnabled508=false;
+profile.language='en_US';
+profile.theme='sky_blue';
+profile.enableSecurityDefense=false;
+profile.disableExpressionSection508=false;
+
+
+  //
+  // added by dbalmer@accela.com
+  //
+  function getDocumentIFrameById(doc, id) {
+    var listIFrame = doc.frames[id] || doc.getElementById(id);
+  }
+
+</script>
+
+
+
+
+
+
+<script language="JavaScript">
+
+var toDoNav = false;
+var navFrames = new Array();
+var doNavigation;
+var navScript;
+var isClear= true;
+var lastCapModule = 'Building';
+var currModule ='Building';
+var param="";
+var runOrder ;
+
+var isAjaxRefreshNavScript = false;
+
+function clearNavigation()
+{
+	parent.navFrames = new Array();
+	parent.toDoNav = false;
+	doNavigation=undefined;	
+}
+
+
+	if(parent)
+	{
+		if(parent.toDoNav&&parent.navFrames.length>0)
+		{
+			if(frameElement&&frameElement.id)
+			{
+				if(frameElement.id==parent.navFrames[0])
+				{
+					toDoNav = true;
+					runOrder = parent.runOrder;
+					if(parent.navFrames.length==1)
+					{
+						eval('doNavigation=function(){'+parent.navScript+'}');
+					}
+					else
+					{
+						for(var i=1;i<parent.navFrames.length;i++)
+						{
+							navFrames.push(parent.navFrames[i]);
+						}
+						navScript = parent.navScript;						
+					}
+				}
+			}
+			if(frameElement&&frameElement.id&&frameElement.id=='capForm'&&top.switchModule)
+			{
+				top.switchModule(lastCapModule);
+			}
+		}
+		if(parent.param && parent.param.length>0)
+		{
+			param = parent.param;
+		}
+	}
+	
+	if(runOrder=='before')
+	{
+		if(doNavigation)
+		{
+			doNavigation();
+			if(isClear)
+			{
+				clearNavigation();
+				frameElement.scrollIntoView(true);
+			}		
+		}
+	}
+</script>
+
+
+<script type="text/javascript" src="/portlets/framework/includes/javascript/jquery/jquery-1.11.0.min.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/Ac360ToolManager.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360base.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/widget/widget.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/memoryLeakPatch.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/ac360InputBoxHotKey.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/popup/popup.js"></script>
+
+
+
+<script type="text/javascript">
+<!--
+var pageLoadingCircle = false;
+//-->
+</script>
+
+		<script language="JavaScript">
+			var currModule = 'Building';
+			var formName = 'refParcelList';
+		</script>
+	
+
+<!--[if gte IE 8]>
+   <script type="text/javascript">
+      IEVersion = 8;
+   </script>
+<![endif]-->
+<!--[if IE 7]>
+   <script type="text/javascript">
+      IEVersion = 7;
+   </script>
+<![endif]-->
+
+
+	
+		<title>
+			Parcel List
+		</title>
+		
+			<link rel="stylesheet" href="/portlets/spa/styles/bootstrap/bootstrap.css" media="screen" />
+		
+		
+		<link rel="stylesheet" type="text/css" href="/portlets/images/sky_blue/styles.css" id="stylesId"/>
+		<link rel="stylesheet" type="text/css" href="/portlets/images/sky_blue/print-styles.css" media="print"/>
+
+		<link rel="stylesheet" type="text/css" href="/portlets/spa/styles/re-skin-v2.css" id="stylesId" media="screen" />
+<script type="text/javascript" src="/portlets/framework/includes/javascript/opos.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/masked.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/myTask.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/menubar.js"></script><script type="text/javascript" src="/docs/AAHELP.js"></script><script type="text/javascript" src="/portlets/framework/includes/javascript/watermark.js"></script>
+		
+
+<script type="text/javascript">
+
+/**
+ * Support open window in IE8.
+ * If user's browser is IE 8, pass the session cookie to the child window.
+ */
+function windowOpen(targetURL,name,parameters,jsessionid,path,secure)
+{	
+    var newURL = targetURL;
+	if (isIE8())
+	{	   
+	   var newtargetURL = encodeURIComponent(targetURL);	
+	   newURL = "/portlets/datapicker/popupWindow.jsp?&targetURL=" + newtargetURL;
+	   
+	   var _jsessionid = "40koDSz+4p2d-oZqzIsdKP+0";
+	   var _path = "/portlets";
+	   var _secure = "true";
+	   
+	   if (typeof(jsessionid) != 'undefined')
+	   {
+	   		_jsessionid = jsessionid;
+	   }
+	   if (typeof(path) != 'undefined')
+	   {
+	   		_path = path;
+	   }
+	   if (typeof(secure) != 'undefined')
+	   {
+	   		_secure = secure;
+	   }	   
+	   newURL = newURL + "&jsessionid=" + _jsessionid + "&path=" + _path + "&secure=" + _secure;	  
+	}	
+	return window.open(newURL, name, parameters);	
+}
+</script>
+
+		<script type="text/javascript">
+		if(!pageLoadingCircle)
+		{
+			var processBarObj = new UI.ProcessBar();
+			processBarObj.forceDestroyExceptPageLoading(processBarObj.getTargetDoc().targetDoc);
+		}
+
+		function isIE8()
+		{
+		    var ie8 = false;
+			// In firefox, we cannot get the variable 'IEVersion' defined in layoutTab.jsp
+			if (typeof(IEVersion) != 'undefined' && IEVersion == 8) 
+			{		
+				ie8 = true;
+			}	
+			return ie8;
+		}
+		<!--
+		
+		//-->
+		</script>
+
+			<script language="JavaScript">
+			var pendoOptions = '{"product":"Accela Core","userID":"e9af1fa5171aed0adbee00284a455086465aa31fc36563edabf646e11d55a6088095a23efeee0ca56703d10969d3ac54e979ab211892ee56defc91c468476a08","module":"Building","environment":"INTERNAL","serviceURL":"https://d3accju1t3mngt.cloudfront.net/js/pa.min.js","serviceID":"567a146e-65ac-46a5-7a13-b32474a4f67b","userGroup":"BuildingAdmin","agency":"FLAGSTAFF","version":"av.9.1.3.170801"}';
+			if(pendoOptions!= undefined && pendoOptions!= null && pendoOptions.length!=0){
+				var pendoData = JSON.parse(pendoOptions);
+				if(pendoData.serviceID != undefined && pendoData.serviceID != null && pendoData.serviceID.length != 0){
+					window.pendo_options = {
+					apiKey: pendoData.serviceID,
+					usePendoAgentAPI: false,
+					visitor: {
+					id: pendoData.userID,
+					userGroup: pendoData.userGroup,
+					userId: pendoData.userID
+					},
+					account: {
+					id: pendoData.agency,
+					productId: pendoData.product,
+					productVersion: pendoData.version,
+					environment: pendoData.environment,
+					module: pendoData.module
+					}
+					};
+					(function() {
+					var script = document.createElement('script');
+					script.type = 'text/javascript';
+					script.async = true;
+					script.src = pendoData.serviceURL;
+					var firstScript = document.getElementsByTagName('script')[0];
+					firstScript.parentNode.insertBefore(script, firstScript);
+					})();
+				}
+			}
+			</script>
+
+
+		<script language="JavaScript">
+						
+			var jetspeedTop = getTopIframe(this);			
+			function doPageInit()
+			{
+				try{
+					InitializeEbaCombos();
+				}catch(error){}				
+				resizePictureIFrame();
+				setFocusElement();
+				scrollBarIssue.resizeIframeNoScrollBar(scrollBarIssue.getFrameElement(document));
+			}
+						
+			var starttime = 0;
+			var showTimerID;
+			var menuheadout = true;
+			var menuentryout = true;
+
+			function delaymenu(divID, srcId)
+			{
+				if (divID == null || divID == 'undefined')
+				{
+					divID = 'Spacer';
+				}
+				//showTimerID = setInterval("showmenu('"+divID+"', '" + srcId + "')", 10);				
+				document.getElementById(divID).style.visibility = "";
+				document.getElementById(divID).style.display = "";
+				UI.positionMgr.show(srcId, divID);
+			}
+			
+			function cancelmenu()
+			{
+				clearInterval(showTimerID);
+			}
+			function hidemenu(divID)
+			{
+				if (menuheadout && menuentryout) {
+					obj = MM_findObj(divID);
+					if(obj)
+					{
+						if(obj.style.display == "none")
+						{
+							return;
+						}
+						obj.style.display = "none";
+					}					
+					MM_showHideLayers(divID,'','hidden');
+				}
+			}
+
+			function updatetime()
+			{
+				now = new Date();
+				starttime = now.getMilliseconds();
+			}
+			function hidenAsContactFloatMenu(divID)
+			{
+				if(menuentryout)
+				{
+					MM_showHideLayers(divID,'','hidden');
+				}				
+			}
+			
+		</script>
+
+	</head>
+	<body class="MarginLRXY0px srbgcolor srbgcolor" onLoad="doPageInit()">
+		<script type="text/javascript">
+			$(document).ready(function () {
+				function hideLoadingMask(){
+					window.top.$('.spinner').addClass("ng-hide");
+				}
+				try{try{
+					if(isWorkflowPage==undefined || isWorkflowPage==null || isWorkflowPage==false)
+					hideLoadingMask();
+				}catch(errtext){hideLoadingMask();}}catch(err){}
+			});
+			$(document).on("click", "#dTabsTable a", function(e){
+				try{
+					window.top.$('.spinner').removeClass("ng-hide");
+				}catch(err){}
+			});
+
+			$(window).focus(function() {
+				$.ajax({
+				type: "GET",
+				url: "/portlets/spa/session.do?mode=activateSpace&spaceName=" + 'spaces.14042',
+				success: function (data) {}
+				});
+			});
+
+			new UI.ProcessBar({"pageLoadingCircle" : pageLoadingCircle}).pageLoadingCircle();
+		</script>
+		<form id="refParcelList" name="refParcelList" method="post" action="/portlets/parcel/refParcelList.do?module=Building" onsubmit="enableAllSelect" enctype="application/x-www-form-urlencoded" target="_self">
+		<input type="hidden" name="value(FirstEntryURL)" value="/portlets/parcel/refParcelList.do?mode=search&amp;lookup=false">
+		<input type="hidden" name="value(CurrentEntryURL)" value="/portlets/parcel/refParcelList.do?module=Building">
+		<input type="hidden" id="portlet_language" name="portlet_language" value="en_US">
+		<input type="hidden" id="refresh_target" name="refresh_target" value=""/>
+		<input type="hidden" id="refresh_url" name="refresh_url" value=""/>
+		<input type="hidden" id="buttonName" name="buttonName" value="searchresult"/>
+		<input type="hidden" id="modeName" name="modeName" value=""/>
+		<input type="hidden" id="module" name="module" value="Building"/>
+		<input type="hidden" name="accelasubmitbuttonname" id="accelasubmitbuttonname" value=""/>
+		<input type="hidden" name="itemName" id="itemName" value=""/>
+		<input type="hidden" id="CurrentViewID" name="CurrentViewID" value="20035"/>
+		<input type="hidden" id="exceptionLogID" name="exceptionLogID" value=""/>
+
+
+		<script>
+			var pageTitle = '' === 'null' ? null : '';
+			var spaceTitle = (parent && parent.frameElement && parent.frameElement.dataset) ? parent.frameElement.dataset.spaceTitle : undefined;
+			var titleToUse = pageTitle || spaceTitle;
+			if(titleToUse) {
+				document.write('<header class="header"><h1><a href="#" onclick="returnListView()"><i class="arrow-back"></i></a><span>');
+				document.write(titleToUse + ('null' === 'null' ? '': ' - null'));
+				document.write('</span></h1><a class="refresh" href="javascript: location.reload();"></a></header>');
+			}
+		</script>
+			
+		<div class="work-space">
+	    
+		<!--<div id="work-spaces" style="height:680px">-->
+		<div class="workspace-no-utility-menu">
+		
+		<table border="0" cellpadding="0" cellspacing="0" width="100%"  ignore="all" id="top-menu-bar">
+		<tr>
+			<td>
+			<table border="0" cellpadding="0" cellspacing="0" width="100%" id="menu_bar_">
+					
+					<tr id="tr_menubar">
+						<td class="portlet-menu2">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="JavaScript">
+
+	var canNotSaveReport = 'Cannot save multiple records to EDMS. Select one record and save.';
+	var messageNoLess = "Please select at least one record."
+	var messageOnlyOne = "Please select only one record."
+	var dispIconText = true;
+	var isGeneralCAP = false;
+</script>
+
+
+
+<input type="hidden" name="generalCAPSearch" value=""  id="generalCAPSearch"/>
+<table border="0" cellspacing="0" cellpadding="0" id="menu_Bar">
+	<tr>
+	
+			
+			
+
+
+
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+				<script type="text/javascript">
+				<!--
+					var containId = "menuContain-" + Util.increase();
+					document.write("<td id='"+containId+"' nowrap>");
+					//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+					function createDropMenu(dropMenuButonObj)
+					{
+						var displayText = "true";
+						dropMenuButonObj.displayText = displayText; 
+						var dropMenuButton = new UI.DropMenuButton(dropMenuButonObj);	
+						
+							var itemId = "drop_customize";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Customize Content";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/genericview/genericviewFormSetup.do?viewID=20035&dynamicPaging=true&refreshAfterCustView=false&currentMenuItem=customize&currentURl=%2Fportlets%2Fparcel%2FrefParcelList.do%3Fmodule%3DBuilding&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_csv";
+							var target = "_parent";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "CSV Export";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "#";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = " SimulateClick('1', 'accelasubmitbuttonname','searchresult', 'target', '_parent', 'action', '/portlets/parcel/refParcelList.do?objectName=parcels&fileName=refParcelList&ExportFileType=pagingCsv&CurrentViewID=20035&module=Building', 'buttonToken', '');";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_accelaPortletPagingResize";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Expand List";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "#";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = " SimulateClick('1', 'accelasubmitbuttonname','searchresult','itemName','accelaPortletPagingResize','refresh_target','','refresh_url','', 'target', '', 'action', '', 'presubmit', '', 'buttonToken', '');";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_quickquery";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "My Filters";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/datafilter/quickQueryList.do?viewID=20035&currentURl=%2Fportlets%2Fparcel%2FrefParcelList.do%3Fmodule%3DBuilding&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_viewedit";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Edit View";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "/portlets/genericview/genericviewDailyAdminSetup.do?viewID=20035&dynamicPaging=true&refreshAfterCustView=false&currentMenuItem=viewEdit&currentPosition=enterDailyAdmin&isList=true&currentURl=%2Fportlets%2Fparcel%2FrefParcelList.do%3Fmodule%3DBuilding&module=Building";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+							var itemId = "drop_printportlet";
+							var target = "";
+							var isGrayout = false;
+							var circle = "";
+							var tmpMenuItem = new UI.MenuItem({id : itemId, target : target, isGrayout: isGrayout, circle : circle});
+							var label = "Print Page";
+							if (label.indexOf(".") > 0)
+							{
+								tmpMenuItem.setText(label);
+							}
+							else
+							{
+								tmpMenuItem.setText(label);
+							}
+
+							var ttLink = "javascript:IEprint()";
+							if (ttLink)
+								tmpMenuItem.setHref(ttLink);
+							
+							var click = "";
+							if (click)
+							{
+								var fn = function(){
+									eval(arguments[0]);
+								}.bind(click);
+								tmpMenuItem.addListener("click", fn);
+							}
+
+							
+							dropMenuButton.addItem(tmpMenuItem);
+				
+						
+						
+						dropMenuButton.setSwapImg(swapImg);
+						dropMenuButton.render();	
+					}
+				
+				document.write("</td>");
+				//-->
+				</script>
+
+		</tr>
+	</table>
+</td>
+
+			<script type="text/javascript">
+				var menuValue = 'Menu';
+				var encodeMenuValue =encodeURI(menuValue);
+				var menu_item_tip = "Menu";
+				var menu_item_img = "/portlets/images/sky_blue/menu/menu_button.gif";
+				var swapImg = "/portlets/images/sky_blue/menu/menu_on.gif";
+				var menu_item_id = "menu1Link";
+				var menu_item_imgId = "menu1";
+				createDropMenu({text: menuValue, tip : menu_item_tip, img : menu_item_img, containId : containId, id : menu_item_id, imgId : menu_item_imgId});						
+			</script>
+	
+	
+
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Search';
+					var img = "/portlets/images/sky_blue/menu/search_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/search_on.gif";
+					var tip = 'Search parcel';
+					
+					var target = "refParcelList";
+					var click = "";
+					
+					var accesskey="g";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/parcel/refParcelList.do?value(mode)=search&module=Building";
+					var isImgButton = "false";
+					var id = "search";
+					var imgId = "search";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'New';
+					var img = "/portlets/images/sky_blue/menu/new_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/new_on.gif";
+					var tip = 'Create new parcel';
+					
+					var target = "refParcelForm";
+					var click = "";
+					
+					var accesskey="n";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "/portlets/parcel/refParcelForm.do?value(mode)=new&module=Building";
+					var isImgButton = "false";
+					var id = "new";
+					var imgId = "new";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				 
+						
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'GIS';
+					var img = "/portlets/images/sky_blue/menu/gis_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/gis_on.gif";
+					var tip = 'GIS';
+					
+					var target = "refParcelMapFrame";
+					var click = "return SimulateClick('1', 'accelasubmitbuttonname','gis','itemName','gis','refresh_target','','refresh_url','', 'target', 'refParcelMapFrame', 'action', '/portlets/gis/general.do?mode=launchGIS&gisFromPage=RefParcelList&showTools=true&alt=menubar.address.gis.alt&module=Building', 'presubmit', '', 'buttonToken', '');";
+					
+					var accesskey="";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "#";
+					var isImgButton = "true";
+					var id = "gis";
+					var imgId = "img_gis";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Merge';
+					var img = "/portlets/images/sky_blue/menu/merge_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/merge_on.gif";
+					var tip = 'Merge';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "javascript:mergeParcel()";
+					var isImgButton = "false";
+					var id = "merge";
+					var imgId = "merge";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Split';
+					var img = "/portlets/images/sky_blue/menu/split_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/split_on.gif";
+					var tip = 'Split';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "javascript:splitParcel()";
+					var isImgButton = "false";
+					var id = "split";
+					var imgId = "split";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'View Log';
+					var img = "/portlets/images/sky_blue/menu/button_ViewHistory_normal.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/button_ViewHistory_over.gif";
+					var tip = 'View Log';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "javascript:showAudit()";
+					var isImgButton = "false";
+					var id = "conditionLog";
+					var imgId = "conditionLog";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+				
+<td style="padding-left:5px;padding-right:5px;">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<script type="text/javascript">
+			<!--
+				var containId = "menuButtonContain-" + Util.increase();
+				document.write("<td id='"+containId+"' nowrap>");
+				//dropMenuButonObj: {text: menuValue, tip : tip, img : img, containId : containId}
+				function createButton()
+				{   
+					var menuValue = 'Help';
+					var img = "/portlets/images/sky_blue/menu/help_button.gif";
+					var swapImg = "/portlets/images/sky_blue/menu/help_on.gif";
+					var tip = 'Help';
+					
+					var target = "";
+					var click = "";
+					
+					var accesskey="z";
+					var displayText = "true";
+					var circle = "";
+					
+					var itemLink = "javascript:ShowI18NHelp(2016)";
+					var isImgButton = "false";
+					var id = "Help";
+					var imgId = "Help";
+
+					var button = new UI.V360Button({text : menuValue, id : id,img : img, imgId : imgId, tip : tip, dispIconText : dispIconText, target : target, href : itemLink, containId : containId, displayText : displayText, accesskey : accesskey, isImgButton : isImgButton, circle : circle});
+					if (click)
+					{
+						click = click.replace("return", "");
+						var fn = function(){
+							var event = Ac360.getEvent();
+							var rtnValue = eval(click);
+							if (rtnValue === false && event)
+							{								
+								if(event.cancelable)
+								{
+									event.preventDefault();
+								}
+								else
+								{
+									event.returnValue = false;
+								}
+							}
+							return rtnValue;
+						}
+						button.addObserver("click", fn);
+					}
+					button.setSwapImg(swapImg);
+					button.render();
+				}
+			
+				document.write("</td>");
+				createButton();
+			//-->
+			</script>
+		</tr>
+	</table>
+</td>
+
+
+				
+
+
+	
+	
+	
+	
+	
+	
+		
+	
+
+	
+	
+</tr>
+
+</table>
+	
+
+<input type="hidden" name="gisPortletName" value="" id="gisPortletName"><input type="hidden" name="value(source)" value="" id="value(source)"><input type="hidden" name="value(initMap)" value="" id="value(initMap)">
+
+<input name="objectName" id="objectName" type="hidden" value="parcels">
+<input name="CheckBoxName" type="hidden" value="" id="CheckBoxName">
+<input name="MaxNumber" type="hidden" value="" id="MaxNumber">
+<input name="ExportFileType" type="hidden" value="print" id="ExportFileType">
+<input name="CurrentViewID" type="hidden" value="20035" id="CurrentViewID">
+<input name="sessionIdFromWindow" type="hidden" value="40koDSz+4p2d-oZqzIsdKP+0" id="sessionIdFromWindow">
+
+<input name="listID" type="hidden" value="" id="listID">
+<input name="printType" type="hidden" value="" id="printType">
+<input name="checkBoxValue" type="hidden" value="" id="checkBoxValue"><iframe id="edms" tabindex="-1" src="/portlets/framework/includes/error/blank.jsp"  frameborder="0" width="0" height="0" marginheight="0" marginwidth="0" title="menu">&nbsp;</iframe></td>
+					</tr>
+					
+				</table>
+			</td>
+   		</tr>
+		
+		        <tr id="_error_msg_tr">
+		            <td nowrap="nowrap">
+		            	<div tabindex="0" id="err_msg">
+			                
+			            </div>
+						<div tabindex="0" id="msg">
+			                
+			            </div>
+		           </td>
+		        </tr>
+				<tr>
+					<td style="xxx-padding-left: 10px;">
+							
+					<a name="maincontent" id="maincontent" tabindex="-1"></a>
+					<table id="displayBody" border="0" cellpadding="0" cellspacing="0" width="100%">
+						<tr>
+							<td>
+								
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+djConfig = {
+		baseScriptUri: "https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo/"
+}
+</script>
+<script type="text/javascript" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo/dojo.js">
+</script>
+
+
+
+
+
+
+<script language="JavaScript">
+	dojo.require("dojo.event.*"); 
+	dojo.require("dojo.io.*");
+</script>
+
+<span class="Error" id=resultMessage></span>
+
+	<table>
+		
+	</table>
+	
+	<TABLE align="center" border="0" cellPadding="2" cellSpacing="2" width="100%">
+ 		<tr><td colspan="99">
+<table id="_$pagenavigator_" border="0" cellpadding="0" cellspacing="0" width="100%" summary="Reference Parcel List"><tr><td align="left" class="arrow-padding-left"><input type="hidden" name="isDynaPaging" value="true"/><span class="page-navigator-show"> Showing 1-3 of 3</span><div id="pagingInfo" style="display:none">&nbsp;&nbsp;<label for='page-navigator-input-id'> Page</label> &nbsp;<input name="page-navigator-input-id" id="page-navigator-input-id" type="text" class="page-navigator-input" value="1"  onkeydown="onlyNum();" style="ime-mode:Disabled;width:35px" onkeypress="if(event.keyCode==13){skipToPages(this,1);}"></input><a href="javascript:void(0);" target="_self" id="page-navigation" style="display:none;" onclick="new function(){var url = '/portlets/parcel/refParcelList.do?pageSize=5&module=Building&totalPages=1&pageNo=@@##@@';var index = document.getElementById('page-navigator-input-id').value; if(index<1){index=1;}  var pageCount = document.getElementById('pagenavigatorsize').value; if(index-pageCount>0){index = pageCount; };var newURL=url.replace('@@##@@', index);return SimulateClick('1','accelasubmitbuttonname','searchresult','action',newURL, 'target', '_self');}">return SimulateClick('1','accelasubmitbuttonname','','action',newURL, 'target', '_self');}"></a><span class="page-navigator-of" style="padding-left:6px;margin-right:20px;">of&nbsp;<input id="pagenavigatorsize" type="hidden" value="1"/>1</span><IMG SRC="/portlets/images/sky_blue/menu/Previous_Button_Grayed_Out.jpg" ALT="Previous" BORDER=0 class="alignBottom secondArrow" >&nbsp;<IMG SRC="/portlets/images/sky_blue/menu/Next_Button_Grayed_Out.jpg" ALT="Next" BORDER=0 class="alignBottom secondArrow" ></div><!-- The data provided by Query Engine. --></td></tr></table>
+</td></tr>
+		</tbody></table><div id="listContainer"><script type="text/javascript">tableCorner.addTableListen('AccelaMainTable');</script><table id="AccelaMainTable" class="AccelaMainTable" border="0"  cellpadding="0" cellspacing="0" width="100%" summary="Reference Parcel List"><tbody><tr width="5730"><th class="portlet-section-subheader-checkbox" width="22"><input  type="checkbox" name="value(ac360_list_id)" id="ac360_list_id" onClick="return AC360ListClicked()" name="ac360_list_id" value="1" title="Select All"/></th><th class="portlet-section-subheader" width="130" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.parcelNumber&module=Building', 'target', '_self');">Parcel #</A></th><th class="portlet-section-subheader" width="300" align="left" valign="top" nowrap><font class="ignoreSortHeader">Address</font></th><th class="portlet-section-subheader" width="200" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerFullName&module=Building', 'target', '_self');">Owner</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.lot&module=Building', 'target', '_self');">Lot</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.block&module=Building', 'target', '_self');">Block</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.tract&module=Building', 'target', '_self');">Tract</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.parcelArea&module=Building', 'target', '_self');">Parcel Area</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.censusTract&module=Building', 'target', '_self');">Census Tract</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.book&module=Building', 'target', '_self');">Book</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.page&module=Building', 'target', '_self');">Page</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.parcel&module=Building', 'target', '_self');">Parcel</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.landValue&module=Building', 'target', '_self');">Land Value</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.exemptValue&module=Building', 'target', '_self');">Exemption Value</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.improvedValue&module=Building', 'target', '_self');">Improved Value</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.inspectionDistrict&module=Building', 'target', '_self');">Inspection District</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.subdivision&module=Building', 'target', '_self');">Subdivision</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.supervisorDistrict&module=Building', 'target', '_self');">Supervisor District</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.councilDistrict&module=Building', 'target', '_self');">Council District</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.mapRef&module=Building', 'target', '_self');">Map Reference</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.mapNo&module=Building', 'target', '_self');">Map #</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.gisSeqNo&module=Building', 'target', '_self');">GIS Sequence #</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.planArea&module=Building', 'target', '_self');">Plan Area</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.legalDesc&module=Building', 'target', '_self');">Legal Description</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.parcelStatus&module=Building', 'target', '_self');">Parcel Status</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.ownerTitle&module=Building', 'target', '_self');">Owner Title</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.ownerFirstName&module=Building', 'target', '_self');">First Name</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.ownerMiddleName&module=Building', 'target', '_self');">Middle Name</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.ownerLastName&module=Building', 'target', '_self');">Last Name</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.address1&module=Building', 'target', '_self');">Address Line1</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.address2&module=Building', 'target', '_self');">Address Line2</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.address3&module=Building', 'target', '_self');">Address Line3</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.city&module=Building', 'target', '_self');">City</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.state&module=Building', 'target', '_self');">State</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.zip&module=Building', 'target', '_self');">Zip Code</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.country&module=Building', 'target', '_self');">Country/Region</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.phone&module=Building', 'target', '_self');">Phone</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.fax&module=Building', 'target', '_self');">Fax</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.mailAddress1&module=Building', 'target', '_self');">Mail Address Line1</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.mailAddress2&module=Building', 'target', '_self');">Mail Address Line2</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.mailAddress3&module=Building', 'target', '_self');">Mail Address Line3</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.mailCity&module=Building', 'target', '_self');">Mail City</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.mailState&module=Building', 'target', '_self');">Mail State</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.mailCountry&module=Building', 'target', '_self');">Mail Country/Region</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.mailZip&module=Building', 'target', '_self');">Zip</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.taxID&module=Building', 'target', '_self');">Tax ID</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.eventID&module=Building', 'target', '_self');">Event ID</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parOwnerModel.primaryOwner&module=Building', 'target', '_self');">Primary Owner</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.ownerStatus&module=Building', 'target', '_self');">Owner Status</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=ownerModel.ivrPinNumber&module=Building', 'target', '_self');">IVR PIN</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.township&module=Building', 'target', '_self');">Township</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.range&module=Building', 'target', '_self');">Range</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.section&module=Building', 'target', '_self');">Section</A></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><font class="ignoreSortHeader">Condition</font></th><th class="portlet-section-subheader" width="100" align="left" valign="top" nowrap><A href="#" target="_self" onclick="JavaScript: return SimulateClick('1','accelasubmitbuttonname','searchresult','action','/portlets/parcel/refParcelList.do?pageNo=1&totalPages=1&column=parcelModel.primaryParcelFlag&module=Building', 'target', '_self');">Primary Parcel</A></th><th class="portlet-section-subheader" width="100%" valign="top" nowrap></th></tr>
+		
+		
+		
+		<input type="hidden" name="uid" value="null" id="uid">
+		
+				<tr class="singleRow" id="row1" onclick="highlight('row1')" onmouseout="rowMouseout('row1')" onmousemove="rowMouseOver('row1')">
+					<td class="AlignL-td-border" width="1%">
+												
+								<input type="checkbox" name="chk_parcel" property="value(chk_parcel,0)" id="ac360_list_id" value="10001" title="Select">					
+							
+						
+					</td>
+				
+				
+					<td class="portlet-section-body">
+							
+					<a  id="linkrow1" name="RefParcelListLink" href="/portlets/parcel/refParcelForm.do?value(mode)=view&amp;isFromParcelList=true&amp;SpecialFlag=no&amp;value%28parcelUID%29=&amp;value%28refParcelNumber%29=10001&amp;value%28sourceSeqNbr%29=20&module=Building" target="refParcelForm"><pre class="portlet-section-body" style="cursor: hand">10001&nbsp;</pre></a>
+					
+					
+					</td>
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+					
+					<td class="portlet-section-body">
+					302 MARIA,  Petaluma, CA 94954&nbsp;</td>
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+									
+					<td class="portlet-section-body">
+					Lot 1&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+									
+					<td class="portlet-section-body">
+					B&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					6000&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					ct&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					80000&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					0&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					78000&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					G&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						
+							
+							SUBDIVISION1													
+						
+						&nbsp;
+					</td>
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+												
+							
+								Enabled
+							
+							
+							
+						
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body-phone">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body-phone">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;					
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						 
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					 	
+							
+	                    			
+	                    		&nbsp;			
+					</td>
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+					<td  class="AlignL portlet-section-body">
+						&nbsp;
+					</td>
+				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+					<td  class="AlignL portlet-section-body">
+						&nbsp;
+					</td>
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+					<td  class="AlignL portlet-section-body">
+						&nbsp;
+					</td>
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td   class="AlignL portlet-section-body"  nowrap>
+						
+						
+						<a   href="/portlets/condition/parcelCondition.do?value(mode)=list&amp;refParcelNumber=10001&amp;sourceSeqNbr=20&amp;parcelUID=&module=Building" target="refParcelForm"><font color="#FF0000"><span id="condition10001" name="condition10001"></span></font></a>
+						
+					</td>
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						
+							 
+		                        Yes
+		                     
+		                     
+	                    
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			<td>&nbsp;</td></tr>
+		
+		
+		
+		
+		<input type="hidden" name="uid" value="null" id="uid">
+		
+				<tr class="doubleRow" id="row2" onclick="highlight('row2')" onmouseout="rowMouseout('row2')" onmousemove="rowMouseOver('row2')">
+					<td class="AlignL-td-border" width="1%">
+												
+								<input type="checkbox" name="chk_parcel" property="value(chk_parcel,1)" id="ac360_list_id" value="10002" title="Select">					
+							
+						
+					</td>
+				
+				
+					<td class="portlet-section-body">
+							
+					<a  id="linkrow2" name="RefParcelListLink" href="/portlets/parcel/refParcelForm.do?value(mode)=view&amp;isFromParcelList=true&amp;SpecialFlag=no&amp;value%28parcelUID%29=&amp;value%28refParcelNumber%29=10002&amp;value%28sourceSeqNbr%29=20&module=Building" target="refParcelForm"><pre class="portlet-section-body" style="cursor: hand">10002&nbsp;</pre></a>
+					
+					
+					</td>
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+					
+					<td class="portlet-section-body">
+					1352 SCOTT,  Petaluma, CA 94954&nbsp;</td>
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+									
+					<td class="portlet-section-body">
+					Jasons lot 1&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					90000&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					36000&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					98000&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						
+							
+							subdivision2													
+						
+						&nbsp;
+					</td>
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+												
+							
+								Enabled
+							
+							
+							
+						
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body-phone">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body-phone">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;					
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						 
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					 	
+							
+	                    			
+	                    		&nbsp;			
+					</td>
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+					<td  class="AlignL portlet-section-body">
+						&nbsp;
+					</td>
+				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+					<td  class="AlignL portlet-section-body">
+						&nbsp;
+					</td>
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+					<td  class="AlignL portlet-section-body">
+						&nbsp;
+					</td>
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td   class="AlignL portlet-section-body"  nowrap>
+						
+						
+						<a   href="/portlets/condition/parcelCondition.do?value(mode)=list&amp;refParcelNumber=10002&amp;sourceSeqNbr=20&amp;parcelUID=&module=Building" target="refParcelForm"><font color="#FF0000"><span id="condition10002" name="condition10002"></span></font></a>
+						
+					</td>
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						
+							 
+		                        Yes
+		                     
+		                     
+	                    
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			<td>&nbsp;</td></tr>
+		
+		
+		
+		
+		<input type="hidden" name="uid" value="null" id="uid">
+		
+				<tr class="singleRow" id="row3" onclick="highlight('row3')" onmouseout="rowMouseout('row3')" onmousemove="rowMouseOver('row3')">
+					<td class="AlignL-td-border" width="1%">
+												
+								<input type="checkbox" name="chk_parcel" property="value(chk_parcel,2)" id="ac360_list_id" value="111111" title="Select">					
+							
+						
+					</td>
+				
+				
+					<td class="portlet-section-body">
+							
+					<a  id="linkrow3" name="RefParcelListLink" href="/portlets/parcel/refParcelForm.do?value(mode)=view&amp;isFromParcelList=true&amp;SpecialFlag=no&amp;value%28parcelUID%29=&amp;value%28refParcelNumber%29=111111&amp;value%28sourceSeqNbr%29=20&module=Building" target="refParcelForm"><pre class="portlet-section-body" style="cursor: hand">111111&nbsp;</pre></a>
+					
+					
+					</td>
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+					
+					<td class="portlet-section-body">
+					 FLAGSTAFF&nbsp;</td>
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					111111&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					111111&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					111111&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						
+						&nbsp;
+					</td>
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					111111&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					111111&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+												
+							
+								Enabled
+							
+							
+							
+						
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body-phone">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body-phone">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;					
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						 
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					 	
+							
+	                    			
+	                    		&nbsp;			
+					</td>
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+					&nbsp;</td>
+				
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+					<td  class="AlignL portlet-section-body">
+						111111&nbsp;
+					</td>
+				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+					<td  class="AlignL portlet-section-body">
+						111111&nbsp;
+					</td>
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+					<td  class="AlignL portlet-section-body">
+						11&nbsp;
+					</td>
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					<td   class="AlignL portlet-section-body"  nowrap>
+						
+						
+						<a   href="/portlets/condition/parcelCondition.do?value(mode)=list&amp;refParcelNumber=111111&amp;sourceSeqNbr=20&amp;parcelUID=&module=Building" target="refParcelForm"><font color="#FF0000"><span id="condition111111" name="condition111111"></span></font></a>
+						
+					</td>
+				
+				
+					
+ 				
+				
+				
+				
+			
+				
+				
+				
+				
+								
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+									
+					<td class="portlet-section-body">
+						
+							 
+		                        Yes
+		                     
+		                     
+	                    
+	                    &nbsp;
+					</td>
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+					
+ 				
+				
+				
+				
+			<td>&nbsp;</td></tr>
+		</table><table id="_$nextTable"><input type="hidden" name="pageSizeR" value="5"/>
+			
+			
+	</TABLE>
+<script language='JavaScript' src='/portlets/commons/condition/commonConditionUtil.js'></script>	
+<script language="JavaScript">
+
+	function updateCondition()
+	{
+		
+		
+		var paras = new HashMap();
+		var url = "/portlets/parcel/refParcelForm.do?mode=viewCondition&module=Building";
+		paras.put("uid","parcelUID");
+		paras.put("ac360_list_id.document.forms[0].ac360_list_id[i+1].value","refParcelNumber");
+		commonUpdateCondition('ac360_list_id', paras, url);
+
+	}
+	
+
+	updateCondition();
+
+
+	//This function is used by Parcel Set Members.
+	function popupGISMapViewer()
+	{
+		var popurl = "/portlets/gis/refParcel.do?mode=associateGIS&gisFromPage=SetMembersInParcelSet&target=_top&initMap=true";
+		gisMapWin=window.open (popurl, "popwindow2", "height=600, width=800, top=75, left=100,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=yes");
+		return false;
+	}
+	
+	function doReload()
+	{
+		var url = "/portlets/parcel/setparcel/setParcelMemberList.do?mode=list4ParcelSet";
+		var setDetailFrame = window.parent.frames["dataForm"];
+		setDetailFrame.location.href =url;
+	}
+	
+function getIDs()
+{		
+		var checkboxID=getListPortletFirstRowID();	
+		var finalNbr = Number(checkboxID);							
+		var checkBoxName="value(chk_parcel,"+finalNbr+")";			
+		var radioName="value(chk_parcel,0)";			
+		var altBox=document.getElementsByName(checkBoxName);	
+		var selectMsg = 'Please select at least one record.';
+		
+		if(altBox[0]==null)
+		{
+			altBox=document.getElementsByName(radioName);	
+			if(altBox[0]==null)
+			{					
+				var reSpan=document.getElementById("resultMessage");	
+				reSpan.innerText='Please select at least one record.'; 
+				popMessage508(selectMsg);
+				scrollBarIssue.autoAdjustForErrorMsgDisplay();
+				return "";
+			}
+		}					
+		var altValues="";		
+		if(altBox[0].type!="radio")
+		{
+			altValues=getCheckboxCheckedId(altBox,finalNbr);
+		}
+		else
+		{	
+			altValues=getRadioCheckedId(altBox);
+		}
+		reSpan=document.getElementById("resultMessage");	
+		if(altValues=="")
+		{		
+			reSpan.innerText='Please select at least one record.'; 
+                        popMessage508(selectMsg);
+		}
+		else
+		{
+			reSpan.innerText=''; 
+		}
+		scrollBarIssue.autoAdjustForErrorMsgDisplay();
+		return altValues;
+	}
+	
+	
+	function getListPortletFirstRowID()
+	{
+		var allInput = document.getElementsByTagName('input');
+		var inputNbr = 0;		
+		while(allInput[inputNbr] != null)
+		{						
+			var oneInput = allInput[inputNbr];			
+			if(oneInput.type=="radio")
+			{				
+				return oneInput.value;
+			}
+			else if(oneInput.type=="checkbox")
+			{																
+				if(oneInput.name != "value(ac360_list_id)" && oneInput.name !="ac360_list_id")	
+				{
+					var propertyVal = scrollBarIssue.getAttribute(oneInput, "property");
+					if(scrollBarIssue.judgeIsNull(propertyVal))
+					{
+						propertyVal = oneInput.name; 
+					}
+					var value = propertyVal.split(",");
+					value = value[1].split(")");						
+					return value[0];							
+				}
+			}
+			inputNbr++;
+		}
+		return 0;
+	}
+	
+	function getCheckboxCheckedId(altBox,finalNbr)
+	{		
+		var altValues="";
+		while(altBox[0]!=null)
+		{
+			if(altBox[0].checked)
+			{									
+				if(altValues=="")
+				{
+					altValues=altBox[0].value;
+				}
+				else
+				{
+					altValues=altValues+","+altBox[0].value;
+				}
+			}					
+			finalNbr++;											
+			var checkBoxName="value(chk_parcel,"+finalNbr+")";						
+			altBox=document.getElementsByName(checkBoxName);					
+		}	
+		return altValues;
+	}
+	
+	function getRadioCheckedId(altBox)
+	{
+		var inD=0;		
+		while(altBox[inD]!=null)
+		{
+			if(altBox[inD].checked)
+			{					
+				return altBox[inD].value;							
+			}
+			inD++
+		}
+	}
+
+	function submit()
+	{
+		var confirmed = true;
+
+		if (confirmed)
+		{
+			SimulateClick('1', 'accelasubmitbuttonname','selectItem','refresh_target','','refresh_url','', 'target', '', 'action', '/portlets/structureestablishment/lookupParcelSelect.do?mode=parcelSelect', 'presubmit', '');
+		}
+	}
+
+	var fromTabbar = "REFPARCELLIST";
+	var totalCount = '3';
+
+	//show audit view window
+	function showAudit()
+	{
+	  windowOpen("/portlets/audit/audit.do?mode=search&entityModule=ref_parcel_condition&bizID=&auditFlag=Y&bizIdInputReadOnly=N", "auditLogWindow", "height=600, width=800, top=75 ,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=yes,left="+getScreenLeft(100,800));
+	}
+</script>
+
+
+
+
+
+
+
+<script type="text/javascript">
+	function mergeParcel()
+	{
+		
+	    var url = "/portlets/parcel/refParcelGenealogyList.do?mode=mergeParcel&action=Merge&from="+fromTabbar+"&module=Building";
+		remoteAccess(url, showGenealogyMergeDialog,  document.forms[0]);
+		
+	}
+	
+	function splitParcel()
+	{
+		
+		var url = "/portlets/parcel/refParcelGenealogyList.do?mode=splitParcel&action=Split&from="+fromTabbar+
+			"&module=Building";
+		remoteAccess(url, showGenealogySplitDialog,  document.forms[0]);
+		
+	}
+	
+	function showGenealogyMergeDialog(data)
+	{
+		var responseMsg = eval('('+data+')');
+		var resultMessage = document.getElementById("err_msg");
+		if(responseMsg.message == "success")
+		{
+			resultMessage.innerHTML = ""; 
+			scrollBarIssue.autoAdjustForErrorMsgDisplay();
+			var url = "/portlets/commons/parcel/establishGenealogyFrame.jsp?module=Building&action=Merge&from="+fromTabbar;
+		 	window.showModalDialog(url,window, 'dialogWidth:800px;dialogHeight:610px;resizable:yes;scroll:yes;Minimize=yes;Maximize=yes');
+	  	}
+		else
+		{	
+		    showErrorMsg(responseMsg.message);
+		}
+	}
+
+	function showGenealogySplitDialog(data)
+	{
+		var responseMsg = eval('('+data+')');
+		var resultMessage = document.getElementById("err_msg");
+		if(responseMsg.message == "success")
+		{
+			resultMessage.innerHTML = ""; 
+			scrollBarIssue.autoAdjustForErrorMsgDisplay();
+			var url = "/portlets/commons/parcel/establishGenealogyFrame.jsp?module=Building&action=Split&from="+fromTabbar;
+			window.showModalDialog(url,window, 'dialogWidth:800px;dialogHeight:610px;resizable:yes;scroll:yes;Minimize=yes;Maximize=yes');
+	  	}
+		else
+		{	
+		    showErrorMsg(responseMsg.message);
+		}
+	}
+	
+	function showErrorMsg(msgType)
+	{
+	    var err_Message = "";
+		var resultMessage = document.getElementById("err_msg");
+		
+		if(msgType == "noSelectMsg") 
+		{
+		    err_Message = "Please select a record.";
+		}
+		else if(msgType == "reDoMsg")
+		{
+		    err_Message = "Disabled parcels cannot be merged or split. Please redo your selection.";
+		}
+		else if(msgType == "oneRecordOnlyMsg")
+		{
+			err_Message = "Please select only one parcel to split.";
+		}  	
+		else if(msgType == "ACROSSAGENCIES_MSG")
+		{
+			err_Message = "Parcels from different agencies cannot be merged. Please reselect.";
+		}  	
+		resultMessage.innerHTML = "&nbsp;&nbsp;<font class=Error>" + err_Message + "</font>";
+		popMessage508(err_Message);
+		scrollBarIssue.autoAdjustForErrorMsgDisplay();
+	}
+
+	function submitForCopyMove(actionAndFrom)
+	{
+		var valueAndKey = actionAndFrom;
+		var action = valueAndKey.substring(0,valueAndKey.indexOf("-"));
+		var from = valueAndKey.substring(valueAndKey.indexOf("-") + 1);
+		
+		var url = "/portlets/parcel/refParcelGenealogyList.do?mode=doValidate4SelectRefParcels&module=Building&action="+action+"&from="+from;
+
+		remoteAccess(url, getReturnErrorMsg,  document.forms[0]);
+		return false;
+	}
+
+	function getReturnErrorMsg(data)
+	{
+		var responseMsg = eval('('+data+')');
+		var validateMsg = responseMsg.message;
+		var action = responseMsg.action;
+
+		var msg = "Please select at least one genealogically related parcel to copy to.";
+		var mode = "doCopyAssociatedObjs2TargetParcel";
+		if("Move" == action)
+		{
+			mode = "doMoveAssociatedObjs2TargetParcel";
+			msg = "Please select one genealogically related parcel to move to.";
+		}
+
+		var url = "/portlets/parcel/refParcelGenealogyList.do?mode="+mode+"&module=Building";
+
+		if((validateMsg == "" || validateMsg == null) && ('Y' != responseMsg.duplicate))
+		{
+			return SimulateClick('1', 'accelasubmitbuttonname','','refresh_target','refParcelList','refresh_url','/portlets/parcel/refParcelList.do?mode=list', 'target', '', 'action', url, 'presubmit', 'true');
+		}
+
+		else if('Y' == responseMsg.duplicate)
+		{
+			fileList = responseMsg.allDuplicateFileList;
+			var duplicateMsg="";
+	
+			if(fileList && fileList.length > 0)
+		    {
+				for(var i = 0; i<fileList.length; i++)
+				{
+					var fileNameAndNumber = fileList[i];
+					var fileName = fileNameAndNumber.fileName;
+					var parcelNumber = fileNameAndNumber.parcelNumber;
+					duplicateMsg = duplicateMsg + ""+fileName+" on Parcel "+parcelNumber+""+"\n";
+				}
+				var errorMsg = "System cannot save files with duplicate filenames on Documentum for any parcel. For files named the same on one target parcel, only one of them will be saved on Documentum for this parcel. The detected duplicate filenames are as follows:";
+				errorMsg = errorMsg + "\n" + duplicateMsg +"Are you sure you want to proceed?";
+				if(confirm(errorMsg))
+				{
+					if('refparcel.genealogy.disabledalertmessage.label' == validateMsg)
+					{
+						return checkDisabledParcel(url);
+					}
+					return SimulateClick('1', 'accelasubmitbuttonname','','refresh_target','refParcelList','refresh_url','/portlets/parcel/refParcelList.do?mode=list', 'target', '', 'action', url, 'presubmit', 'true');
+				}
+				else
+				{
+					return false;
+				}
+		    }
+
+		}
+			
+		else if('refparcel.genealogy.disabledalertmessage.label' == validateMsg)
+		{
+			return checkDisabledParcel(url);
+		}
+		else
+		{
+			var resultMessage = document.getElementById("resultMessage");
+			resultMessage.innerHTML = "<font class=Error>" + msg + "</font>";
+			popMessage508(msg);
+			scrollBarIssue.autoAdjustForErrorMsgDisplay();
+			return false;
+		}
+	}
+
+	function checkDisabledParcel(url)
+	{
+		if(confirm('At least one of the selected parcels is already disabled. Are you sure you want to associate items with all of the selected parcels?'))
+		{
+			return SimulateClick('1', 'accelasubmitbuttonname','','refresh_target','refParcelList','refresh_url','/portlets/parcel/refParcelList.do?mode=list', 'target', '', 'action', url, 'presubmit', 'true');
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+</script>
+
+
+							</td>
+						</tr>
+					</table>
+				
+					</td>
+				</tr>
+			</table>
+			
+		</table>
+		</div>
+	</div>
+</form>	
+<script type="text/javascript">
+<!--
+
+function returnListView()
+{
+	parent.showList();
+}
+
+function showPrevious()
+{	
+	var numb = "";
+	
+	var listIFrameName = null;
+	var listIFrame = null;
+	var aListLink = null;
+
+	if(parent.document.frames['contactList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['contactList'];
+		listIFrameName = 'contactList';
+		aListLink = 'ContactListLink';
+	}
+	else if(parent.document.frames['activityList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['activityList'];
+		listIFrameName = 'activityList';
+		aListLink = 'ActivityListLink';
+	}
+	else if(parent.document.frames['trustAccountList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['trustAccountList'];
+		listIFrameName = 'trustAccountList';
+		aListLink = 'TrustAccountListLink';
+	}
+	else if(parent.document.frames['ownerList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['ownerList'];
+		listIFrameName = 'ownerList';
+		aListLink = 'RefOwnerListLink';
+	}
+	else if(parent.document.frames['refParcelList'])
+	{
+		numb = "";
+		listIFrame = parent.document.frames['refParcelList'];
+		listIFrameName = 'refParcelList';
+		aListLink = 'RefParcelListLink';
+	}
+	else if(parent.document.frames['addressList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['addressList'];
+		listIFrameName = 'addressList';
+		aListLink = 'RefAddressListLink';
+	}
+	else if(parent.document.frames['feeSetList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['feeSetList'];
+		listIFrameName = 'feeSetList';
+		aListLink = 'feeSetListLink';
+	}
+	else if(parent.document.frames['professionalList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['professionalList'];
+		listIFrameName = 'professionalList';
+		aListLink = 'professionalListLink';
+	}
+	else
+	{
+    // modified by dbalmer@accela.com
+    listIFrame = getDocumentIFrameById(parent.document, 'capList');
+		listIFrameName = 'capList';
+	}
+
+	
+	var accelaMTable = listIFrame.document.getElementById('AccelaMainTable');
+	if(accelaMTable)
+	{
+		var aList = listIFrame.document.getElementsByName(aListLink);
+		var previous = null;
+		for(var i = 0; i < aList.length ; i++)
+		{
+			if(aList[i].id == numb)
+			{
+				if(aList[i-1])
+				{
+					previous = aList[i-1].id;
+					break;
+				}
+				else
+				{
+					previous = null;
+				}
+			}
+		}
+	
+		if(previous == null)
+		{
+			var previouspage = listIFrame.document.getElementById('PreviousPage');
+			if(previouspage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var aList2 = listIFrame.document.getElementsByName(aListLink);
+					if(aList2)
+					{
+						aList2[aList2.length-1].click();
+					}
+				};
+				previouspage.click();
+			}
+		}
+		else
+		{
+			var previousRecord = listIFrame.document.getElementById(previous);
+			previousRecord.click();
+		}
+	}
+	else
+	{
+		var currentRows = listIFrame.document.getElementsByName(numb);
+
+		var currentRowId = currentRows[0].id;
+		var index = currentRowId.substr(numb.length+1);
+		var previousIndex = Number(index);
+		if(previousIndex == 0)
+		{
+			var previouspage = listIFrame.document.getElementById('PreviousPage');
+			if(previouspage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var accelaTable = listIFrame.document.getElementsByClassName('AccelaMainTable');
+					var count = null;
+					if(accelaTable)
+					{
+						var accelaTBody = accelaTable[0].getElementsByTagName('tbody');
+						if(accelaTBody)
+						{
+							var singleRow = accelaTBody[0].getElementsByClassName('singleRow');
+							var doubleRow = accelaTBody[0].getElementsByClassName('doubleRow');
+							if(doubleRow && doubleRow.length > 0)
+							{
+								count = singleRow.length + doubleRow.length;
+							}
+							else
+							{
+								if(singleRow.length)
+								{
+									count = singleRow.length;
+								}
+							}
+						}
+					}
+					if(count != null)
+					{
+						listIFrame.document.getElementById('table-row-'+ count).getElementsByTagName('a')[0].click();
+					}
+				};
+				previouspage.click();
+			}
+		}
+		else
+		{
+			var aLink = listIFrame.document.getElementById('table-row-'+ previousIndex).getElementsByTagName('a');
+			aLink[0].click();
+		}
+	}
+}
+
+function showNext()
+{
+	var numb = "";
+	
+	var listIFrameName = null;
+	var listIFrame = null;
+	var aListLink = null;
+
+	if(parent.document.frames['contactList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['contactList'];
+		listIFrameName = 'contactList';
+		aListLink = 'ContactListLink';
+	}
+	else if(parent.document.frames['activityList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['activityList'];
+		listIFrameName = 'activityList';
+		aListLink = 'ActivityListLink';
+	}
+	else if(parent.document.frames['trustAccountList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['trustAccountList'];
+		listIFrameName = 'trustAccountList';
+		aListLink = 'TrustAccountListLink';
+	}
+	else if(parent.document.frames['ownerList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['ownerList'];
+		listIFrameName = 'ownerList';
+		aListLink = 'RefOwnerListLink';
+	}
+	else if(parent.document.frames['refParcelList'])
+	{
+		numb = "";
+		listIFrame = parent.document.frames['refParcelList'];
+		listIFrameName = 'refParcelList';
+		aListLink = 'RefParcelListLink';
+	}
+	else if(parent.document.frames['addressList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['addressList'];
+		listIFrameName = 'addressList';
+		aListLink = 'RefAddressListLink';
+	}
+	else if(parent.document.frames['feeSetList'])
+	{
+		numb = "null";
+		listIFrame = parent.document.frames['feeSetList'];
+		listIFrameName = 'feeSetList';
+		aListLink = 'feeSetListLink';
+	}
+	else
+	{
+		listIFrame = parent.document.frames['capList'];
+		listIFrameName = 'capList';
+	}
+
+	
+	var accelaMTable = listIFrame.document.getElementById('AccelaMainTable');
+
+	if(accelaMTable)
+	{
+		var aList = listIFrame.document.getElementsByName(aListLink);
+		var hasNext = true;
+		var next = null;
+		for(var i = 0; i < aList.length ; i++)
+		{
+			if(aList[i].id == numb)
+			{
+				if(aList[i+1])
+				{
+					next = aList[i+1].id;
+					break;
+				}
+				else
+				{
+					next = null;
+				}
+			}
+		}
+	
+		if(next == null)
+		{
+			var nextpage = listIFrame.document.getElementById('NextPage');
+			if(nextpage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					var aList2 = listIFrame.document.getElementsByName(aListLink);
+					if(aList2)
+					{
+						aList2[0].click();
+					}
+				};
+				nextpage.click();
+			}
+		}
+		else
+		{
+			var nextRecord = listIFrame.document.getElementById(next);
+			nextRecord.click();
+		}
+	}
+	else
+	{
+		var currentRows = listIFrame.document.getElementsByName(numb);
+
+		var currentRowId = currentRows[0].id;
+		var index = currentRowId.substr(numb.length+1);
+		var nextIndex = Number(index)+2;
+		
+		var accelaTable = listIFrame.document.getElementsByClassName('AccelaMainTable');
+		var count = null;
+		if(accelaTable)
+		{
+			var accelaTBody = accelaTable[0].getElementsByTagName('tbody');
+			if(accelaTBody)
+			{
+				var singleRow = accelaTBody[0].getElementsByClassName('singleRow');
+				var doubleRow = accelaTBody[0].getElementsByClassName('doubleRow');
+				if(doubleRow && doubleRow.length > 0)
+				{
+					count = singleRow.length + doubleRow.length;
+				}
+				else
+				{
+					if(singleRow.length)
+					{
+						count = singleRow.length;
+					}
+				}
+			}
+		}
+		
+		
+		if(nextIndex <= count)
+		{
+			var aLink = listIFrame.document.getElementById('table-row-'+ nextIndex).getElementsByTagName('a');
+			aLink[0].click();
+		}
+		else
+		{
+			var nextPage = listIFrame.document.getElementById('NextPage');
+			if(nextPage)
+			{
+				parent.document.getElementById(listIFrameName).onload = function() {
+					listIFrame.document.getElementById('table-row-1').getElementsByTagName('a')[0].click();
+				};
+				nextPage.click();
+			}
+		}
+	}
+}
+//-->
+</script>
+
+<script language="javascript">
+<!--
+
+tableCorner.addTabListen("_$mainContent");
+	function appendParamToURL(frm, url)
+	{
+		var tmp = url;
+		try
+		{
+			if (frm.document.forms[0].isGeneralCAP
+				&& frm.document.forms[0].isGeneralCAP.value == 'Y')
+			{
+				if (tmp.indexOf("isGeneralCAP") == -1)
+				{
+					tmp += tmp.indexOf("?") == -1 ? "?" : "&";
+					tmp += "isGeneralCAP=Y";
+				}
+			}
+		}
+		catch(e)
+		{
+		}
+		return tmp;
+	}
+	
+try{
+
+	
+	var myname=self.name;
+	var isBlank=true;
+	var isBlankObj=getParentObject("isBlankThird");
+	if(isBlankObj !=null && isBlankObj.value=="No")
+	{
+		isBlank=false;
+	}		
+	
+	if(myname == null || (myname!="mydataForm" && myname!="myassetForm" && myname!="assetInspectionFormDetail"&& myname!="assetCAFormDetail" 
+		&& myname!="professionalDataForm" && myname != "addressdataForm" && myname != "refParceldataForm"))
+	{
+		if(isBlank && parent!=null && (parent.frames != null))
+		{
+			var blankPageUrlStr = "/portlets/framework/includes/error/blank.jsp";
+			if (parent.frames["mydataForm"] != null && myname != "myassetdataForm")
+			{
+				d=parent.frames["mydataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["myassetForm"] != null && myname != "myassetdataForm")
+			{
+				d=parent.frames["myassetForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["assetInspectionFormDetail"] != null)
+			{
+				d=parent.frames["assetInspectionFormDetail"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["assetCAFormDetail"] != null)
+			{
+				d=parent.frames["assetCAFormDetail"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["professionaldataForm"] != null)
+			{
+				d=parent.frames["professionaldataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["addressdataForm"] != null)
+			{
+				d=parent.frames["addressdataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+			if (parent.frames["refParceldataForm"] != null)
+			{
+				d=parent.frames["refParceldataForm"];
+				var locationURLStr = d.location.href;
+				if( typeof(locationURLStr) != 'unknown' && locationURLStr.indexOf(blankPageUrlStr) < 0)
+				{
+					d.location.href = blankPageUrlStr;
+				}
+			}
+		}
+		else
+		{
+			if (isBlankObj !=null)
+			{
+				isBlankObj.value="Yes";
+			}
+		}	
+	}
+	else if(myname != null && (myname=="mydataForm" || myname=="myassetForm" || myname=="assetInspectionFormDetail" || myname=="assetCAFormDetail"))
+	{
+		if (parent.frames["blank"] != null)
+			{
+				d=parent.frames["blank"];
+				d.location.href="/portlets/framework/includes/error/blank.jsp";				
+			}
+	}
+	//end-Lytton Cheng 2005-07-22
+	}catch(err){
+	}
+	//-->
+</script>	
+
+<script language="javascript">
+<!--
+adjustListContainer();
+
+
+Ac360.attachEvent(document,'onreadystatechange',fnStartInit);
+
+var pageFocusd = false;
+function fnStartInit()
+{	
+	try{
+		if (document.readyState=="complete")
+		{
+			var fromPortal = isFromJetspeed();
+
+			if(!pageFocusd && (!fromPortal || ((typeof(top.finishLoading) == "undefined") || top.finishLoading)) || window.name.indexOf("ifr_popup") > -1)
+			{
+				focusInputableElement(document);
+				pageFocusd = true;
+			}
+			if(top.finishLoading && !top.setGlobalFocus)
+			{
+				top.jetspeedOnLoad();
+			}
+		}
+	}catch(E){
+		focusInputableElement(document);
+	}
+}
+
+	//-->	
+</script>
+
+		<script language="JavaScript1.2" defer>
+
+			<!--
+			try
+			{
+				if(onAfterLoad!=null && onAfterLoad!="undefined")
+				{
+					onAfterLoad();
+				}
+			}catch(E){}
+			
+
+
+     
+			//-->
+			
+			
+			
+		</script>		
+           
+	</body>
+	<noscript>
+		Do not support the scripting.
+	</noscript>
+	<!--  %@ include file="timeout.jsp" %-->
+</html>
+	
+	<script type="text/javascript" src="/portlets/framework/includes/javascript/layoutPublic.js"></script>
+	<script language="JavaScript">
+	<!--
+	if(doNavigation)
+	{
+		window.setTimeout(doNavigation,350);
+		if(isClear)
+		{
+			clearNavigation();
+			frameElement.scrollIntoView(true);
+		}		
+	}
+
+	try
+	{
+		//execute script from create new for ajax  
+		if (parent.isAjaxRefreshNavScript && typeof(parent.navScript) != 'undefined' && parent.navScript != null && parent.navScript != "" )
+		{
+			eval(parent.navScript);
+			parent.isAjaxRefreshNavScript = false;
+		}
+	}
+	catch(e){}
+
+
+//------------------reset readonly style begin----------------------------
+	readOnlyObj.resetReadOnly();
+//------------------reset readonly style end------------------------------
+//------------------reset session time out--------------------------------
+if (top && top.setTimeoutTimer)
+{
+	top.sessionTimeOutWarnObj.renewSession();
+	top.setTimeoutTimer();
+}
+
+//------------------reset session time out--------------------------------
+//------------------reset bellow height begin-----------------------------
+//tabHandle.resizeTab();
+//scrollBarIssue.init();
+//------------------reset bellow height end--------------------------------
+	//-->
+	</script>
+
+
+
+
+
+
+

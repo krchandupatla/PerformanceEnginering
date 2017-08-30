@@ -1,0 +1,1063 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .controller('TaskDashboardController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($rootScope, $scope, $document, $filter, $log, $position, $state, $timeout, $window, AgencyService, ModalDialog, OverlayService, SpaceConfiguration, ServerSessionService, TaskManager, UserManager, CONFIG, AGENCY_TAB_CONFIG) {
+
+    // PRIVATE data
+
+    var i18n = $rootScope.i18n;
+    var activitiesPanelEnabled = false; // for MVP sprint
+    var setSliderBarVisibility = angular.noop; // will be replace by bound version in ngRepeatFinished handler
+
+    var defaultTaskOptions = {
+      start: 1,
+      rowsPerPage: 6,
+      loading: false,
+      moreAvailable: false
+    };
+
+    // PUBLIC data
+
+    $scope.currentPage = 1;
+    $scope.caption = i18n.Task.LoadingTasks;
+    $scope.loaded = false;
+    $scope.ready = false;
+    $scope.tasks = [];
+    $scope.userSpaces = [];
+    $scope.allTasks = {isChecked: false};
+    $scope.bulkActions = [];
+    $scope.showSliderBar = false;
+    $scope.activitiesPanelExpanded = activitiesPanelEnabled; // if true, start in expanded state
+    $scope.activitiesPanelCollapseClicked = false;
+    $scope.quickQueries = [];
+
+    $scope.Agency = {
+      list: [],
+      currentAgency: null,
+      selected: function(tab) {
+        if (tab.name !== $scope.Agency.currentAgency.name) {
+          var agency = _.find($scope.Agency.list, { 'name': tab.name });
+
+          $scope.Agency.currentAgency = agency;
+
+          if ($state.includes('spaces.task-dashboard')) {
+            AgencyService.switchAgency(agency.name).then(function() {
+              UserManager.setCurrentAgency(agency.name);
+
+              // CAGAMMA-1041
+              TaskManager.getQuickQueries().then(function(response) {
+                $scope.quickQueries = response.data.result;
+              });
+
+              if (agency.tasks.length) {
+                $scope.tasks = angular.copy(agency.tasks);
+                $scope.taskOptions = angular.copy(agency.taskOptions);
+                setTaskCaption();
+                resizeContent();
+              } else {
+                getTasks();
+              }
+            });
+          }
+        }
+      }
+    };
+
+    $scope.taskOptions = angular.copy(defaultTaskOptions);
+
+    $scope.taskFilterOptions = { // NOT USED FOR MVP SPRINT
+      isCollapsed: true,
+      trigger: '.dashboard .btn-filter',
+      selectedCount: 0,
+      tabs: [
+        {id: 'saved', label: i18n.Task.FilterTabSaved, isActive: false, checkedItems: 0},
+        {id: 'type', label: i18n.Task.FilterTabType, isActive: true, checkedItems: 0},
+        {id: 'status', label: i18n.Task.FilterTabStatus, isActive: false, checkedItems: 0},
+        {id: 'date-range', label: i18n.Task.FilterTabDateRange, isActive: false, checkedItems: 0},
+        {id: 'assigned', label: i18n.Task.FilterTabAssignedTo, isActive: false, checkedItems: 0}
+      ],
+      taskTypes: [], // populated by GET_TASK_FILTER_STATUS_LIST
+      statusList: [ // updated when selecting a taskType or subtype having a statusList
+        {id: 'COMPLETED', label: i18n.Task.FilterStatusCompleted}
+      ],
+      dateRange: {
+        assigned: {label: i18n.Task.FilterDateRangeAssigned, from: '', to: ''},
+        open: {label: i18n.Task.FilterDateRangeOpen, from: '', to: ''},
+        due: {label: i18n.Task.FilterDateRangeDue, from: '', to: ''},
+        status: {label: i18n.Task.FilterDateRangeStatus, from: '', to: ''}
+      },
+      saved: [
+        {
+          taskTypes: [],
+          subTypes: [],
+          statusList: [],
+          dateRange: {
+            assigned: {from: '', to: ''},
+            open: {from: '', to: ''},
+            due: {from: '', to: ''},
+            status: {from: '', to: ''}
+          }
+        }
+      ]
+    };
+
+    $scope.taskSortOptions = { // NOT USED FOR MVP SPRINT
+      isCollapsed: true,
+      trigger: '.dashboard .btn-sort'
+    };
+
+    // EVENT handlers
+
+    // remove for MVP sprint
+//    $scope.$watch('activitiesPanelExpanded', function(newValue, oldValue) {
+//      if (newValue !== oldValue && $state.is('task-dashboard.cards')) {
+//        $timeout(setTaskCardsWidth, Accela.animationDelay);
+//      }
+//    });
+
+    $scope.$on('tasks.refresh', function() {
+      // 'tasks.refresh' will be sent when switching from a portlet to the task dashboard
+      // but if currentAgency was never initialized, ignore the refresh and allow initialize() to be called.
+      if ($scope.Agency.currentAgency) {
+        refreshTasks();
+      }
+    });
+
+    $scope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState, fromParams) {
+      var agencyName = $scope.Agency.currentAgency ? $scope.Agency.currentAgency.name : AGENCY_TAB_CONFIG.currentAgency;
+
+      if (toState.name === 'spaces.task-dashboard.cards' || toState.name === 'spaces.task-dashboard.list') {
+        if (!(fromState.name === 'spaces.task-dashboard.cards' || fromState.name === 'spaces.task-dashboard.list')) { // no need to call if switch from card to list view
+          if (SpaceConfiguration.sessionStateService === 'ServerSessionService') {
+            $rootScope.$broadcast('portlet-session-state-update:started');
+            ServerSessionService.activate(CONFIG.TASK_SESSION_NAME).then(function () {
+              $rootScope.$broadcast('portlet-session-state-update:completed');
+              // Because TaskDashboardController is not destroyed when opening a portlet,
+              // all of the previously loaded tasks and agency info will still be present.
+              AgencyService.switchAgency(agencyName).then(function () {
+                if ($scope.Agency.currentAgency === null) {
+                  initialize();
+                }
+              });
+            });
+          }
+        }
+      }
+    });
+
+    /**
+     * Determine whether we need to show the column slider.
+     * Called after rendering the task list.
+     */
+    $scope.$on('ngRepeatFinished', function (ngRepeatFinishedEvent, targetObj) {
+
+      function _setSliderBarVisibility(targetObj) {
+        $scope.showSliderBar = (targetObj && targetObj.scrollWidth - targetObj.offsetWidth > 0);
+      }
+
+      if (targetObj) {
+        setSliderBarVisibility = _setSliderBarVisibility.bind(null, targetObj);
+
+        $scope.windowResizeHandlers.register(setSliderBarVisibility);
+
+        $timeout(setSliderBarVisibility, Accela.animationDelay);
+      }
+    });
+
+    // PUBLIC methods
+
+    $scope.allTasksChecked = function (model) {
+      $scope.$apply(function () {
+        angular.forEach($scope.tasks, function (task) {
+          task.isChecked = model.isChecked;
+        });
+
+        updateBulkActions();
+      });
+    };
+
+    $scope.applyTaskFilter = function (options) {
+      $log.warn('applyTaskFilter' + JSON.stringify(options));
+    };
+
+    function contentLoaded() {
+      OverlayService.hide();
+
+      if (activitiesPanelEnabled) {
+        $timeout(function() { // force digest loop
+          if ($state.is('spaces.task-dashboard.cards')) {
+            $scope.showSliderBar = false;
+            if ($scope.activitiesPanelCollapseClicked) { // leave it collapsed
+              setTaskCardsWidth();
+            } else {
+              $scope.activitiesPanelExpanded = true;
+            }
+          } else {
+            $scope.activitiesPanelExpanded = false;
+          }
+        });
+      } else { // added for MVP sprint
+        $scope.showSliderBar = $state.is('task-dashboard.list');
+
+        if ($state.is('spaces.task-dashboard.cards')) {
+          setTaskCardsWidth();
+        } else {
+          $scope.ready = true;
+        }
+      }
+    }
+
+    $scope.doBulkTaskAction = function (actionId) {
+      if (actionId === 'PRINT') {
+        var specs = sprintf('top=100,width=%s,height=600,scrollbars=yes', document.documentElement.clientWidth - 50);
+        var printContents = document.getElementById('tasks-print-view').innerHTML;
+        var popupWin = window.open('', '_blank', specs);
+        popupWin.document.open();
+        popupWin.document.write('<html><head><link rel="stylesheet" type="text/css" href="styles/tasks-print-view.min.css" /></head><body>' + printContents + '</html>');
+        popupWin.document.close();
+      } else {
+        angular.forEach($scope.tasks, function(task) {
+          if (task.isChecked) {
+            $scope.doTaskAction(task, actionId);
+          }
+        });
+      }
+    };
+
+    $scope.doTaskAction = function (task, actionId) {
+      if (task.isActivity) {
+        doActivityTaskAction(task, actionId);
+      } else if (task.isDocument) {
+        doDocumentTaskAction(task, actionId);
+      } else if (task.isInspection) {
+        doInspectionTaskAction(task, actionId);
+      } else if (task.isMeeting) {
+        doMeetingTaskAction(task, actionId);
+      } else if (task.isWorkflow) {
+        doWorkflowTaskAction(task, actionId);
+      }
+    };
+
+    $scope.executeQuickQuery = function(query) {
+      getTasks({
+        start: 1,
+        loadMore: false,
+        quickQuery: query.value ? query : null
+      });
+    };
+
+    /**
+     * Format "Due Date" column on Task List view -- must return two lines.
+     */
+    $scope.formatTaskListDueDate = function (task) {
+      var arr = [];
+
+      if (task.isActivity && task.dueDate) {
+        arr.push($filter('date')(task.dueDate, 'MMM d'));
+      } else if (task.isDocument) {
+        // not applicable to document review tasks
+      } else if (task.isInspection && task.scheduleDate) {
+        arr.push($filter('date')(task.scheduleDate, 'h:mm a'));
+        arr.push($filter('date')(task.scheduleDate, 'MMM d'));
+      } else if (task.isMeeting && task.scheduledStartDate) {
+        arr.push($filter('date')(task.scheduledStartDate, 'h:mm a'));
+        arr.push($filter('date')(task.scheduledStartDate, 'MMM d'));
+      } else if (task.isWorkflow && task.dueDate) {
+        arr.push($filter('date')(task.dueDate, 'MMM d'));
+      }
+
+      return arr.join('<br> ');
+    };
+
+    $scope.formatTaskListDetails = function (task) {
+      var result = '';
+
+      if (task.isActivity && task.activityID) {
+        result = sprintf('<div class="details-caption">%s</div> %s', i18n.Task.AllPages, task.activityID);
+      } else if (task.isDocument && task.category) {
+        result = sprintf('<div class="details-caption">%s</div> %s', i18n.Task.Category, task.category);
+      } else if (task.isInspection && task.address) {
+        result = sprintf('<div class="details-caption">%s</div> %s', i18n.Task.Address, task.address);
+      } else if (task.isMeeting && task.address) {
+        result = sprintf('<div class="details-caption">%s</div> %s', i18n.Task.Location, task.address);
+      } else if (task.isWorkflow && task.assignedStaff) {
+        result = sprintf('<div class="details-caption">%s</div> %s', i18n.Task.AssignedTo, task.assignedStaff);
+      }
+
+      return result;
+    };
+
+    $scope.formatTaskListStatus = function (task) {
+      var status = [];
+
+      if (task.status) {
+        status.push(task.status); // #6e6e6e
+      }
+
+      if (task.isInspection || task.isMeeting) {
+        if (task.formattedDuration) {
+          status.push(sprintf('<span class="details-caption">%s</span> %s', i18n.Task.Duration, task.formattedDuration)); // AATHETA-928
+        }
+      }
+      else if (task.isDocument) {
+        if (task.statusDate) {
+          status.push($filter('date')(task.statusDate, 'MMM d'));
+        }
+      }
+
+      return status.join('<br>');
+    };
+
+    /**
+     * if no tasks checked, export all
+     * if some tasks checked, export checked
+     */
+    $scope.getExportableTasks = function() {
+      var tasks = [];
+      var re = /(<([^>]+)>)/ig;
+      var checkedTaskCount = 0;
+
+      function ExportableTask(task) {
+        this.taskname = task.taskName;
+        this.recordId = task.capId.id;
+        this.alternateId = task.capId.customID;
+        this.recordType = task.permitType;
+        this.dueDate = $scope.formatTaskListDueDate(task).replace('<br>', '').replace(re, '');
+
+        if (task.conditionSeverity) {
+          this.flags = sprintf('%s (%s)', task.conditionSeverity, task.conditionCount);
+        } else {
+          this.flags = '';
+        }
+
+        this.status = $scope.formatTaskListStatus(task).replace('<br>', ' ').replace(re, '');
+        this.applicationname = task.applicationName;
+        this.details = $scope.formatTaskListDetails(task).replace('<br>', ' ').replace(re, '');
+      }
+
+      angular.forEach($scope.tasks, function(task) {
+        if (task.isChecked) {
+          checkedTaskCount++;
+        }
+      });
+
+      angular.forEach($scope.tasks, function(task) {
+        if (task.isChecked || checkedTaskCount === 0) {
+          tasks.push(new ExportableTask(task));
+        }
+      });
+
+      return tasks;
+    };
+
+    $scope.getExportableTasksHeader = function() {
+      return [
+        i18n.Task.TaskName,
+        i18n.Task.RecordID,
+        i18n.Task.AlternateID,
+        i18n.Task.RecordType,
+        i18n.Task.TaskListDueDateHeader,
+        i18n.Task.TaskListFlagsHeader,
+        i18n.Task.TaskListStatusHeader,
+        i18n.GlobalSearch.ApplicationName,
+        i18n.Task.TaskListDetailsHeader
+      ];
+    };
+
+    $scope.getTasks = getTasks;
+
+    $scope.loadMoreTasks = function() {
+      getTasks({
+        loadMore: true
+      });
+    };
+
+    $scope.oneTaskChecked = function (model) {
+      $scope.$apply(function () {
+        $scope.allTasks.isChecked = false;
+
+        updateBulkActions();
+      });
+    };
+
+    $scope.openTask = function (task) {
+      var url;
+
+      if (task.isActivity) {
+        url = TaskManager.getActivityUrl(task);
+        $scope.openDefaultSlideout(i18n.Task.CategoryACTIVITY, url, null); // defined in AutomationController
+        return;
+      } else if (task.isDocument) {
+        doDocumentTaskAction(task, TaskManager.ACTION.VIEWINFO);
+        return;
+      } else if (task.isInspection || task.isMeeting || task.isWorkflow) {
+        url = TaskManager.getOpenSpaceUrl(task);
+      }
+
+      $scope.$emit('dashboard.openSpace', { // handled in aa-space-list directive
+        spaceIconType: task.taskCategory,
+        spaceName: task.capId.customID || task.taskName,
+        spaceUrl: url
+      });
+    };
+
+    $scope.gotoCapDetail = function (task) {
+      $scope.$emit('dashboard.openSpace', { // handled in aa-space-list directive
+        spaceIconType: task.taskCategory,
+        spaceName: task.capId.customID || task.taskName,
+        spaceUrl: TaskManager.getCapDetailUrl(task)
+      });
+    };
+
+    $scope.gotoContactDetail = function (task) {
+      $scope.$emit('dashboard.openSpace', { // handled in aa-space-list directive
+        spaceName: task.capId.customID || task.taskName,
+        spaceUrl: TaskManager.getContactDetailUrl(task)
+      });
+    };
+
+    $scope.refreshTasks = refreshTasks;
+
+    $scope.toggleActivitiesPanel = function() {
+      if (activitiesPanelEnabled) {
+        if ($state.is('spaces.task-dashboard.cards')) {
+          if ($scope.activitiesPanelExpanded) {
+            $scope.activitiesPanelCollapseClicked = true;
+          } else {
+            $scope.activitiesPanelCollapseClicked = false;
+          }
+        }
+
+        $scope.activitiesPanelExpanded = !$scope.activitiesPanelExpanded;
+
+        if ($state.is('spaces.task-dashboard.list')) {
+          $timeout(setSliderBarVisibility, 10);
+        }
+      }
+    };
+
+    // PRIVATE methods
+
+    function assignWorkflowTask(task) {
+      $scope.openDefaultSlideout(i18n.Task.Assign, TaskManager.getAssignWorkflowTaskUrl(task));
+    }
+
+    function cancelInspection(task, actionId) {
+      var notifyError = notifyTaskError.bind(null, task, actionId);
+
+      TaskManager.cancelInspection(task, actionId).then(function (data) {
+        if (Accela.STATUS.SUCCESS === Accela.Util.toUpperCase(data.data.result)) {
+          notifyTaskSuccess(i18n.Task.InspectionCancelSuccess);
+          refreshTasks();
+        }
+      }, function (error) {
+        notifyError(error.customErrorMessage);
+      });
+    }
+
+    function claimWorkflowTask(task, actionId) {
+      var notifyError = notifyTaskError.bind(null, task, actionId);
+
+      TaskManager.claimWorkflowTask(task, actionId).then(function (data) {
+        var responseMsg = data.data.message;
+        if (Accela.STATUS.SUCCESS === Accela.Util.toUpperCase(responseMsg)) {
+          refreshTasks();
+          notifyTaskSuccess(i18n.Task.WorkflowClaimSuccess);
+        }
+        else if ('NoRight' === responseMsg) {
+          notifyError(i18n.Task.WorkflowClaimPermissionFail);
+        }
+        else {
+          notifyError(i18n.Task.WorkflowClaimFail);
+        }
+      }, function (error) {
+        notifyError(error.customErrorMessage);
+      });
+    }
+
+    //
+    // ACTIVITY task actions
+    //
+    function doActivityTaskAction(task, actionId) {
+      var notifyError = notifyTaskError.bind(null, task, actionId);
+
+      switch (actionId) {
+        case TaskManager.ACTION.DELETE:
+          TaskManager.deleteActivity(task).then(function (response) {
+            if (Accela.STATUS.SUCCESS === response.data.message) {
+              refreshTasks();
+              notifyTaskSuccess(i18n.Task.ActivityDeleteSuccess);
+            }
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+      }
+    }
+
+    //
+    // DOCUMENT task actions
+    //
+    function doDocumentTaskAction(task, actionId) {
+      var action = TaskManager.getTaskActionById(task, actionId);
+
+      if (action && action.url) {
+        switch (actionId) {
+          case TaskManager.ACTION.ASSIGN :
+            $scope.openDefaultSlideout(i18n.Task.CategoryDOCUMENT, action.url, action.params);
+            break;
+          case TaskManager.ACTION.DOWNLOAD :
+            $window.open(action.url);
+            break;
+          case TaskManager.ACTION.PREVIEW :
+            $scope.openDefaultSlideout(i18n.Task.Preview, action.url);
+            break;
+          case TaskManager.ACTION.REVIEW :
+            $window.open(action.url);
+            break;
+          case TaskManager.ACTION.VIEWINFO:
+            $scope.openDefaultSlideout(i18n.Task.CategoryDOCUMENT, action.url, action.params);
+            break;
+        }
+      } else {
+        if (actionId === TaskManager.ACTION.PREVIEW) { // AAETA-644
+          notifyTaskWarning(i18n.Task.DocumentPreviewPermissionFail);
+        } else {
+          notifyTaskWarning(sprintf(i18n.Task.DocumentActionNotDefined, actionId));
+        }
+      }
+    }
+
+    //
+    // INSPECTION task actions
+    //
+    function doInspectionTaskAction(task, actionId) {
+      var action = TaskManager.getTaskActionById(task, actionId);
+      var notifyError = notifyTaskError.bind(null, task, actionId);
+
+      function handleAfterDoValidation(task, action, response) {
+        if (Accela.STATUS.SUCCESS === Accela.Util.toUpperCase(response.data.msg)) {
+          $scope.openDefaultSlideout(i18n.Task.CategoryINSPECTION, action.url, action.params);
+        }
+        else {
+          notifyError(response.data.msg);
+        }
+      }
+
+      switch (actionId) {
+        case TaskManager.ACTION.SCHEDULE:
+          TaskManager.validateInspectionAction(task, action).then(function (response) {
+            handleAfterDoValidation(task, action, response);
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+        case TaskManager.ACTION.RESCHEDULE:
+          if (UserManager.hasFID('8400', 'F', task.module)) {
+            TaskManager.validateInspectionAction(task, action).then(function (response) {
+              handleAfterDoValidation(task, action, response);
+            }, function (error) {
+              notifyError(error.customErrorMessage);
+            });
+          } else {
+            $scope.openDefaultSlideout(i18n.Task.CategoryINSPECTION, action.url, action.params);
+          }
+          break;
+        case TaskManager.ACTION.RESULT:
+          $scope.openDefaultSlideout(i18n.Task.CategoryINSPECTION, action.url, action.params);
+          break;
+        case TaskManager.ACTION.CANCEL:
+          if (UserManager.hasFID('8400', 'F', task.module)) {
+            TaskManager.validateInspectionAction(task, action).then(function (response) {
+              handleAfterDoValidation(task, action, response);
+            }, function (error) {
+              notifyError(error.customErrorMessage);
+            });
+          } else {
+            TaskManager.validateInspectionAction(task, action).then(function (response) {
+              if (Accela.STATUS.SUCCESS === Accela.Util.toUpperCase(response.data.msg)) {
+                cancelInspection(task);
+              }
+              else if (response.data.ConfirmWithInAdv !== undefined && response.data.ConfirmWithInAdv === 'Y') {
+                // TODO: should be a modal dialog
+                if ($window.confirm(response.data.message)) {
+                  cancelInspection(task);
+                }
+              }
+            }, function (error) {
+              notifyError(error.customErrorMessage);
+            });
+          }
+          break;
+        case TaskManager.ACTION.DELETE:
+          TaskManager.deleteInspection(task).then(function (response) {
+            var responseMsg = response.data.message;
+            if (Accela.STATUS.SUCCESS === Accela.Util.toUpperCase(responseMsg)) {
+              refreshTasks();
+              notifyTaskSuccess(i18n.Task.InspectionDeleteSuccess);
+            } else {
+              notifyError(i18n.Task.InspectionDeleteFail);
+            }
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+      }
+    }
+
+    //
+    // MEETING task actions
+    //
+    function doMeetingTaskAction(task, actionId) {
+      var action = TaskManager.getTaskActionById(task, actionId);
+      var notifyError = notifyTaskError.bind(null, task, actionId);
+
+      switch (actionId) {
+        case TaskManager.ACTION.REJECT:
+          TaskManager.validateRejectMeetingAction(task, action).then(function (response) {
+            if (Accela.STATUS.SUCCESS === response.data.message) {
+              TaskManager.rejectMeeting(task).then(function (response) {
+                if (Accela.STATUS.SUCCESS === response.data.message) {
+                  refreshTasks();
+                  notifyTaskSuccess(i18n.Task.MeetingRejectedSuccess);
+                }
+              }, function (error) {
+                notifyError(error.customErrorMessage);
+              });
+            }
+            else {
+              notifyError(response.data.message);
+            }
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+      }
+    }
+
+    //
+    // RECORD task actions
+    //
+    $scope.doRecordTaskAction = function (task, actionId) {
+      var notifyError = notifyTaskError.bind(null, task, actionId);
+
+      switch (actionId) {
+        case TaskManager.ACTION.AGENDA:
+          TaskManager.setTaskAgenda(task).then(function () {
+            notifyTaskSuccess(i18n.Task.RecordAgendaSetSuccess);
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+        case TaskManager.ACTION.DOWNLOAD:
+          notifyTaskSuccess(i18n.Task.RecordActionDownloadSuccess);
+          break;
+        case TaskManager.ACTION.DUPLICATE:
+          TaskManager.duplicateTask(task).then(function () {
+            notifyTaskSuccess(i18n.Task.RecordDuplicateSuccess);
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+        case TaskManager.ACTION.REASSIGN:
+          TaskManager.reassignTask(task).then(function () {
+            notifyTaskSuccess(i18n.Task.RecordReassignSuccess);
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+        case TaskManager.ACTION.REMOVE:
+          TaskManager.removeTask(task).then(function () {
+            notifyTaskSuccess(i18n.Task.RecordRemoveSuccess);
+            TaskManager.removeBoundTask(task);
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+        case TaskManager.ACTION.RESCHEDULE:
+          TaskManager.rescheduleTask(task).then(function () {
+            notifyTaskSuccess(i18n.Task.RecordRescheduleSuccess);
+          }, function (error) {
+            notifyError(error.customErrorMessage);
+          });
+          break;
+        case TaskManager.ACTION.REVIEW:
+          notifyTaskSuccess(i18n.Task.RecordReviewSuccess);
+          break;
+      }
+    };
+
+    //
+    // WORKFLOW task actions
+    //
+    function doWorkflowTaskAction(task, actionId) {
+      switch (actionId) {
+        case TaskManager.ACTION.ASSIGN:
+          assignWorkflowTask(task, actionId);
+          break;
+        case TaskManager.ACTION.CLAIM:
+          claimWorkflowTask(task, actionId);
+          break;
+        case TaskManager.ACTION.RELEASE:
+          releaseWorkflowTask(task, actionId);
+          break;
+      }
+    }
+
+    function documentClickHandler(evt) {
+      // the active class is toggled by the task-card-condition directive
+      var activePopover = $('.icon-task-condition.active');
+
+      if (activePopover) {
+        if (evt.target !== activePopover[0]) { // let bootstrap close the open popover
+          activePopover.triggerHandler('click');
+        }
+      }
+    }
+
+    function getAgencyTaskCounts() { // CAGAMMA-814
+      return TaskManager.getTaskCounts().then(function(response) {
+        if (response.data.message === 'SUCCESS') {
+          var hasTasks = [];
+          var hasNoTasks = [];
+
+          angular.forEach(response.data.result, function(value, key) {
+            var agency = _.find($scope.Agency.list, { 'name': key });
+
+            if (agency) {
+              agency.totalNum = value;
+              agency.displayName = sprintf('%s (%s)', agency.name, value);
+            }
+          });
+
+          // sort agencies according to the task counts in MAX to MIN order
+          // sort agencies having no tasks in alpha order
+
+          $scope.Agency.list.forEach(function(agency) {
+            if (agency.totalNum) {
+              hasTasks.push(agency);
+            } else {
+              hasNoTasks.push(agency);
+            }
+          });
+
+          hasTasks = _.sortBy(hasTasks, 'totalNum').reverse();
+          hasNoTasks = _.sortBy(hasNoTasks, 'name');
+
+          $scope.Agency.list = hasTasks.concat(hasNoTasks);
+        } else {
+          $rootScope.$broadcast('dashboard.addAlert', {
+            type: 'error',
+            msg: response.data.message
+          });
+        }
+      });
+    }
+
+    function getTasks(options) {
+      var savedStartPoint;
+      var agency = $scope.Agency.currentAgency;
+
+      // use taskOptions from current agency and extend with loadMore and quickQuery selections
+      $scope.taskOptions = angular.copy(agency.taskOptions);
+      angular.extend($scope.taskOptions, options || {});
+
+      if ($scope.taskOptions.refresh) {
+        savedStartPoint = $scope.taskOptions.start;
+
+        $scope.taskOptions.loadMore = false;
+
+        $scope.taskOptions.start = 1;
+        if ($scope.tasks.length < $scope.taskOptions.rowsPerPage) {
+          $scope.taskOptions.end = $scope.taskOptions.start + $scope.taskOptions.rowsPerPage - 1;
+        } else {
+          $scope.taskOptions.end = $scope.tasks.length;
+        }
+      } else {
+        if ($scope.taskOptions.loadMore) {
+          $scope.taskOptions.start += $scope.taskOptions.rowsPerPage;
+        }
+        $scope.taskOptions.end = $scope.taskOptions.start + $scope.taskOptions.rowsPerPage - 1;
+      }
+
+      TaskManager.getTasks($scope.taskOptions, agency).then(function(result) {
+        $scope.loaded = true;
+
+        if ($scope.taskOptions.loadMore) {
+          $scope.tasks = $scope.tasks.concat(result.tasks);
+        } else {
+          $scope.tasks = result.tasks;
+        }
+
+        $scope.taskOptions.moreAvailable = result.page.totalNum > $scope.tasks.length;
+
+        agency.tasks = angular.copy($scope.tasks);
+
+        // update total task count
+        agency.displayName = sprintf('%s (%s)', agency.name, result.page.totalNum);
+
+        setTaskCaption();
+        contentLoaded();
+      }, function (error) {
+//        notifyTaskError(null, null, error.customErrorMessage);
+      }).finally(function() {
+        if ($scope.taskOptions.refresh) {
+          $scope.taskOptions.start = savedStartPoint;
+        }
+
+        $scope.taskOptions.refresh = false;
+        $scope.taskOptions.loadMore = false;
+
+        agency.taskOptions = angular.copy($scope.taskOptions);
+      });
+    }
+
+    function getTaskStatusFilterValues() {
+      TaskManager.getTaskFilterStatusList().then(function (data) {
+        $scope.taskFilterOptions.taskTypes = data.taskTypes;
+      });
+    }
+
+    function hideFlyout() {
+      var activeOverlay = OverlayService.getActive();
+
+      if (activeOverlay && activeOverlay.kind === 'task-card') {
+        OverlayService.hide();
+      }
+    }
+
+    function initAgenciesAndGetTasks() {
+      var list = [];
+      var activeAgency;
+
+      AGENCY_TAB_CONFIG.agencies.forEach(function(agencyName) {
+        var agency = {
+          name: agencyName,
+          displayName: agencyName + '...', // will be updated with totalNum
+          tasks: [],
+          totalNum: 0,
+          taskOptions: angular.copy(defaultTaskOptions),
+          isActive: agencyName === AGENCY_TAB_CONFIG.currentAgency
+        };
+
+        if (agency.isActive) {
+          activeAgency = agency;
+        }
+
+        list.push(agency);
+      });
+
+      angular.extend($scope.Agency.list, list);
+
+      if (activeAgency) {
+        $scope.Agency.currentAgency = activeAgency;
+      } else {
+        $scope.Agency.currentAgency = { name: AGENCY_TAB_CONFIG.currentAgency };
+
+        $rootScope.$broadcast('dashboard.addAlert', {
+          type: 'error',
+          msg: 'List of Agencies does not contain the default Agency.'
+        });
+      }
+
+      getAgencyTaskCounts().then(getTasks);
+    }
+
+    function notifyTaskError(task, actionId, msg) {
+      hideFlyout();
+
+      if (!CONFIG.USE_MOCK_SERVICES) {
+        ModalDialog.message({className: 'error', title: i18n.Task.TaskErrorHeading, msg: msg});
+        $log.error(sprintf('task: "%s", action: "%s", msg: "%s"', task ? task.taskName : '', actionId || '', msg || ''));
+      }
+    }
+
+    function notifyTaskWarning(msg) {
+      hideFlyout();
+      ModalDialog.message({className: 'warning', title: i18n.Task.Warning, msg: msg});
+    }
+
+    function notifyTaskSuccess(msg) {
+      hideFlyout();
+      ModalDialog.message({className: 'success', title: i18n.Task.Success, msg: msg});
+    }
+
+    function refreshTasks() {
+      getTasks({
+        refresh: true
+      });
+    }
+
+    function releaseWorkflowTask(task, actionId) {
+      var notifyError = notifyTaskError.bind(null, task, actionId);
+
+      TaskManager.releaseWorkflowTask(task, actionId).then(function (data) {
+        var responseMsg = data.data.message;
+        if (Accela.STATUS.SUCCESS === Accela.Util.toUpperCase(responseMsg)) {
+          refreshTasks();
+          notifyTaskSuccess(i18n.Task.WorkflowReleaseSuccess);
+        }
+        else if ('NoRight' === responseMsg) {
+          notifyError(i18n.Task.WorkflowReleasePermissionFail);
+        }
+        else {
+          notifyError(i18n.Task.WorkflowReleaseFail);
+        }
+      }, function (error) {
+        notifyError(error.customErrorMessage);
+      });
+    }
+
+    function resizeContent() {
+      if ($state.is('spaces.task-dashboard.cards')) {
+        setTaskCardsWidth();
+      }
+    }
+
+    function setTaskCaption() {
+      if ($scope.tasks.length === 0) {
+        if ($scope.taskOptions.quickQuery) {
+          $scope.caption = sprintf(i18n.Task.NoFilteredTasksFound, $scope.taskOptions.quickQuery.label);
+        } else {
+          $scope.caption = i18n.Task.NoTasksFound;
+        }
+      } else {
+        if ($scope.taskOptions.quickQuery) {
+          $scope.caption = sprintf(i18n.Task.ShowingNFilteredTasks, $scope.tasks.length, $scope.taskOptions.quickQuery.label);
+        } else {
+          $scope.caption = sprintf(i18n.Task.ShowingNTasks, $scope.tasks.length);
+        }
+      }
+    }
+
+    function setTaskCardsWidth() {
+      var numCards;
+      var cards, containerWidth;
+
+      // hardcoded because cards may not be rendered yet
+      // same as @task-card-wrapper-width in variables.less
+      var oneTaskCardWidth = 285;
+
+      $timeout(function() {
+        cards = $('.task-cards');
+        if ($scope.tasks.length) {
+          if (cards) {
+            containerWidth = $position.offset($('.tasks-container')).width;
+
+            containerWidth -= 20; // leave room for scrollbar
+
+            numCards = Math.floor(containerWidth / oneTaskCardWidth);
+
+            if (numCards > $scope.tasks.length) {
+              numCards = $scope.tasks.length;
+            }
+
+            //$log.debug(sprintf('setTaskCardsWidth() containerWidth: %s, numCards: %s', containerWidth, numCards));
+
+            cards.css('width', (numCards * oneTaskCardWidth) + 'px');
+
+            // when the dashboard is first loaded, ".tasks" is hidden
+            // and will be shown after initial resize
+            $scope.ready = true;
+          } else {
+            $timeout(setTaskCardsWidth, 500, false);
+          }
+        } else {
+          $scope.ready = true;
+        }
+      }, 0);
+    }
+
+    /**
+     * Bulk actions must be common to all selected tasks.
+     */
+    function updateBulkActions() {
+      var actions;
+//      var actions = [];
+      var checkedTaskCount = 0;
+      var uniqueActions = [];
+      var uniqueActionsHash = {};
+
+      // collect all actions
+      angular.forEach($scope.tasks, function (task) {
+        if (task.isChecked) {
+          checkedTaskCount++;
+          actions = task.actions;
+//          actions = actions.concat(task.actions);
+        }
+      });
+
+      if (checkedTaskCount === 1) {
+        $scope.bulkActions = actions;
+      } else {
+        $scope.bulkActions = [];
+      }
+
+// removed for AAETA-226
+//      if (checkedTaskCount > 1) { // get common actions
+//        angular.forEach(actions, function (action) {
+//          var uniqueAction = uniqueActionsHash[action.id];
+//
+//          if (uniqueActionsHash[action.id]) {
+//            uniqueActionsHash[action.id].refCount++;
+//          } else {
+//            uniqueActionsHash[action.id] = {refCount: 1, action: action};
+//          }
+//        });
+//
+//        // collect actions that are common to all tasks
+//        angular.forEach(uniqueActionsHash, function (item, key) {
+//          if (item.refCount === checkedTaskCount) {
+//            uniqueActions.push(item.action);
+//          }
+//        });
+//
+//        $scope.bulkActions = uniqueActions;
+//      } else {
+//        $scope.bulkActions = actions;
+//      }
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('TASK-DASHBOARD-CONTROLLER');
+
+    function initialize() {
+      $scope.$emit('dashboard.resetActiveSpace');
+      $scope.windowResizeHandlers.register(resizeContent);
+
+      $document.on('click', documentClickHandler);
+
+      $scope.$on('$destroy', function () {
+        $log.info('destroyed');
+        $document.off('click', documentClickHandler);
+        $scope.windowResizeHandlers.unregister(resizeContent);
+
+        if (setSliderBarVisibility !== angular.noop) {
+          $scope.windowResizeHandlers.unregister(setSliderBarVisibility);
+        }
+
+        ServerSessionService.end(CONFIG.TASK_SESSION_NAME);
+      });
+
+      getTaskStatusFilterValues();
+
+      TaskManager.getQuickQueries().then(function(response) {
+        $scope.quickQueries = response.data.result;
+      });
+
+      if (AGENCY_TAB_CONFIG) {
+        initAgenciesAndGetTasks();
+      } else {
+        getTasks();
+      }
+    }
+  }
+})();

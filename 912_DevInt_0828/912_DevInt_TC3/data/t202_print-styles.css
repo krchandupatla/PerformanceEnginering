@@ -1,0 +1,64 @@
+.printCss{
+	display: none; 
+}
+
+table{
+	border-left: 0px;
+	border-right: 0px;
+	border-top: 0px;
+	border-bottom: 0px;
+}
+
+.section-header-down-center{
+	border-bottom: 0px;
+}
+
+.section-header-up-center{
+	border-top: 0px;
+}
+
+.AccelaMainTable{
+	border-left: 0px;
+	border-right: 0px;
+}
+
+.portlet-menu-item{
+	text-align:center;
+	vertical-align: 50%;
+}
+
+.printCss{
+	display: none; 
+}
+
+.portlet-menu2{
+	border-left: 0px;
+	border-right: 0px;	
+}
+
+.footer-data{
+	border-bottom: 0px;
+}
+
+.header-data{
+	border-top: 0px;
+}
+
+#tr_tarbar{
+	display:none;
+}
+
+#tr_tarbar_newUI{
+	position:absolute;
+	left:0px;
+	width: 1803px !important;
+} 
+
+a[href]:after {
+    content: "" !important;
+  }
+
+.tab_bd{
+	border-left:0px;
+	border-right:0px;
+}

@@ -1,0 +1,11 @@
+[t617]
+FileName1=t617_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=spaces.c7ae1
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_617.xml
+RequestHeaderFile=t617_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t617_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

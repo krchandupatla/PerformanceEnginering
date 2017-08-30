@@ -1,0 +1,11 @@
+[t241]
+FileName1=t241_focus.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo1.4.3/dijit/_base/focus.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_241.xml
+RequestHeaderFile=t241_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t241_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

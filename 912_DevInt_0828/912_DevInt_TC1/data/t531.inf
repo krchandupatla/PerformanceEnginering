@@ -1,0 +1,11 @@
+[t531]
+FileName1=t531_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=spaces.c7ae1
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_531.xml
+RequestHeaderFile=t531_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t531_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

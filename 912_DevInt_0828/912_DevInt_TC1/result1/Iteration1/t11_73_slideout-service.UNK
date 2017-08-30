@@ -1,0 +1,132 @@
+/**
+ * Supports layered slideouts that will be used by the INTAKE form,
+ * but currently only the default slideout is used by the dashboard.
+ *
+ * level="top" refers to:
+ *  <div class="slideout top-slideout has-footer layer-4" ng-include="slideout.templateUrl"></div>
+ *
+ * level="default" refers to:
+ *  <div class="slideout default-slideout layer-5" ng-include="slideout.templateUrl"></div>
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .factory('SlideoutService', service);
+
+  /**
+   * @ngInject
+   */
+  function service($document, $injector, $log, $q, $timeout, OverlayService) {
+
+    // PRIVATE data
+
+    var slideouts = [];
+    var keyHandlerProxy;
+    var overlayName = 'slideout';
+
+    // PRIVATE methods
+
+    function cancel(reason) {
+      closeThen(function(slideout) {
+        slideout.deferred.reject(reason);
+      });
+    }
+
+    function close(data) {
+      closeThen(function(slideout) {
+        slideout.deferred.resolve(data);
+      });
+    }
+
+    function closeThen(callback) {
+      var slideout = slideouts.length ? slideouts.pop() : undefined;
+
+      if (slideout) {
+        $document.off('keypress', keyHandlerProxy);
+
+        $(sprintf('.%s-slideout', slideout.level)).removeClass('active');
+
+        $timeout(function() {
+          if (slideouts.length === 0) {
+            OverlayService.hide();
+          }
+
+          if (callback && typeof callback === 'function') {
+            callback(slideout);
+          }
+        }, Accela.animationDelay, false);
+      }
+    }
+
+    function keyHandler(slideout, evt) {
+//      console.log(sprintf('keyHandler(%s)', evt.key));
+      if (evt.key === 'Escape') {
+        evt.stopPropagation();
+        close(slideout);
+      }
+    }
+
+    /**
+     * USAGE: SlideoutService.open({ level: 'top' });
+     */
+    function open(slideout) {
+      var returnValue;
+      var overlay = OverlayService.getActive();
+      var rootScope = $injector.get('$rootScope');
+      var needOverlay = (overlay && overlay.kind === 'slideout') ? false : true;
+
+      if (slideout) {
+        if (needOverlay) {
+          OverlayService.show(null, overlayName);
+        }
+
+        keyHandlerProxy = keyHandler.bind(null, slideout);
+        $document.on('keypress', keyHandlerProxy);
+
+        slideout.deferred = $q.defer();
+        returnValue = slideout.deferred.promise;
+
+        slideouts.push(slideout);
+
+        $(sprintf('.%s-slideout', slideout.level)).addClass('active');
+
+        if (rootScope) {
+          // notify slideout controller
+          rootScope.$broadcast('slideout.init');
+        }
+      } else {
+        $log.error('open() requires slideout object param');
+      }
+
+      return returnValue;
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('SLIDEOUT-SERVICE');
+
+    OverlayService.register({
+      name: overlayName,
+      kind: 'slideout',
+      show: angular.noop, // callback after overlay
+      hide: function() {  // callback before overlay (requires deferred)
+        var deferred = $q.defer();
+
+        deferred.resolve();
+        close();
+
+        return deferred.promise;
+      }
+    });
+
+    // PUBLIC interface
+
+    return {
+      cancel: cancel,
+      close: close,
+      open: open
+    };
+  }
+})();

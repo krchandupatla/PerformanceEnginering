@@ -1,0 +1,56 @@
+
+
+
+
+
+
+
+<html>
+<head>
+<script type="text/javascript" src="/portlets/framework/includes/javascript/ac360base.js"></script>
+
+
+<link rel="stylesheet" type="text/css" href="/portlets/spa/styles/portlet-iframe-content.css"/>
+
+
+</head>
+<body>
+
+<iframe  id="refParcelList" name="refParcelList" frameborder="0" scrolling="auto" title="Reference Parcel List" height="280px" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='javascript:void(0);'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="refParcelForm" name="refParcelForm" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="Parcel Form" height="420px" width="100%"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+<iframe  id="refParcelMapFrame" name="refParcelMapFrame" src="https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp?module=Building" frameborder="0" scrolling="auto" title="Parcel Form" style="display:none"><p>If you can see this text, your browser does not support iframes. <a href='https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp'>View the content of this inline frame</a> within your browser.</iframe>
+
+</body>
+<script language="JavaScript">
+
+if(typeof(navUrl)=='undefined' || navUrl==null || navUrl=="")
+{
+	
+	 document.getElementById('refParcelList').src="/portlets/parcel/refParcelList.do?mode=search&lookup=false";	
+}
+else
+{
+	 document.getElementById('refParcelList').src=navUrl;
+}
+
+
+
+	var portletDetails = {
+		initial: 'refParcelList',
+		list: 'refParcelList'
+	};
+
+	var portletNavigation = new parent.Accela.PortletNavigation();
+	portletNavigation.init(window, document, history, parent.Accela.PortletInterface, portletDetails);
+
+	function showList()
+	{
+		portletNavigation.showList();
+	}
+
+</script>
+	<noscript>
+		Do not support the scripting.
+	</noscript>
+</html>
+

@@ -1,0 +1,105 @@
+(function() {
+  'use strict';
+
+  if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position) {
+      position = position || 0;
+      return this.indexOf(searchString, position) === position;
+    };
+  }
+
+  /**
+   * WORK SPACE - dependency injection handled by UserModel.
+   */
+  Accela.module('Entity.WorkSpace', function() {
+
+    // DEFINE class
+
+    function WorkSpace(data) {
+      this.spaceUrl = data.spaceUrl || null;    // will be null if spaceState
+      this.spaceState = data.spaceState || null; // will be null if spaceUrl
+      this.spaceType = data.spaceType || null;
+      this.spaceIcon = data.spaceIcon || null;
+      this.spaceIconType = data.spaceIconType || null;
+
+      // meta data
+
+      this.isActive = data.isActive || false;
+      this.pinStatus = data.pinStatus || false;
+
+      // methods
+
+      this.setSpaceName = function(spaceName) {
+        var spaceNameLines = getSpaceNameLines(spaceName || null);
+
+        this.spaceName = spaceName || '';
+        this.spaceNameLine1 = spaceNameLines[0];
+        this.spaceNameLine2 = spaceNameLines[1];
+      };
+
+      // init
+
+      this.setSpaceName(data.spaceName);
+    }
+
+    /**
+     * Split the Space name onto two lines.
+     */
+    function getSpaceNameLines(spaceName) {
+      var word;
+      var max = 11;
+      var hyphenIndex;
+      var line1 = '', line2 = '';
+      var words = spaceName ? spaceName.split(' ') : [];
+
+      if (words.length === 1) {
+        word = words[0];
+        if (word.length > max) {
+          hyphenIndex = word.indexOf('-');
+          if (hyphenIndex === -1) { // contains no hyphens
+            line1 = word.substr(0, max);
+            line2 = word.substr(max, word.length);
+          } else if (hyphenIndex >= max) { // can't split on first hyphen
+            line1 = word.substr(0, hyphenIndex);
+            line2 = word.substr(hyphenIndex, word.length);
+          } else {
+            angular.forEach(word.split('-'), function(part, index) {
+              if (((line1 + part).length + 1) <= max) {
+                line1 += ((index ? '-' : '') + part);
+              } else {
+                line2 += ('-' + part);
+              }
+            });
+         }
+        } else {
+          line1 = word;
+        }
+      } else if (words.length > 1) {
+
+        // try to fit two words on line 1
+        line1 = sprintf('%s %s', words[0], words[1]);
+
+        if (line1.length > 10) { // if it won't fit, just take one
+          line1 = words[0];
+          words.splice(0, 1);
+        } else {
+          words.splice(0, 2);
+        }
+
+        line2 = words.join(' ');
+      }
+
+      return [line1 || '', line2 || ''];
+    }
+
+    /**
+     * Constructor for objects of this class
+     */
+    WorkSpace.build = function (data) {
+      return new WorkSpace(data || {});
+    };
+
+    return WorkSpace;
+  });
+})();
+

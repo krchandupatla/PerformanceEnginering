@@ -1,0 +1,11 @@
+[t237]
+FileName1=t237_Toggler.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo1.4.3/dojo/fx/Toggler.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_237.xml
+RequestHeaderFile=t237_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t237_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

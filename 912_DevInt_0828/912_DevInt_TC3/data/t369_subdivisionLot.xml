@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zones><zone name="aazone-parcel-lot"><![CDATA[
+		
+			
+			
+				
+					<input type="text" name="value(parcel*lot)" title="Subdivision" maxlength="40" class='portlet-form-input-field' value=""/>
+			<!-- 	
+				 <input type="text" name="value(parcel*lot)" maxlength="40" class='portlet-form-input-field'  id="value(parcel*lot)"/>
+			-->
+				
+		]]></zone><script/></zones>

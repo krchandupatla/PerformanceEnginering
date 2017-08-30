@@ -1,0 +1,51 @@
+/**
+ * Task Card Condition -- dbalmer@accela.com
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .directive('aaTaskCardCondition', function() {
+      return {
+        restrict: 'AE',
+        replace: true,
+        scope: true,
+        template: '<a ng-show="task.conditionSeverity" class="icon-task-condition {{iconSize}} icon-task-{{task.conditionSeverity}}" popover="{{task.popoverHtml}}" popover-trigger="click" popover-placement="bottom" tabindex="200"></a>',
+        link: function(scope, element, attrs) {
+
+          // PRIVATE methods
+
+          function toggle() {
+            setTimeout(function() {
+              element.toggleClass('active');
+            }, 500); // so we don't immediately remove it in the $document.click handler
+          }
+
+          function keyToggle(evt) {
+            if (evt.key === 'Enter') {
+              evt.stopPropagation();
+              element.triggerHandler('click');
+            } else if (evt.key === 'Tab' && evt.shiftKey) { // back-tab
+              if (element.hasClass('active')) {
+                evt.stopPropagation();
+                element.triggerHandler('click');
+              }
+            }
+          }
+
+          // INITIALIZE
+
+          scope.iconSize = attrs.aaTaskCardCondition || 'big';
+
+          element.on('click', toggle);
+          element.on('keypress', keyToggle);
+
+          scope.$on('destroy', function() {
+            element.off('click', toggle);
+            element.off('keypress', keyToggle);
+          });
+        }
+      };
+    });
+})();

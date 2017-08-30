@@ -1,0 +1,275 @@
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Accela Automation&reg;</title>
+
+  <link type="image/x-icon" rel="shortcut icon" href="favicon.ico">
+  <link type="image/vnd.microsoft.icon" rel="shortcut icon" href="favicon.ico">
+
+  <!-- bower:css -->
+  <!-- endbower -->
+
+  <link rel="stylesheet" href="styles/bootstrap/bootstrap.min.css" />
+  <link rel="stylesheet" href="styles/app.min.css" />
+
+
+
+  <link rel="stylesheet" href="styles/ng-sortable.min.css" />
+
+  <script src="js/lib/modernizr.2.8.3.custom.min.js"></script>
+
+  <script src="//use.typekit.net/zhy8lto.js"></script>
+  <script>try { Typekit.load(); } catch (ignore) { }</script>
+</head>
+<body ng-controller="AutomationController">
+  <!--
+  NOTE THIS CHROME IFRAME FIX MUST BE AT THE TOP OF THE DOM
+  THE ISSUE WITH CHROME IS THAT IT FINDS THE FIRST IFRAME, NOT
+  THE CLOSEST. THE FIX ADDS THE IFRAME AT THE TOP, AND PROXYS
+  THE CALLS TO THE ACTIVE IFRAME.
+  -->
+  <script src="js/core/chrome-iframe-issue-fix.js"></script>
+  <header ng-cloak class="application-bar layer-2" role="banner" ng-include="'views/core/application-bar.html'"></header>
+  <div class="spinner overlay layer-2" ng-show="spinner.active"></div>
+  <div id="notifications" class="layer-1" ng-show="alerts.list.length">
+    <alert ng-repeat="alert in alerts.list" type="{{alert.type}}" close="alerts.close($index)"><div ng-bind-html="alert.msg"></div></alert>
+  </div>
+  <section class="main-container" ng-cloak ng-class="{'admin-view': isAdminView}">
+    <div class="overlay layer-7"></div>
+    <!--<div class="slideout top-slideout has-footer layer-4" ng-include="slideout.templateUrl"></div>-->
+    <div class="slideout default-slideout layer-5" ng-include="slideout.templateUrl"></div>
+    <nav class="menu-bar layer-3" role="navigation" ng-include="'views/automation/menu-bar.html'" onload="menubar.onload()"></nav>
+    <main ui-view="" role="main"></main>
+  </section>
+
+  <!-- bower:js -->
+  <script src="bower_components/angular/angular.min.js"></script>
+  <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+  <script src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+  <script src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
+  <script src="bower_components/sprintf/dist/sprintf.min.js"></script>
+  <script src="bower_components/stacktrace-js/dist/stacktrace.min.js"></script>
+  <script src="bower_components/angular-touch/angular-touch.min.js"></script>
+  <script src="bower_components/venturocket-angular-slider/build/angular-slider.min.js"></script>
+  <script src="bower_components/angular-smart-table/dist/smart-table.min.js"></script>
+  <script src="bower_components/lodash/lodash.js"></script>
+  <script src="bower_components/ui-router-extras/release/ct-ui-router-extras.js"></script>
+  <script src="bower_components/ng-csv/build/ng-csv.min.js"></script>
+  <script src="bower_components/angular-deferred-bootstrap/angular-deferred-bootstrap.min.js"></script>
+  <script src="bower_components/handlebars/handlebars.js"></script>
+  <!-- endbower -->
+
+  <script language="JavaScript">
+  var pendoOptions = '{"product":"Accela Core","userID":"e9af1fa5171aed0adbee00284a455086465aa31fc36563edabf646e11d55a6088095a23efeee0ca56703d10969d3ac54e979ab211892ee56defc91c468476a08","module":"Building","environment":"INTERNAL","serviceURL":"https://d3accju1t3mngt.cloudfront.net/js/pa.min.js","serviceID":"567a146e-65ac-46a5-7a13-b32474a4f67b","userGroup":"BuildingAdmin","agency":"FLAGSTAFF","version":"av.9.1.3.170801"}';
+  if(pendoOptions!= undefined && pendoOptions!= null && pendoOptions.length!=0){
+    var pendoData = JSON.parse(pendoOptions);
+    if(pendoData.serviceID != undefined && pendoData.serviceID != null && pendoData.serviceID.length != 0){
+      window.pendo_options = {
+      apiKey: pendoData.serviceID,
+      usePendoAgentAPI: false,
+      visitor: {
+      id: pendoData.userID,
+      userGroup: pendoData.userGroup,
+      userId: pendoData.userID
+      },
+      account: {
+      id: pendoData.agency,
+      productId: pendoData.product,
+      productVersion: pendoData.version,
+      environment: pendoData.environment,
+      module: pendoData.module
+      }
+      };
+      (function() {
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.async = true;
+      script.src = pendoData.serviceURL;
+      var firstScript = document.getElementsByTagName('script')[0];
+      firstScript.parentNode.insertBefore(script, firstScript);
+      })();
+    }
+  }
+  </script>
+
+  <!-- begin i18n -->
+
+  
+  <link rel="stylesheet" href="styles/en-us.min.css" />
+  
+
+  <script src="bower_components/angular-i18n/angular-locale_en-us.js"></script>
+  <!-- end i18n -->
+
+  <script src="js/config.js"></script>
+  <script src="js/core/accela.js"></script>
+  <script src="js/data/i18n-keys.js"></script>
+
+  
+  <script>
+    AccelaConfig.USE_MOCK_SERVICES = false;
+    AccelaConfig.API_URL = 'https://aa-pt6245.dev.accela.com:5443' + '/portlets/';
+    AccelaConfig.CFMX_URL = 'https://aa-pt6245.dev.accela.com:4443';
+    AccelaConfig.DefaultModule = 'Building';
+    AccelaConfig.SessionAgency = 'FLAGSTAFF';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.Timeout = '6300000';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.AboutTimeout = '200';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.WarnTimeoutTime = '6100000';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.AutoLogout = 'true';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.TimeoutMessage = 'The session has timed out. Please refresh the page to continue.';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.AboutTimeoutMsg = 'Your session will time out in {0} seconds. Would you like to continue?';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.MessageTitle = 'Session Timeout Warning';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.OkLabel = 'Yes';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.NoLabel = 'No';
+    AccelaConfig.SESSION_TIMEOUT_MONITOR.CancelLabel = 'Cancel';
+    AccelaConfig.isRTL = 'ltr' === 'rtl';
+
+    var warnTimeoutTime = AccelaConfig.SESSION_TIMEOUT_MONITOR.WarnTimeoutTime;
+  </script>
+
+  <!-- 'accela.core' module -->
+  <script src="js/core/module.js"></script>
+  <script src="js/core/stacktrace-wrapper.js"></script>
+  <script src="js/core/controllers/sliderbar-controller.js"></script>
+  <script src="js/core/directives/autofocus.js"></script>
+  <script src="js/core/directives/click-outside.js"></script>
+  <script src="js/core/directives/content-limit-to.js"></script>
+  <script src="js/core/directives/ng-repeat-finish.js"></script>
+  <script src="js/core/directives/on-load.js"></script>
+  <script src="js/core/directives/select-on-focus.js"></script>
+  <script src="js/core/directives/styled-checkbox.js"></script>
+  <script src="js/core/directives/table-height-sync.js"></script>
+  <script src="js/core/directives/typeahead-filter.js"></script>
+  <script src="js/core/entities/launchpad-page.js"></script>
+  <script src="js/core/entities/task.js"></script>
+  <script src="js/core/entities/user-profile.js"></script>
+  <script src="js/core/entities/work-space.js"></script>
+  <script src="js/core/filters/base-filter.js"></script>
+  <script src="js/core/filters/custom-date-filter.js"></script>
+  <script src="js/core/filters/highlight.js"></script>
+  <script src="js/core/filters/translate-filter.js"></script>
+  <script src="js/core/filters/overflow.js"></script>
+  <script src="js/core/filters/reverse.js"></script>
+  <script src="js/core/models/dashboard-model.js"></script>
+  <script src="js/core/models/user-model.js"></script>
+  <script src="js/core/services/agency-service.js"></script>
+  <script src="js/core/services/data-service.js"></script>
+  <script src="js/core/services/http-interceptor.js"></script>
+  <script src="js/core/services/i18n-service.js"></script>
+  <script src="js/core/services/logging-service.js"></script>
+  <script src="js/core/services/modal-dialog-service.js"></script>
+  <script src="js/core/services/overlay-service.js"></script>
+  <script src="js/core/services/safe-apply.js"></script>
+  <script src="js/core/services/slideout-service.js"></script>
+  <script src="js/core/services/user-manager.js"></script>
+
+  <script src="js/core/controllers/keepalive-controller.js"></script>
+
+  <!-- 'accela.automation' module -->
+  <script src="js/automation/module.js"></script>
+  <script src="js/automation/admin/classic-admin-controller.js"></script>
+  <script src="js/automation/automation-controller.js"></script>
+  <script src="js/automation/controllers/spaces-controller.js"></script>
+  <script src="js/automation/controllers/space-controller.js"></script>
+  <script src="js/automation/controllers/space-portlet-controller.js"></script>
+  <script src="js/automation/directives/main-menu-flyout.js"></script>
+  <script src="js/automation/directives/space-context-menu.js"></script>
+  <script src="js/automation/directives/space-list.js"></script>
+  <script src="js/automation/services/space-manager.js"></script>
+  <script src="js/automation/services/space-repository.js"></script>
+  <script src="js/automation/services/space-icon-factory.js"></script>
+  <script src="js/automation/services/portlet-session-state.js"></script>
+  <script src="js/automation/services/server-session-service.js"></script>
+
+  <!-- AgencySwitch -->
+  <script src="js/automation/directives/agency-switch.js"></script>
+
+  <!-- 'accela.automation.dashboard' module -->
+  <script src="js/automation/dashboard/module.js"></script>
+  <!-- launchpad -->
+  <script src="js/automation/dashboard/launchpad/controllers/launchpad-controller.js"></script>
+  <script src="js/automation/dashboard/launchpad/directives/favorite-pages-toggle.js"></script>
+  <script src="js/automation/dashboard/launchpad/services/launchpad-manager.js"></script>
+
+  <!-- task dashboard -->
+  <script src="js/automation/dashboard/task/controllers/task-dashboard-controller.js"></script>
+  <script src="js/automation/dashboard/task/directives/task-card-condition.js"></script>
+  <script src="js/automation/dashboard/task/directives/task-card-menu.js"></script>
+  <script src="js/automation/dashboard/task/directives/task-filter.js"></script>
+  <script src="js/automation/dashboard/task/directives/task-flyout-toggle.js"></script>
+  <script src="js/automation/dashboard/task/services/task-manager.js"></script>
+
+  <!-- 'accela.automation.globalsearch' module -->
+  <script src="js/automation/globalsearch/module.js"></script>
+  <script src="js/automation/globalsearch/controllers/globalsearch-controller.js"></script>
+  <script src="js/automation/globalsearch/controllers/asset-pagination-controller.js"></script>
+  <script src="js/automation/globalsearch/controllers/contact-pagination-controller.js"></script>
+  <script src="js/automation/globalsearch/controllers/document-pagination-controller.js"></script>
+  <script src="js/automation/globalsearch/controllers/location-pagination-controller.js"></script>
+  <script src="js/automation/globalsearch/controllers/parcel-pagination-controller.js"></script>
+  <script src="js/automation/globalsearch/controllers/professional-pagination-controller.js"></script>
+  <script src="js/automation/globalsearch/controllers/record-pagination-controller.js"></script>
+  <script src="js/automation/globalsearch/directives/alt-hilite.js"></script>
+  <script src="js/automation/globalsearch/services/globalsearch-service.js"></script>
+
+  <!-- portlet iframe -->
+  <script src="js/automation/portlet/portlet-iframe-controller.js"></script>
+
+  <script src="js/lib/RoboHelp_CSH.js"></script>
+  <script src="js/lib/custom/dirPagination.js"></script>
+  <script src="js/lib/custom/ng-sortable.js"></script>
+  <script src="js/lib/sessionmonitor.js"></script>
+  <script src="js/lib/showModalDialog.js"></script>
+
+  <!-- custom bootstrap templates -->
+  <script src="templates/popover.tpl.js"></script>
+
+  <!-- 'accela.templates' module -->
+  <script src="templates/compiled.tpl.js"></script>
+
+  <!-- KeepAlive to ping the backend to keep the services from timing out. -->
+  <script src="js/core/controllers/keepalive.js"></script>
+
+  <script>
+    /**
+     * Load i18n and agency data before bootstrapping Angular.
+     */
+    window.deferredBootstrapper.bootstrap({
+      element: window.document.body,
+      module: 'accela.automation',
+      resolve: {
+        I18N_CONFIG: function ($http, $q) {
+          return Accela.Bootstrapper.getI18NConfig($http, $q);
+        },
+        AGENCY_SWITCH_CONFIG: function ($http, $q) {
+          return Accela.Bootstrapper.getAgencySwitchConfig($http, $q);
+        },
+        AGENCY_TAB_CONFIG: function ($http, $q) {
+          return Accela.Bootstrapper.getAgencyTabConfig($http, $q);
+        }
+      },
+      onError: function(error) {
+        alert(sprintf('%s - %s', error.data, error.config.url));
+      }
+    });
+  </script>
+</body>
+</html>

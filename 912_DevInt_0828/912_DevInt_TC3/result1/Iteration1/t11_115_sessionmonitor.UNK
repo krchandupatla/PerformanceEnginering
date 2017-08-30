@@ -1,0 +1,360 @@
+//Accela Automation
+//File: SessionMonitor.js
+//Accela, Inc.
+//Copyright (C): 2010-2014
+
+
+//======================================below is use in session time out===========================================	
+var bakTime = 0;
+var localLatestTime = new Date().getTime();
+var bChanged = false;
+var redirectURL = "";
+
+//utility function called by getCookie()
+function getCookieVal(offset)
+{
+	var endstr = document.cookie.indexOf(";", offset);
+	if(endstr == -1)
+	{
+		endstr = document.cookie.length;
+	}
+	return unescape(document.cookie.substring(offset, endstr));
+}
+
+// primary function to retrieve cookie by name
+function getCookie(name)
+{
+	var arg = name + "=";
+	var alen = arg.length;
+	var clen = document.cookie.length;
+	var i = 0;
+	while(i < clen)
+	{
+		var j = i + alen;
+		if (document.cookie.substring(i, j) == arg)
+		{
+			return getCookieVal(j);
+		}
+		i = document.cookie.indexOf(" ", i) + 1;
+		if(i == 0) break;
+	}
+	return null;
+}
+
+function timeoutTimer() 
+{
+	var latestTime = getCookie("LASTEST_REQUEST_TIME");
+	if (latestTime != null && latestTime != "")
+	{
+		latestTime = latestTime * 1;
+		if (latestTime != bakTime)
+		{
+			if (sessionTimeOutWarnObj.userHasCancelWork == false)
+			{
+				localLatestTime = new Date().getTime();
+				bakTime = latestTime;
+			}
+		}
+	}
+	
+	var tmpTime = new Date().getTime() - localLatestTime;
+
+	if (tmpTime >  AccelaConfig.SESSION_TIMEOUT_MONITOR.Timeout || document.cookie.indexOf("ACSignoff") == -1)
+	{
+		logout();
+	}
+	else if (tmpTime > AccelaConfig.SESSION_TIMEOUT_MONITOR.WarnTimeoutTime && AccelaConfig.SESSION_TIMEOUT_MONITOR.WarnTimeoutTime > 0)//prompt warn window to user the session about time out.
+	{
+		sessionTimeOutWarnObj.warnTimeout();	
+	}
+}
+
+
+var sessionTimeOutWarnObj = {
+
+	//invoke remote refresh session update local time.
+	renewSession : function() {	
+		var url = "/portlets/framework/includes/error/empty.jsp";
+		var content = sendHttpRequest(url, "", false);
+		if (content)
+		{
+			sessionTimeOutWarnObj.renewAlertWin();
+		}
+	},
+
+	cancelAlertWin : function() {
+		this.userHasCancelWork = true;
+	},
+	
+	renewAlertWin : function() {
+		this.userHasCancelWork = false;
+	},
+	
+	//when child window close by customer.
+	closePopWindow : function() {
+		if (sessionTimeOutWarnObj.warnWindow)
+			sessionTimeOutWarnObj.warnWindow.closeWin();
+		top.clearInterval(top.refreshWarnMsgId);
+	},
+
+	warnTimeout : function(){
+		if (this.userHasCancelWork || this.getAboutTimeout() < 0)
+			return false;
+		this.cancelAlertWin();
+		sessionTimeOutWarnObj.tmpaboutTimeout = this.getAboutTimeout();
+		
+		this.warnWindow = window.showModalDialog("/portlets/framework/includes/error/timeoutwarn.jsp",window,'dialogWidth=550px;dialogHeight=100px;location=no;dependent=no;resizable=no;toolbar=no;status=no;directories=no;menubar=no;scrollbars=no',false);
+	
+	},
+	
+	updateMsg : function()
+	{
+		var message = sessionTimeOutWarnObj.getWarnMsg();
+		if (document.getElementById("_msgContent")){
+			document.getElementById("_msgContent").innerHTML = message;
+			scrollBarIssue.autoAdjustForErrorMsgDisplay();
+		}	
+	},	
+	//when use cancel, the warn window don't open.
+	userHasCancelWork: false,
+	
+	getAboutTimeout : function(){
+		return  AccelaConfig.SESSION_TIMEOUT_MONITOR.AboutTimeout;
+	},
+	
+	getWarnMsg: function()
+	{
+		
+		if (sessionTimeOutWarnObj.tmpaboutTimeout <= 0)
+		{
+			sessionTimeOutWarnObj.closePopWindow();
+			var message = AccelaConfig.SESSION_TIMEOUT_MONITOR.AboutTimeoutMsg.replace("{0}", 0);
+			return message;
+		}
+		var message = AccelaConfig.SESSION_TIMEOUT_MONITOR.AboutTimeoutMsg.replace("{0}", sessionTimeOutWarnObj.tmpaboutTimeout);
+		sessionTimeOutWarnObj.tmpaboutTimeout = sessionTimeOutWarnObj.tmpaboutTimeout - 1;
+		return message;
+	}
+	
+}
+
+function setTimeoutTimer()
+{
+	var servProvCode = getCookie("ACAPersistLoginServProvCode");
+	var hostSignOn = getCookie("hostSignOn");
+	var ACSignOnModule = getCookie("ACSignOnModule");
+	redirectUrl = "/ssoAdapter/logoutAction.do?automaticLogout=true&hostSignOn=" + hostSignOn;
+	try 
+	{
+		if (typeof(top.timeout_watcher) != 'undefined')
+		{
+			top.clearInterval(top.timeout_watcher);
+		}
+		
+		if ( AccelaConfig.SESSION_TIMEOUT_MONITOR.Timeout > 0)
+		{
+			top.timeout_watcher = top.setInterval(timeoutTimer, 1000);
+		}
+	}
+	catch (e) {}
+}
+
+function logout() 
+{
+	top.clearInterval(top.timeout_watcher);
+	if (AccelaConfig.SESSION_TIMEOUT_MONITOR.AutoLogout)
+	{
+		window.top.location.href = redirectUrl;
+	}
+	else
+	{
+		sessionTimeOutWarnObj.closePopWindow();
+		alert(AccelaConfig.SESSION_TIMEOUT_MONITOR.TimeoutMessage);
+	}
+}
+//======================================above is use in session time out===========================================
+
+
+
+function getCookie(name) 
+{
+   var arrStr = document.cookie.split("; ");
+   for(var i = 0;i < arrStr.length;i ++)
+   {
+   		var temp = arrStr[i].split("=");
+    	if(temp[0] == name) return unescape(temp[1]);
+   }
+}
+function delCookie(name,cval)
+{
+    var exp = new Date();
+    exp.setTime(exp.getTime() - 1);
+	document.cookie = name+"="+escape(cval)+"; expires="+exp.toGMTString()+"; path=/";
+}
+
+var expiredDays = getCookie("LicenseExpiredDays");
+var expiredModules = getCookie("LicenseExpiredModules");
+if (expiredDays != null && expiredModules != null)
+{
+	delCookie("LicenseExpiredDays",expiredDays);
+	delCookie("LicenseExpiredModules",expiredModules);
+	window.open("/portlets/commons/productlicense/licenseExpire.jsp?LicenseExpiredDays=" + expiredDays + "&LicenseExpiredModules=" + expiredModules
+		,'','height=300, width=400, top=75, left=100,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=no');
+}
+
+
+function sendHttpRequest(url, param, sync, callFn)
+{
+	var returnData = "";
+	if (SessionMonitorHelper.validator.isEmpty(callFn))
+	{
+		callFn = function callBack(returnTxt)
+		{
+			returnData = returnTxt;
+		}; 
+	}
+	
+	if (!SessionMonitorHelper)
+		return;
+	
+	var ajax = new SessionMonitorHelper.ajax();
+    ajax.send(url, param, callFn, sync);
+    return returnData;
+}
+
+
+(
+	function(){
+			var SessionMonitorHelper = function(){};
+			
+			//ajax
+			var Ajax = function(){
+				//private
+				var createXMLHttpRequest = function(){
+					var xmlHttp = false;
+					if (window.XMLHttpRequest)   // Mozilla, Safari, ...
+					{
+						xmlHttp = new XMLHttpRequest();
+					}
+					else if (window.ActiveXObject)  // IE
+					{
+						try
+						{
+					 		xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+						}
+						catch(e1)
+						{
+							try
+							{
+								xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+							}
+							catch(e2)
+							{
+								xmlHttp = false;
+							}
+						}
+					}
+					
+					return xmlHttp;		
+				};
+				
+				var stateChange = function(desc){
+					var req = desc.req;
+					
+					try {
+			          var readyState = req.readyState;
+			          if (readyState != 4) {
+			            return;
+			          }
+			        }
+			        catch (ex) {
+			          return;
+			        }
+			        var status = req.status; // causes Mozilla to except on page moves
+			        
+			        if (status != 200) 
+			        	return;
+			        	
+			         var reply = req.responseText;
+			         var responseXML = req.responseXML;
+			        if (reply == null || reply == "") 
+			        	return;
+			         desc['reply'] = reply;
+			         if (desc.callback)
+			         {
+			         	desc.callback.call(window, reply, responseXML);
+			         }
+				};	
+				
+				this.send = function(url, content , callback, async)
+				{
+					if (typeof async == 'undefined')
+						async = true;
+				
+					var returnData = "";
+					var req = createXMLHttpRequest();
+					if (!req) 
+					{
+						throw new Error("XMLHttp object could be created.");
+					}
+					
+					var desc = {req: req, callback: callback};
+					
+					if(async)
+					{
+						req.onreadystatechange = function(){
+							stateChange(desc);
+						};
+					}
+					
+					req.open("POST", url, async);
+					req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+					req.send(content);
+					if(!async)
+					{
+						stateChange(desc);
+					}
+					
+					return desc.reply;
+
+				};
+			};
+
+
+    var toString = Object.prototype.toString;
+
+    var validator = {
+      isEmpty : function(value) {
+        if (value === undefined ||  value === null || value ==='')
+        {
+          return true;
+        }
+        if (this.isArray(value))
+        {
+          if (value.length == 0)
+            return true;
+        }
+        return false;
+      },
+
+      isArray: function(value) {
+        return toString.call(value) === '[object Array]';
+      },
+
+      isObject: function(value) {
+        return value !== null && value !== undefined && toString.call(value) === '[object Object]';
+      }
+    };
+
+    SessionMonitorHelper.prototype = {
+				constructor: SessionMonitorHelper,
+				ajax : Ajax,
+				validator : validator
+			};
+			
+			window.SessionMonitorHelper = new SessionMonitorHelper();
+		}
+	)();
+
+
+/**send HttpRequest, this method move from ac360*/

@@ -1,0 +1,11 @@
+[t332]
+FileName1=t332.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/parcel/refParcelList.do?mode=search&lookup=false
+Total=1
+RequestHeaderFile=t332_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t332_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_332.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

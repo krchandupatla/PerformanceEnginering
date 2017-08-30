@@ -1,0 +1,78 @@
+/**
+ * 
+ * V360	 
+ * File: myTask.js
+ * 
+ * Accela, Inc.
+ * Copyright (C): 2009-2011
+ * 
+ * Description:
+ * <<General description of the class>>
+ * 
+ * Notes:
+ * <<Specific programming notes>>
+ * 
+ * Revision History:
+ * <<Date>>, <<Who>>, <<What>>
+ * 03/09/2009, Rain Wang, Initial version
+ *
+ */
+
+function expandOrCollapseFrame(webpath,divName)
+{ 
+	var objFrame = document.getElementById(divName).style; 
+	var objImg = document.getElementById(divName+'Img');
+	if (objFrame.display=="block") 
+	{
+		objFrame.display="none"; 
+		objImg.src= webpath + "/images/arrow_black.gif";
+	}
+	else 
+	{
+		objFrame.display="block"; 
+		objImg.src= webpath + "/images/arrow_down_black.gif";
+	}
+	var oiBody = document.body;	
+	
+	nHeight = oiBody.scrollHeight + oiBody.offsetHeight-oiBody.clientHeight;
+	if(objFrame.display == "none")
+	{
+		nHeight = 0;
+	}
+	
+	objFrame.height = nHeight;									
+
+	
+	if(top.iframeResize)
+	{
+		setTimeout('top.iframeResize()', 30);		
+	}
+	scrollBarIssue.pageAdjust();
+}
+
+function forceHideFrame(webpath)
+{ 
+	frm = parent.frames["myTaskSearchForm"];
+	var divName = "searchingSection";
+	if (frm != null)
+	{
+		var objFrame = frm.document.getElementById(divName).style;
+		var objImg = frm.document.getElementById(divName+'Img');
+
+		objFrame.display="none"; 
+		objImg.src= webpath + "/images/arrow_black.gif";
+		var oiBody = frm.document.body;	
+		
+		objFrame.height = 0;	
+		
+		if(top.iframeResize)
+		{
+			setTimeout('top.iframeResize()', 30);		
+		}
+	}
+	
+}
+
+/*
+*$Log: myTask.js,v $
+*/

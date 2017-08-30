@@ -1,0 +1,140 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .factory('i18nService', service);
+
+  /**
+   * @ngInject
+   */
+  function service($log, $q, DataService, CONFIG) {
+
+    // PRIVATE data
+
+    var store = {};
+    var GUI_TEXT_PREFIX = 'AANewUX_';
+    var dataService = DataService.getInstance('I18N');
+
+    // PRIVATE methods
+
+    /**
+     * Format for each STRING_KEY is <GUI_TEXT_PREFIX><SET><KEY> delimited by underscores.
+     *
+     * Request looks like this: {
+     *  "AANewUX_ApplicationMenu_Help": "",
+     *  "AANewUX_Task_ShowingNTasks": ""
+     * }
+     */
+    function constructRequest(set) {
+      var obj = {};
+      var prefix = sprintf('%s%s_', GUI_TEXT_PREFIX, set);
+
+      angular.forEach(store[set], function(value, key) {
+        obj[prefix + key] = '';
+      });
+
+      return obj;
+    }
+
+    /**
+     * Create datastore for this set with default values.
+     */
+    function init(set, keys) {
+      var obj = store[set] || {};
+
+      angular.forEach(keys, function(item) {
+        var s = item.split('|');
+        var key = s[0];
+        var value = s.length > 1 ? s[1] : s[0];
+
+        obj[key] = value;
+      });
+
+      store[set] = obj;
+    }
+
+    /**
+     * Make a request for localized string values.
+     */
+    function getLocalizedText() {
+      var data = {};
+      var deferred = $q.defer();
+      var params = { mode: 'localizedText' };
+
+      try {
+        for (var set in CONFIG.i18nKeys) {
+          if (CONFIG.i18nKeys.hasOwnProperty(set)) {
+            angular.extend(data, constructRequest(set));
+          }
+        }
+
+        if (Accela.Util.isEmpty(data)) {
+          deferred.reject('Translation keys not defined');
+        } else {
+          dataService.send('LOCALIZED_TEXT', data, params).then(function(response) {
+            updateStore(response.data.result);
+            deferred.resolve(true);
+          }, function(error) {
+            deferred.reject(error);
+          });
+        }
+      } catch (ex) {
+        deferred.reject(ex.message);
+      }
+
+      return deferred.promise;
+    }
+
+    /**
+     * Response looks like this: {
+     *  "AANewUX_ApplicationMenu_Help": "Ayuda",
+     *  "AANewUX_Tasks_ShowingNTasks": "Mostrando %s tarea(s)"
+     * }
+     */
+    function updateStore(data) {
+      angular.forEach(data, function(value, str) {
+        var s = str.replace(GUI_TEXT_PREFIX, '').split('_');
+        var set = s[0];
+        var key = s.length > 1 ? s[1] : null;
+
+        if (set) {
+          if (store[set]) {
+            if (key) {
+              if (value.trim() === '') {
+//                $log.error('updateStore() VALUE is empty: ' + str);
+              } else if (value === str) {
+//                $log.error('updateStore() VALUE is the same as KEY (probably not defined in database): ' + str);
+              } else {
+                store[set][key] = value;
+              }
+            } else {
+              $log.error('updateStore() cannot parse KEY: ' + str);
+            }
+          } else {
+            $log.error('updateStore() SET not defined: ' + set);
+          }
+        } else {
+          $log.error('updateStore() cannot parse SET: ' + str);
+        }
+      });
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('I18N-SERVICE');
+
+    angular.forEach(CONFIG.i18nKeys, function(value, key) {
+      init(key, value);
+    });
+
+    // PUBLIC interface
+
+    return {
+      constructRequest: constructRequest, // exposed for unit testing
+      getLocalizedText: getLocalizedText,
+      store: store, // exposed via $rootScope.i18n property
+      updateStore: updateStore // exposed for unit testing
+    };
+  }
+})();

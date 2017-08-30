@@ -1,0 +1,12 @@
+POST /portlets/spa/text.do?mode=localizedText HTTP/1.1
+Content-Type: application/json;charset=utf-8
+Referer: https://aa-pt6245.dev.accela.com:5443/portlets/spa/dashboard.do
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US
+Accept: */*
+Connection: Keep-Alive
+Host: aa-pt6245.dev.accela.com:5443
+Cookie: JSESSIONID=40koDSz+4p2d-oZqzIsdKP+0; JSESSIONID=***************************; LASTEST_REQUEST_TIME=1503944843231; hostSignOn=true; g_current_language_ext=en_US; LATEST_WEB_SERVER=10.1.0.6; LATEST_SESSION_ID=40koDSz+4p2d-oZqzIsdKP+0; ACAuth=59149129868306297944644403821577921262506758453725514962243655850208002705516422461110251276008815093401387365433493089834150621; ACSignOnModule=SSOStandard; AAPersistLoginServProvCode=FLAGSTAFF; LoginServProvCode4MultiAgency=FLAGSTAFF; LoginUsername4MultiAgency=179DD13A186028F4; ACSignoff="https://aa-pt6245.dev.accela.com:5443/portlets/security/signout.do"; ACSwitchAgency="https://aa-pt6245.dev.accela.com:5443/portlets/commons/sso/blank.jsp"
+Content-Length: 9110
+

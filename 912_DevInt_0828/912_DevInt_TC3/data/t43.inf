@@ -1,0 +1,11 @@
+[t43]
+FileName1=t43_en-us.min.css
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/styles/en-us.min.css
+Total=1
+ContentType=text/css
+SnapshotXmlFile=snapshot_43.xml
+RequestHeaderFile=t43_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t43_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,52 @@
+//Accela, Inc.
+//Copyright (C): 2009-2013
+/**
+ * Add unload event handler, when window refressh or close, invoke unloadHandler.
+ */
+try
+{
+	if(typeof memoryLeakPatch == 'undefined' || memoryLeakPatch == null)
+	{
+		
+	
+		/**
+		 * When a window unload, firstly clean its all iframe content to avoid memory leak.
+		 * 
+		 */
+		var memoryLeakPatch = function (){	
+			try
+			{
+				if(document.frames && document.frames.length > 0)
+				{
+					for(var i=0; i < document.frames.length; i++)
+					{
+						//For feature 13ACC-00695, avoid showing confirm saving dialog twice when click jetspeed link or close tab page.
+						document.frames[i].isClear = "Y";
+						document.frames[i].document.write("");
+						document.frames[i].document.clear();
+					}
+
+					CollectGarbage();
+				}
+			}
+			catch(e)
+			{
+				//do nothing
+			}
+		}
+
+		if (window.attachEvent)
+		{
+			window.attachEvent("onunload", memoryLeakPatch);
+		}
+		else
+		{
+			window.addEventListener("unload", memoryLeakPatch, false);
+		}
+	}
+	
+}
+catch(e)
+{
+	//do nothing
+}

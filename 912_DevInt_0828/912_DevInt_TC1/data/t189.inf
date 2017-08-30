@@ -1,0 +1,11 @@
+[t189]
+FileName1=t189.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/cap/capSearch.do?searchBy=ByCondition&height=270&mode=init&module=Building&cleanCapId=Y&isGeneralCAP=Y&supportMulAgencySearch=Y
+Total=1
+ContentType=text/html
+SnapshotXmlFile=snapshot_189.xml
+RequestHeaderFile=t189_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t189_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

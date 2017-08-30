@@ -1,0 +1,11 @@
+[t945]
+FileName1=t945.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/security/hostSignon.do?hostSignOn=true&signOff=true
+Total=1
+ContentType=text/html
+SnapshotXmlFile=snapshot_945.xml
+RequestHeaderFile=t945_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t945_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

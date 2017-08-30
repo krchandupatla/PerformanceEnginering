@@ -1,0 +1,56 @@
+(function() {
+  'use strict';
+
+
+
+  function closeDialog(doc) {
+    var modals = doc.getElementsByTagName('dialog');
+    if(modals.length) {
+      for(var i = 0; i < modals.length; i++) {
+        modals[i].close();
+      }
+    }
+  }
+
+  function closeDialogs(el) {
+    if(el.document) 
+    {
+      closeDialog(el.document);
+      if(el.parent.document) 
+      {
+        closeDialog(el.parent.document);
+        if(el.parent.parent.document) 
+        {
+          closeDialog(el.parent.parent.document);
+          if(el.parent.parent.parent.document) 
+          {
+            closeDialog(el.parent.parent.parent.document);
+          }
+        }
+      }
+    }
+  }
+
+  var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+  if(isChrome) {
+    var originalWindowCloseFunction = window.close;
+    window.close = function() 
+    {
+      originalWindowCloseFunction.call(null, arguments);
+      if(this)
+	  {
+    	 closeDialogs(this.parent);
+      }
+    };
+
+    var originalParentWindowCloseFunction = parent.window.close;
+    parent.window.close = function () 
+    {
+      originalParentWindowCloseFunction.call(null, arguments);
+      if(this)
+      {
+    	  closeDialogs(this.parent);    	  
+      }
+    }
+  }
+})();

@@ -1,0 +1,11 @@
+[t38]
+FileName1=t38_angular-slider.min.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/bower_components/venturocket-angular-slider/build/angular-slider.min.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_38.xml
+RequestHeaderFile=t38_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t38_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

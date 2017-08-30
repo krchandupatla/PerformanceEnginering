@@ -1,0 +1,11 @@
+[t670]
+FileName1=t670_root.gif
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/tree/root.gif
+Total=1
+ContentType=image/gif
+SnapshotXmlFile=snapshot_670.xml
+RequestHeaderFile=t670_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t670_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

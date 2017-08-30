@@ -1,0 +1,11 @@
+[t680]
+FileName1=t680.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/text.do?mode=localizedText
+Total=1
+RequestHeaderFile=t680_RequestHeader.txt
+RequestBodyFile=t680_RequestBody.txt
+ResponseHeaderFile=t680_ResponseHeader.txt
+ContentType=application/json
+SnapshotXmlFile=snapshot_680.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

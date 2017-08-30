@@ -1,0 +1,61 @@
+/**
+ * Created by austin.wang on 12/9/2014.
+ */
+(
+    function() {
+        'use strict';
+
+        angular
+            .module('accela.core')
+            .controller('SliderBarController', controller);
+        /**
+         * @ngInject
+         */
+        function controller($scope) {
+
+            var initValue = 1;
+            var cellingLength = 10;
+            $scope.isRTL = document.dir === 'rtl';
+            if ($scope.isRTL) {
+                initValue = cellingLength;
+            }
+
+            $scope.slides={
+
+                value:initValue,
+                floor:1, //The lowest value possible
+                ceiling:cellingLength, //The highest value possible
+                step:1 //The width between each tick.
+            };
+
+            //slide the result table
+            $scope.changeScroll = function(targetId, shadowTableID) {
+                var shadowObj = $( '#' + shadowTableID);
+                if ($scope.slides.value > 1) {
+                    if (!shadowObj.hasClass('table-shadow')) {
+                        shadowObj.addClass('table-shadow');
+                    }
+                }
+                if ($scope.slides.value === 1){
+                    if (shadowObj.hasClass('table-shadow')) {
+                        shadowObj.removeClass('table-shadow');
+                    }
+                }
+
+                //get the Object which need scroll control
+                var targetObj = $( '#' + targetId)[0];
+                if($scope.slides.value === 1){
+                    targetObj.scrollLeft = 0;
+                }
+                else{
+                    if($scope.slides.ceiling === 0)
+                    {
+                        $scope.slides.ceiling = 1;
+                    }
+                    targetObj.scrollLeft = (targetObj.scrollWidth - targetObj.offsetWidth) * ($scope.slides.value/$scope.slides.ceiling);
+                }
+            };
+        }
+    }
+)();
+

@@ -1,0 +1,31 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .directive('tableHeightSync', function($timeout) {
+      return {
+        restrict: 'A',
+        link: function(scope, element, attrs) {
+          function setTableHeight() {
+            $timeout(function() {
+              var rightCells = element[0].querySelectorAll('.table-right td:nth-child(1)');
+
+              for (var i = 0; i < rightCells.length; i++) {
+                var newHeight =rightCells[i].clientHeight;
+
+                var leftCells = element[0].querySelectorAll('.table-left tr:nth-child(' + (i + 1) + ') td');
+                for( var j = 0; j < leftCells.length; j++) {
+                  leftCells[j].style.height = newHeight + 'px';
+                }
+              }
+            },0);
+          }
+
+          scope.$watchCollection(attrs.tableHeightSync, function() {
+            setTableHeight();
+          });
+        }
+      };
+    });
+})();

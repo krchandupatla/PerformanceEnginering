@@ -1,0 +1,132 @@
+/**
+ * Routes for dashboard, globalsearch, and intake are defined in their modules.
+ */
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation', [
+      'accela.core',
+      'accela.automation.dashboard',
+      'accela.automation.globalsearch'
+      //'accela.automation.record' // Intake is TBD
+    ])
+    .config(function ($stateProvider, $urlRouterProvider, $stickyStateProvider, $futureStateProvider, SpaceConfiguration, $sceDelegateProvider) {
+
+      $stateProvider
+        .state('keepalive', {
+          url: '/keepalive',
+          controller: 'KeepAliveController',
+          templateUrl: 'views/core/keepalive.html',
+        })
+        .state('portlet', {
+          url: '/portlet?name&url',
+          controller: 'PortletIFrameController',
+          templateUrl: 'views/automation/portlet/portlet-iframe.html',
+          params: { // required for $stateParams
+            name: '',
+            url: ''
+          }
+        })
+        .state('portlet.map',{
+          url:'/map',
+          controller:'portletMapController',
+          params: { // required for $stateParams
+            mapData: ''
+          }
+        })
+        .state('admin', {
+          url: '/admin',
+          templateUrl: 'views/automation/admin/admin.html'
+        })
+        .state('classic-admin', {
+          url: '/classic-admin',
+          controller: 'ClassicAdminController',
+          templateUrl: 'views/automation/admin/classic-admin.html'
+        });
+
+      $stateProvider
+        .state({
+          name: 'spaces',
+          url: '/',
+          abstract: true,
+          views: {
+            '@': {
+              controller: 'SpacesController',
+              templateUrl: 'views/automation/spaces.html'
+            }
+          },
+          resolve: {
+            pinnedSpaces: function (SpaceManager) {
+              return SpaceManager.load();
+            }
+          }
+        });
+
+      $futureStateProvider.stateFactory('deferredStateLoader', function ($q, futureState, SpaceManager, $state, $stickyState) {
+        var d = $q.defer();
+
+        SpaceManager.load().then(function (spaces) {
+
+          var space = _.chain(spaces)
+            .where({routeName: futureState.name})
+            .first()
+            .value();
+
+          if (!space) {
+            // if the user bookmarks a space that is not pinned, we must redirect to the home page to reload the
+            // future states, otherwise you won't be able to open up the bookmarked space.
+            window.location.href = window.location.href.split('#')[0];
+            return;
+          }
+
+          var fullUiRouterState = angular.extend(futureState, {
+            resolve: {
+              spaceDetails: function () {
+                return space;
+              }
+            }
+          });
+
+          fullUiRouterState.views[space.viewName].templateUrl = 'views/automation/space.html';
+          fullUiRouterState.views[space.viewName].controller = 'SpaceController';
+
+          d.resolve(fullUiRouterState);
+        });
+
+        return d.promise;
+      });
+
+
+      for (var i = 1; i < SpaceConfiguration.numberOfSpaces + 1; i++) {
+        var futureState = {
+          type: 'deferredStateLoader',
+          name: 'spaces.' + SpaceConfiguration.spaceExtension + i,
+          url: 'spaces/'+ SpaceConfiguration.spaceExtension + i,
+          deepStateRedirect: true,
+          sticky: true,
+          views: {}
+        };
+
+        futureState.views['container' + i + '@spaces'] = {};
+
+        $futureStateProvider.futureState(futureState);
+      }
+
+      $urlRouterProvider.otherwise('/dashboard/task/cards');
+
+      $sceDelegateProvider.resourceUrlWhitelist([
+        'self',
+        'https://**',
+        'http://**'
+      ]);
+
+    }).run(function ($rootScope, $state, i18nService) {
+      $rootScope.$state = $state;
+      $rootScope.i18n = i18nService.store;
+    }).constant('SpaceConfiguration', {
+      numberOfSpaces: 20,
+      spaceExtension: Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1),
+      sessionStateService: 'ServerSessionService'
+    });
+})();

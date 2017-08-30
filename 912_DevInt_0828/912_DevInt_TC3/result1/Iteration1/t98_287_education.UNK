@@ -1,0 +1,2552 @@
+/**
+ * 
+ * V360	 
+ * File: education.js
+ * 
+ * Accela, Inc.
+ * Copyright (C): 2009-2014
+ * 
+ * Description:
+ * <<General description of the class>>
+ * 
+ * Notes:
+ * <<Specific programming notes>>
+ * 
+ * Revision History:
+ * <<Date>>, <<Who>>, <<What>>
+ * 07/09/2009, Rain Wang, Initial version
+ *
+ */
+function insertAdjacent(spcificElement)
+{
+	spcificElement.insertAdjacentHTML("AfterEnd","&nbsp;&nbsp;");
+}
+
+function initEleStyle(inputElement)
+{	
+	inputElement.style.fontSize = "1.034em";
+	inputElement.style.color = "#333333";
+	inputElement.style.fontFamily = "Verdana, Arial, Helvetica, sans-serif";
+	readOnlyObj.resetReadOnly([inputElement]);
+}
+
+function renderText(textStr,name,lblVal)
+{
+	var retStr = '';
+	if (textStr)
+	{
+		retStr = "<FONT  class=\"Error\" air-label=\""+lblVal+"\" air-for=\""+name+"\" air-error=\"true\">"+textStr+"</FONT>";
+	}
+	return retStr;
+}
+
+function showOrHiddenNoRecordMsg2(tableRows,noRecordMsgEleId)
+{
+	var noRecordMsgEle = document.getElementById(noRecordMsgEleId);		
+	if (noRecordMsgEle)
+	{
+		var noRecordMsgEleStyle = noRecordMsgEle.style;
+		if(noRecordMsgEleStyle.display == 'none' && tableRows.length < 3)
+		{
+			noRecordMsgEleStyle.display = '';
+		}
+		else if (noRecordMsgEleStyle.display != 'none' && tableRows.length > 2)
+		{
+			noRecordMsgEleStyle.display = 'none';
+		}
+	}
+	return false;
+}
+
+function addStandardComment2(cmntPre,eduInx,lableVal)
+{
+	
+	//detailtemp element name index is 0, so row1 is eduInx +1.
+	var eduNameInx = eduInx +1;	
+	var comment = document.getElementsByName("value("+cmntPre+"Comments)")[eduNameInx];
+	var docType = document.getElementsByName("value(docType)")[eduNameInx];
+	var docId = document.getElementsByName("value(docId)")[eduNameInx];
+	var commentImg = document.getElementsByName(cmntPre + "StdCommntImg")[eduNameInx];
+  if (comment && commentImg) { // AATHETA-1433
+		comment.id = "value("+cmntPre+"Comments"+eduInx+")";
+		docType.id = "value(docType"+eduInx+")";
+		docId.id = "value(docId"+eduInx+")";
+		if (comment.readOnly)
+		{
+			commentImg.insertAdjacentHTML("AfterEnd",'<font class="inputfieldlabel">'+lableVal+'</font>');
+		}
+		else
+		{
+			commentImg.insertAdjacentHTML("AfterEnd",'<a id="'+cmntPre+'StdCommentLink" href="#" onClick="return gotoStandardCommentTypeList(\''+comment.id+'\', \''+docType.id+'\', \''+docId.id+'\');"><class="portlet-msg-info">'+lableVal+'</a>');
+		}
+	}
+}
+
+function initDetailEleIds(rowDetailElement,cmntPre,rowInx)
+{
+	var pChar = 'p';
+	if (cmntPre != '')
+	{
+		pChar = 'P';
+	}
+	var prefixstr = cmntPre+pChar;
+	setSingleFieldId(rowDetailElement,prefixstr,'address1',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'address2',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'address3',rowInx);		
+	setSingleFieldId(rowDetailElement,prefixstr,'city',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'state',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'zip',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'phone1',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'phone2',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'phone1CountryCode',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'phone2CountryCode',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'email',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'fax',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'faxCountryCode',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'countryCode',rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,'aazone-country-state',rowInx);
+	//Change message element's ID to show error. 
+	setSingleFieldId(rowDetailElement,prefixstr,"zip*msg",rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,"phone1*msg",rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,"phone2*msg",rowInx);
+	setSingleFieldId(rowDetailElement,prefixstr,"fax*msg",rowInx);
+	
+	
+	if (isEqualsIgnoreCase('exam', cmntPre))
+	{
+		setSingleFieldId(rowDetailElement,prefixstr,'supportedLanguages',rowInx);
+		var handicapAccessibleDesId = setSingleFieldId(rowDetailElement,prefixstr,'handicapAccessibleDes',rowInx);
+		setSingleFieldId(rowDetailElement,prefixstr,'drivingDirections',rowInx);
+		setSingleFieldId(rowDetailElement,prefixstr,'isHandicapAccessible',rowInx);
+		document.getElementById('value('+prefixstr+'roviderDetailModel*handicapAccessibleDes'+rowInx+')');
+		if(handicapAccessibleDesId && document.getElementById(handicapAccessibleDesId))
+		{
+			document.getElementById(handicapAccessibleDesId).readOnly = true;
+			readOnlyObj.resetReadOnly([document.getElementById(handicapAccessibleDesId)]);
+		}
+	}
+}
+
+function setSingleFieldId(element, prefix, suffix,rowInx)
+{
+	var eleNameInnerStr = prefix+'roviderDetailModel*'+suffix;
+	var index = "";
+	if(suffix == "aazone-country-state")
+	{
+		//Find the state div(not select or text)
+		index = 'aazone.value('+eleNameInnerStr+')';
+	}
+	else if(suffix.indexOf("msg") > -1)
+	{
+		//Find the error message span.
+		index = eleNameInnerStr;
+	}
+	else
+	{
+		index = 'value('+eleNameInnerStr+')';
+	}
+	
+	//Set id
+	
+	var indexId = rowInx +1;
+	 var eleField = document.getElementsByName(index)[indexId];
+	if (eleField)
+	{
+		if(suffix == "aazone-country-state")
+		{
+			eleField.id = 'aazone.value('+eleNameInnerStr+rowInx+')';
+		}
+		else if(suffix.indexOf("msg") > -1)
+		{
+			var index = suffix.lastIndexOf("msg") - 1;
+			eleField.id = prefix + "roviderDetailModel*" + suffix.substring(0, index) + rowInx + suffix.substring(index);
+		}
+		else
+		{
+			eleField.id = 'value('+eleNameInnerStr+rowInx+')';
+		}
+		return eleField.id;
+	}
+	return;
+}
+
+function replaceSpellLink(rowDetailElement,eName,eInx,separator,lableVal)
+{
+	var rowName = 'deucation-row-' + eInx;
+	var rowObj = rowDetailElement.parentNode.parentNode;
+	rowObj.setAttribute("id", rowName);
+	rowObj.className = "AccelaMainTableVariant";
+	var commentName = encodeURIComponent(eName);
+	var commentSpellLink = Ac360.query(commentName + "_spellLink");		
+	if (commentSpellLink)
+	{	
+		var link = "<script language=\"JavaScript\" src=\"/portlets/commons/spellchecker/spellchecker-caller.js\"></script>"
+			+"<a href='JavaScript:goSpellCheck(\"/portlets/commons/spellchecker/\", "
+			+"\""+ commentName + separator + "\", \""+ rowName +"\" );'>"
+			+ lableVal + "</a>";
+		commentSpellLink.childNodes[0].innerHTML =link;
+	}
+}
+
+function goSpellCheck(baseUrl, textareaName, rowName)
+{
+	var rowObject = document.getElementsByName(rowName)[0];
+	var eIndex = (rowObject.rowIndex+1)/3;
+	doSpellCheck(baseUrl, textareaName + eIndex);
+}
+
+function addDatePicker(dateEle, webpath, altMsg)
+{
+	var dateName = dateEle.id; //"date("+eleName+")";
+	var dateLink = document.createElement("span");
+	dateLink.name = 'eduDate';
+	dateLink.innerHTML = "<A href=\"#\" onKeyDown=\"if(event.keyCode==32) event.keyCode=13;\" onclick=\"return selectDate('"+ dateName + "')\"><img src=\"/"+webpath+"/images/selectDate.gif\" "
+		+ 'alt="'+altMsg+'"'
+		+" border=0 ></A>&nbsp;";
+	return dateLink;
+}
+
+function disableDatePicker(dateLink)
+{
+	if (dateLink)
+	{
+		dateLink.innerHTML = "<img src=\"/portlets/images/selectDate.gif\" "
+			+" border=0 >&nbsp;";
+	}
+}
+
+function toNum(numVal)
+{
+	if (numVal && numVal != '' && !isNaN(numVal))
+	{
+		return numVal
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+function accAdd(arg1,arg2){
+	var r1,r2,m,n;
+	try{r1=arg1.toString().split(".")[1].length}catch(e){r1=0}
+	try{r2=arg2.toString().split(".")[1].length}catch(e){r2=0}
+	m=Math.pow(10,Math.max(r1,r2));
+	n=(r1>=r2)?r1:r2;
+	n=(n>2)?2:n;
+	return ((arg1*m+arg2*m)/m).toFixed(n);
+}
+
+function accSub(arg1,arg2){
+	 var r1,r2,m,n;
+	 try{r1=arg1.toString().split(".")[1].length}catch(e){r1=0}
+	 try{r2=arg2.toString().split(".")[1].length}catch(e){r2=0}
+	 m=Math.pow(10,Math.max(r1,r2));
+	 n=(r1>=r2)?r1:r2;
+	 n=(n>2)?2:n;
+	 return ((arg1*m-arg2*m)/m).toFixed(n);
+}
+
+function formatEles()
+{
+	var argArr =formatEles.arguments;
+	if (argArr.length < 3)
+	{
+		return false;
+	}
+	var rowObj = argArr[0];
+	var rowEleCell = argArr[1];
+	
+	rowObj.eleCellTable = document.createElement("TABLE");
+	rowObj.eleCelltbody = document.createElement("TBODY");
+	rowObj.eleCellTr = document.createElement("TR"); 
+	for(var k=2; k<argArr.length; k++)
+	{		
+		var cellTd = document.createElement("TD");
+		cellTd.style.border="0";
+		cellTd.appendChild(argArr[k]);
+		rowObj.eleCellTr.appendChild(cellTd);
+	}	
+	if (argArr.length > 2)
+	{//set the input element width
+		argArr[2].style.width = argArr[1].width+"px";
+	}
+	rowObj.eleCelltbody.appendChild(rowObj.eleCellTr);
+	rowObj.eleCellTable.appendChild(rowObj.eleCelltbody);
+	rowEleCell.appendChild(rowObj.eleCellTable);	
+	return false;
+}
+
+function setContDetailData(element, data)
+{
+	var argArr =setContDetailData.arguments;
+	var clearFlag = getClearFlag(argArr, data);
+	return setProvDetailData(element, data, 'cont',clearFlag, setContDetailData.arguments[3]);
+}
+
+function setExamDetailData(element, data)
+{
+	var argArr =setExamDetailData.arguments;
+	var clearFlag = getClearFlag(argArr, data);
+	return setProvDetailData(element, data, 'exam',clearFlag, setExamDetailData.arguments[3]);
+}
+
+function getClearFlag(argArr, data)
+{
+	var clearFlag = false;
+	if (argArr.length < 3 && data['clearFlag'] != undefined)
+	{
+		clearFlag = data['clearFlag'];
+	}
+	else
+	{
+		clearFlag = argArr[2] || data['clearFlag'];
+	}
+	return clearFlag;
+}
+
+function setProviderNo(provNoEle, refProvNo)
+{
+	if(provNoEle != undefined)
+	{
+		if (refProvNo != undefined && refProvNo != '')	
+		{
+			provNoEle.value = refProvNo;
+			provNoEle.readOnly = true;
+			readOnlyObj.resetReadOnly([provNoEle]);
+		}
+		else
+		{				
+			if (provNoEle.readOnly)
+			{
+				provNoEle.readOnly = false;
+				readOnlyObj.resetReadOnly([provNoEle]);
+				provNoEle.value = "";
+			}				
+		}
+	}
+	return false;
+}
+
+function setProvDetailData(element, data, prefix, clearFlag, index)
+{
+	if (!element)
+	{
+		return false;
+	}
+	if (clearFlag)
+	{
+		clearProvDetailData(element, data, prefix,index);
+	}
+	
+	var addr1 = getElementsByIndex('value('+prefix+'ProviderDetailModel*address1)',index);
+	var addr2 = getElementsByIndex('value('+prefix+'ProviderDetailModel*address2)',index);
+	var addr3 = getElementsByIndex('value('+prefix+'ProviderDetailModel*address3)',index);		
+	var city = getElementsByIndex("value("+prefix+"ProviderDetailModel*city)",index);
+	var state = getElementsByIndex("value("+prefix+"ProviderDetailModel*state)",index);
+	var zip = getElementsByIndex("value("+prefix+"ProviderDetailModel*zip)",index);
+	var phone1 = getElementsByIndex("value("+prefix+"ProviderDetailModel*phone1)",index);
+	var phone2 = getElementsByIndex("value("+prefix+"ProviderDetailModel*phone2)",index);
+	var phone1CC = getElementsByIndex("value("+prefix+"ProviderDetailModel*phone1CountryCode)",index);
+	var phone2CC = getElementsByIndex("value("+prefix+"ProviderDetailModel*phone2CountryCode)",index);
+	var email = getElementsByIndex("value("+prefix+"ProviderDetailModel*email)",index);
+	var fax = getElementsByIndex("value("+prefix+"ProviderDetailModel*fax)",index);
+	var faxCC = getElementsByIndex("value("+prefix+"ProviderDetailModel*faxCountryCode)",index);	
+	//For provider drop down list 'onchange' event.
+	var cc = getElementsByIndex("value("+prefix+"ProviderDetailModel*countryCode)",index);	
+	
+	if (isEqualsIgnoreCase('exam', prefix))
+	{
+		var supportLanguages = getElementsByIndex("value("+prefix+"ProviderDetailModel*supportedLanguages)",index);	
+		var isHandicapAccessible = getElementsByIndex("value("+prefix+"ProviderDetailModel*isHandicapAccessible)",index);	
+		var handicapAccessibleDes = getElementsByIndex("value("+prefix+"ProviderDetailModel*handicapAccessibleDes)",index);	
+		var drivingDirections = getElementsByIndex("value("+prefix+"ProviderDetailModel*drivingDirections)",index);	
+		
+		if (supportLanguages && data['value('+prefix+'ProviderDetailModel*supportedLanguages)'] != undefined)
+		{
+			supportLanguages.value = data['value('+prefix+'ProviderDetailModel*supportedLanguages)'];
+		}
+		if (isHandicapAccessible && data['value('+prefix+'ProviderDetailModel*isHandicapAccessible)'] != undefined)
+		{
+
+			if ("Y" == data['value('+prefix+'ProviderDetailModel*isHandicapAccessible)'])
+			{
+				isHandicapAccessible.readonly = false;
+			}
+			else
+			{
+				isHandicapAccessible.readonly = true;
+			}
+			readOnlyObj.resetReadOnly([isHandicapAccessible]);
+		}
+		if (handicapAccessibleDes && data['value('+prefix+'ProviderDetailModel*handicapAccessibleDes)'] != undefined)
+		{
+			handicapAccessibleDes.value = data['value('+prefix+'ProviderDetailModel*handicapAccessibleDes)'];
+			if("Y" == examItem["value(examProviderDetailModel*isHandicapAccessible)"])
+			{
+				handicapAccessibleDes.readonly = false;
+			}
+			else
+			{
+				handicapAccessibleDes.readOnly = true;
+			}
+			readOnlyObj.resetReadOnly([isHandicapAccessible]);
+		}
+		if (drivingDirections && data['value('+prefix+'ProviderDetailModel*drivingDirections)'] != undefined)
+		{
+			drivingDirections.value = data['value('+prefix+'ProviderDetailModel*drivingDirections)'];
+		}
+	}
+
+	//Set the country value first, then could get the correct mask.
+	if (cc && data['value('+prefix+'ProviderDetailModel*countryCode)'] != undefined)
+	{
+		cc.value = data['value('+prefix+'ProviderDetailModel*countryCode)'];
+		cc.stateV = data['value('+prefix+'ProviderDetailModel*state)'];
+		cc.hasLoad = true;
+		Ac360.dispatchEvent(cc, 'change');
+		cc.hasLoad = false;
+	}
+	
+	if (addr1 && data['value('+prefix+'ProviderDetailModel*address1)'] != undefined)
+	{
+		addr1.value = data['value('+prefix+'ProviderDetailModel*address1)'];
+	}
+	if (addr2 && data['value('+prefix+'ProviderDetailModel*address2)'] != undefined)
+	{
+		addr2.value = data['value('+prefix+'ProviderDetailModel*address2)'];
+	}
+	if (addr3 && data['value('+prefix+'ProviderDetailModel*address3)'] != undefined)
+	{
+		addr3.value = data['value('+prefix+'ProviderDetailModel*address3)'];
+	}
+	if (city && data['value('+prefix+'ProviderDetailModel*city)'] != undefined)
+	{
+		city.value = data['value('+prefix+'ProviderDetailModel*city)'];
+	}
+	if (state && data['value('+prefix+'ProviderDetailModel*state)'] != undefined)
+	{
+		state.value = data['value('+prefix+'ProviderDetailModel*state)'];
+	}
+	if (zip && data['value('+prefix+'ProviderDetailModel*zip)'] != undefined)
+	{
+		zip.value = data['value('+prefix+'ProviderDetailModel*zip)'];
+	}
+	if (phone1 && data['value('+prefix+'ProviderDetailModel*phone1)'] != undefined)
+	{
+		phone1.value = data['value('+prefix+'ProviderDetailModel*phone1)'];
+	}
+	if (phone2 && data['value('+prefix+'ProviderDetailModel*phone2)'] != undefined)
+	{
+		phone2.value = data['value('+prefix+'ProviderDetailModel*phone2)'];
+	}
+	if (phone1CC && data['value('+prefix+'ProviderDetailModel*phone1CountryCode)'] != undefined)
+	{
+		phone1CC.value = data['value('+prefix+'ProviderDetailModel*phone1CountryCode)'];
+	}
+	if (phone2CC && data['value('+prefix+'ProviderDetailModel*phone2CountryCode)'] != undefined)
+	{
+		phone2CC.value = data['value('+prefix+'ProviderDetailModel*phone2CountryCode)'];
+	}
+	if (email && data['value('+prefix+'ProviderDetailModel*email)'] != undefined)
+	{
+		email.value = data['value('+prefix+'ProviderDetailModel*email)'];
+	}
+	if (fax && data['value('+prefix+'ProviderDetailModel*fax)'] != undefined)
+	{
+		fax.value = data['value('+prefix+'ProviderDetailModel*fax)'];
+	}
+	if (faxCC && data['value('+prefix+'ProviderDetailModel*faxCountryCode)'] != undefined)
+	{
+		faxCC.value = data['value('+prefix+'ProviderDetailModel*faxCountryCode)'];
+	}	
+	
+	dealValues(prefix + 'ProviderDetailModel', index, data);
+	return false;
+}
+
+function clearProvDetailData(element, data, prefix,index)
+{	
+	var pChar = 'p';
+	if (prefix != '')
+	{
+		pChar = 'P';
+	}
+	var prefixstr = prefix+pChar;
+	cleanFieldValue(element,prefixstr,'address1',index);
+	cleanFieldValue(element,prefixstr,'address2',index);
+	cleanFieldValue(element,prefixstr,'address3',index);		
+	cleanFieldValue(element,prefixstr,'city',index);
+	cleanFieldValue(element,prefixstr,'state',index);
+	cleanFieldValue(element,prefixstr,'zip',index);
+	cleanFieldValue(element,prefixstr,'phone1',index);
+	cleanFieldValue(element,prefixstr,'phone2',index);
+	cleanFieldValue(element,prefixstr,'phone1CountryCode',index);
+	cleanFieldValue(element,prefixstr,'phone2CountryCode',index);
+	cleanFieldValue(element,prefixstr,'email',index);
+	cleanFieldValue(element,prefixstr,'fax',index);
+	cleanFieldValue(element,prefixstr,'faxCountryCode',index);
+	
+	if (isEqualsIgnoreCase('exam', prefix))
+	{
+		cleanFieldValue(element,prefixstr,'supportedLanguages',index);	
+		cleanFieldValue(element,prefixstr,'isHandicapAccessible',index);	
+		cleanFieldValue(element,prefixstr,'handicapAccessibleDes',index);	
+		cleanFieldValue(element,prefixstr,'drivingDirections',index);	
+	}
+	return false;	
+}
+
+function cleanFieldValue(element, prefix, suffix,index)
+{
+	var eleField = getElementsByIndex('value('+prefix+'roviderDetailModel*'+suffix+')',index);
+	if (eleField)
+	{
+		eleField.value = '';
+	}
+}
+
+
+
+function setContEduData(contEduItem,data,requiredLbl,optionalLbl,passLbl,failLbl)
+{
+	contEduItem.requiredFlag.value = data["contRequiredFlag"];	
+	contEduItem.gradingStyle.value = data["contGradingStyle"];
+	contEduItem.requiredHours.value = data["contRequiredHours"];
+	contEduItem.passingScore.value = data["contPassingScore"];
+	if (contEduItem.passingScoreInput)
+	{
+		if ('passfail' == data["contGradingStyle"])
+		{
+			contEduItem.passingScoreInput.value = passLbl;
+		}
+		else
+		{
+			
+			if(!('percentage' == data["contGradingStyle"])&& contEduItem.passingScore.value == 0)
+			{
+				contEduItem.passingScoreInput.value = '';
+			}				
+			else	
+			{
+				contEduItem.passingScoreInput.value = data["contPassingScore"];
+			}			
+		}
+	}
+	if (contEduItem.requiredFlagCell)
+	{
+		if ('Y' == data["contRequiredFlag"])
+		{
+			contEduItem.requiredFlagCell.innerHTML = '<TABLE> <TBODY> <TR> <TD class="portlet-section-body" style="border:none;">'+requiredLbl+'&nbsp;&nbsp; '
+					+ ' </TD> </TR> </TBODY> </TABLE>';
+		}
+		else
+		{
+			contEduItem.requiredFlagCell.innerHTML = '<TABLE> <TBODY> <TR> <TD class="portlet-section-body" style="border:none;">'+optionalLbl+'&nbsp;&nbsp; '
+					+ ' </TD> </TR> </TBODY> </TABLE>';
+		}
+	}
+	
+	if (contEduItem.passingScoreInput && contEduItem.passingScoreSymbol)
+	{
+		if ('percentage' == data["contGradingStyle"])
+		{
+			contEduItem.passingScoreSymbol.innerHTML = "%";
+		}
+		else
+		{
+			contEduItem.passingScoreSymbol.innerHTML = "";
+		}
+	}	
+	drawFinalScoreEle(contEduItem, data["contGradingStyle"],"contFinalScore",passLbl,failLbl);
+}
+
+
+function setExamData(examItem,data,requiredLbl,optionalLbl,passLbl,failLbl,naLbl)
+{
+	examItem.requiredFlag.value = data["examRequiredFlag"];	
+	examItem.gradingStyle.value = data["examGradingStyle"];
+	examItem.passingScore.value = data["examPassingScore"];	
+	
+	if (examItem.passingScoreInput)
+	{
+		if ('passfail' == data["examGradingStyle"])
+		{
+			examItem.passingScoreInput.value = naLbl;
+		}
+		else
+		{
+			if(!('percentage' == data["examGradingStyle"])&& examItem.passingScore.value == 0)
+			{
+				examItem.passingScoreInput.value = '';
+			}				
+			else	
+			{
+				examItem.passingScoreInput.value = data["examPassingScore"];
+			}
+			
+		}
+	}	
+	if (examItem.requiredFlagCell)
+	{
+		if ('Y' == data["examRequiredFlag"])
+		{
+			examItem.requiredFlagCell.innerHTML = '<TABLE> <TBODY> <TR> <TD class="portlet-section-body" style="border:none;">'+requiredLbl+'&nbsp;&nbsp; '
+					+ ' </TD> </TR> </TBODY> </TABLE>';
+		}
+		else
+		{
+			examItem.requiredFlagCell.innerHTML = '<TABLE> <TBODY> <TR> <TD class="portlet-section-body" style="border:none;">'+optionalLbl+'&nbsp;&nbsp; '
+					+ ' </TD> </TR> </TBODY> </TABLE>';
+		}
+	}
+	
+	if (examItem.passingScoreInput && examItem.passingScoreSymbol)
+	{
+		if ('percentage' == data["examGradingStyle"])
+		{
+			examItem.passingScoreSymbol.innerHTML = "%";
+		}
+		else
+		{
+			examItem.passingScoreSymbol.innerHTML = "";
+		}
+	}	
+	drawFinalScoreEle(examItem, data["examGradingStyle"],"examFinalScore",passLbl,failLbl);
+	
+	examItem.refExamNbr.value = data["refExamNbr"];
+	var examNewDefined = data["examNewDefined"];
+	if (isEqualsIgnoreCase('Y', examNewDefined))
+	{
+		setReadWrite4AllFields(examItem, data);
+		if (examItem.dateOfClassInput)
+		{
+			examItem.scheduleLink.style.display = "none";
+		}
+	}
+	else
+	{
+		if(examItem.scheduleLink)
+		{
+			examItem.scheduleLink.style.display = "";
+			setReadWrite4AllFields(examItem, data);
+		}
+	}
+	notShowScheduleLink(examItem, data);
+}
+
+function notShowScheduleLink(examItem, data)
+{
+	if (document.getElementsByName("isExamination")[0] && document.getElementsByName("isExamination")[0].value == 1 
+			|| data["isFromModelingCAP"])
+	{
+		if (examItem.dateOfClassInput)
+		{
+			examItem.scheduleLink.style.display = "none";
+		}
+	}
+}
+
+function drawFinalScoreEle(contRowItem, grdStlVal, finalScoreEleName,passLbl,failLbl)
+{
+	if (contRowItem.finalScoreCell && contRowItem.finalScoreInput)
+	{
+		if ('passfail' == grdStlVal)
+		{
+			if(contRowItem.finalScoreInput.type != "text")
+			{
+				return false;
+			}
+			contRowItem.finalScoreCell.innerHTML = "";
+			contRowItem.finalScoreInput = document.createElement("select");
+			contRowItem.finalScoreInput.name = finalScoreEleName;
+			
+			initEleStyle(contRowItem.finalScoreInput);
+			contRowItem.finalScoreInput.add(new Option("", ""));
+			contRowItem.finalScoreInput.add(new Option(passLbl,"1"));
+			contRowItem.finalScoreInput.add(new Option(failLbl,"0"));
+
+			contRowItem.finalScoreSymbol = document.createElement("span");
+			contRowItem.finalScoreSymbol.id = finalScoreEleName + "*sbl";
+			contRowItem.finalScoreMsg = document.createElement("span");
+			contRowItem.finalScoreMsg.id = finalScoreEleName + "*msg";		
+			formatEles(contRowItem, contRowItem.finalScoreCell,contRowItem.finalScoreInput,contRowItem.finalScoreSymbol,contRowItem.finalScoreMsg);
+			insertAdjacent(contRowItem.finalScoreMsg);
+			
+			if(typeof(contBalance) != 'undefined' && contRowItem instanceof ContEducationItem)
+			{   
+				var contEduItem = contRowItem;
+				Ac360.attachEvent(contEduItem.finalScoreInput,"onchange", function(){
+					contBalance.updateContBalanceItemData(contEduItem.contEduNameCombo.getValue(), contEduItem.contEduNameCombo.getValue());
+				});
+			}		
+		}
+		else if(contRowItem.finalScoreInput.type == "text")
+		{
+			contRowItem.finalScoreInput.value = "";
+			if (grdStlVal && 'none' != grdStlVal && contRowItem.finalScoreInput.readOnly)
+			{
+				contRowItem.finalScoreInput.style.backgroundColor = "";
+				contRowItem.finalScoreInput.readOnly = false;
+				readOnlyObj.resetReadOnly([contRowItem]);
+			}			
+		}
+		else
+		{
+			contRowItem.finalScoreCell.innerHTML = "";
+			contRowItem.finalScoreInput = document.createElement("input");
+			contRowItem.finalScoreInput.type = "text";
+			contRowItem.finalScoreInput.name = finalScoreEleName;		
+			contRowItem.finalScoreInput.maxLength = 8;
+			contRowItem.finalScoreInput.size = 8;
+			initEleStyle(contRowItem.finalScoreInput);
+			contRowItem.finalScoreSymbol = document.createElement("span");
+			contRowItem.finalScoreSymbol.id = finalScoreEleName + "*sbl";
+			contRowItem.finalScoreMsg = document.createElement("span");
+			contRowItem.finalScoreMsg.id = finalScoreEleName + "*msg";		
+			formatEles(contRowItem, contRowItem.finalScoreCell,contRowItem.finalScoreInput,contRowItem.finalScoreSymbol,contRowItem.finalScoreMsg);
+			if ('percentage' == grdStlVal)
+			{
+				contRowItem.finalScoreSymbol.innerHTML = "%";
+			}
+			insertAdjacent(contRowItem.finalScoreMsg);
+			
+			if((typeof contBalance) != 'undefined' && contRowItem instanceof ContEducationItem)
+			{
+				var contEduItem = contRowItem;
+				Ac360.attachEvent(contEduItem.finalScoreInput,"onblur", function(){
+					contBalance.updateContBalanceItemData(contEduItem.contEduNameCombo.getValue(), contEduItem.contEduNameCombo.getValue());
+				});
+			}	
+		}
+		
+		if ('percentage' == grdStlVal)
+		{
+			contRowItem.finalScoreSymbol.innerHTML = "%";
+		}
+		else
+		{
+			if ('none' == grdStlVal || !grdStlVal)
+			{
+				contRowItem.finalScoreInput.style.backgroundColor = "";
+				contRowItem.finalScoreInput.readOnly = false;
+				readOnlyObj.resetReadOnly([contRowItem]);
+			}			
+			contRowItem.finalScoreSymbol.innerHTML = "";
+		}	
+	}
+}
+
+function putHiddenProviderDetail4ContEdu(contEdu,contEduItem)
+{
+	contEdu.addressLine1.value = contEduItem["value(contProviderDetailModel*address1)"];
+	contEdu.addressLine2.value = contEduItem["value(contProviderDetailModel*address2)"];
+	contEdu.addressLine3.value = contEduItem["value(contProviderDetailModel*address3)"];
+	contEdu.city.value = contEduItem["value(contProviderDetailModel*city)"];
+	contEdu.state.value = contEduItem["value(contProviderDetailModel*state)"];
+	contEdu.zip.value = contEduItem["value(contProviderDetailModel*zip)"];
+	contEdu.fax.value = contEduItem["value(contProviderDetailModel*fax)"];
+	contEdu.phone1.value = contEduItem["value(contProviderDetailModel*phone1)"];
+	contEdu.phone2.value = contEduItem["value(contProviderDetailModel*phone2)"];
+	contEdu.phone1CountryCode.value = contEduItem["value(contProviderDetailModel*phone1CountryCode)"];
+	contEdu.phone2CountryCode.value = contEduItem["value(contProviderDetailModel*phone2CountryCode)"];
+	contEdu.faxCountryCode.value = contEduItem["value(contProviderDetailModel*faxCountryCode)"];
+	contEdu.countryCode.value = contEduItem["value(contProviderDetailModel*countryCode)"];
+	contEdu.email.value = contEduItem["value(contProviderDetailModel*email)"];
+	contEdu.comment.value = contEduItem["value(contComments)"];
+}
+
+function resetContEudcation(contEducation,contEducationItems,canDelRequired,requiredLbl,optionalLbl,passLbl,failLbl,emptyContEdu,isFromRef)
+{
+	var addr1Arr = document.getElementsByName("value(contProviderDetailModel*address1)");
+	var addr2Arr = document.getElementsByName("value(contProviderDetailModel*address2)");
+	var addr3Arr = document.getElementsByName("value(contProviderDetailModel*address3)");
+	var cityArr = document.getElementsByName("value(contProviderDetailModel*city)");
+	var stateArr = document.getElementsByName("value(contProviderDetailModel*state)");
+	var zipArr = document.getElementsByName("value(contProviderDetailModel*zip)");
+	var phone1Arr = document.getElementsByName("value(contProviderDetailModel*phone1)");
+	var phone2Arr = document.getElementsByName("value(contProviderDetailModel*phone2)");
+	var phone1CCArr = document.getElementsByName("value(contProviderDetailModel*phone1CountryCode)");
+	var phone2CCArr = document.getElementsByName("value(contProviderDetailModel*phone2CountryCode)");
+	var emailArr = document.getElementsByName("value(contProviderDetailModel*email)");
+	var faxArr = document.getElementsByName("value(contProviderDetailModel*fax)");
+	var faxCCArr = document.getElementsByName("value(contProviderDetailModel*faxCountryCode)");
+	var commentArr = document.getElementsByName("value(contComments)");
+	var ccArr = document.getElementsByName("value(contProviderDetailModel*countryCode)");
+	
+	if (!contEducation.a_contEducations)
+	{
+		return false;
+	}
+	var itemInx=0
+	for (var count=0;count< contEducation.a_contEducations.length;count++)
+		{			
+			var contEdu = contEducation.a_contEducations[count];	
+			if (contEdu == null)
+			{
+				continue;
+			}
+			var contEduItem = emptyContEdu;			
+			if (contEducationItems && contEducationItems.length > contEdu.i_index)
+			{
+				contEduItem = contEducationItems[contEdu.i_index];
+			}
+			
+			if (contEdu != null && contEdu instanceof ContEducationItem)
+			{
+				contEdu.pnameCombo.setValue(contEduItem["contProviderName"]);
+				contEdu.sequence.value = contEduItem["contEduSequence"];
+				contEdu.contEduNameCombo.setValue(contEduItem["contEduName"]);
+				contEdu.gradingStyle.value = contEduItem["contGradingStyle"];
+				contEdu.requiredHours.value = contEduItem["contRequiredHours"];
+				contEdu.contDateOfClass.value = contEduItem["contDateOfClassDes"];
+				contEdu.contHoursCompleted.value = contEduItem["contHoursCompletedDes"];
+				contEdu.contFinalScore.value = contEduItem["contFinalScoreDes"];
+				contEdu.contProviderNo.value = contEduItem["contProviderNoDes"];
+				
+				putHiddenProviderDetail4ContEdu(contEdu,contEduItem);
+				
+				if (contEdu.contEduNameCombo.value == '')
+				{
+					var uiuidInput = document.getElementById("contEdu" + contEdu.i_index + "UIUID");
+					if (uiuidInput)
+					{
+						clearTemplateBackup(uiuidInput.value);
+					}
+					
+					var country = document.getElementById('value(contProviderDetailModel*countryCode'+contEdu.i_index+')');
+					if(country)
+					{
+						country.deleted = "Y";
+					}
+					contEducation.a_contEducations[contEdu.i_index] = null;
+					
+					if (contEducation.i_selectedItemIndex == contEdu.i_index)
+					{
+						contEducation.i_selectedItemIndex = -1;
+					}
+
+					contEdu.destroy();
+					contBalance.updateContBalanceItemData('', contEdu.contEduNameCombo.getValue());
+					continue;
+				}
+				
+				if (contEduItem["contRequiredFlag"] && contEduItem["contRequiredFlag"] == 'Y')
+				{										
+					contEdu.requiredFlag.value = "Y";
+				}
+				if (contEdu.contEduNameHidden)
+				{
+					contEdu.contEduNameHidden.value = contEduItem["contEduName"];
+				}
+				if (contEdu.pnameInputHidden)
+				{
+					contEdu.pnameInputHidden.value = contEduItem["contProviderName"];
+				}
+				if (contEdu.pnoInput)
+				{
+					contEdu.pnoInput.value = contEduItem["contProviderNo"];					
+					setFldStatus(contEdu.pnoInput, contEduItem);
+					if(contEduItem["contApprovedFlag"] == 'Y' && 'Y' != isFromRef)
+					{
+						setReadOnlyStyle(contEdu.pnoInput);
+					}	
+				}
+				setContEduData(contEdu,contEduItem,requiredLbl,optionalLbl,passLbl,failLbl);
+				if (contEdu.finalScoreInput)
+				{
+					contEdu.finalScoreInput.value = contEduItem["contFinalScore"];
+				}
+				if (contEduItem["contApprovedFlag"])
+				{
+					contEdu.approvedFlag.value = contEduItem["contApprovedFlag"];
+				}
+				if (contEduItem["contSyncFlag"])
+				{
+					contEdu.syncFlag.value = contEduItem["contSyncFlag"];
+				}
+				if (contEduItem["contContactSeqNbr"])
+				{
+					contEdu.contactSeqNumber.value = contEduItem["contContactSeqNbr"];
+				}
+				if(contEduItem["contEntityID"])
+				{
+					contEdu.entityID.value = contEduItem["contEntityID"];
+				}
+				if (contEdu.classNameInput)
+				{
+					contEdu.classNameInput.value = contEduItem["contClassName"];
+				}
+				if (contEdu.dateOfClassInput)
+				{
+					contEdu.dateOfClassInput.value = contEduItem["contDateOfClass"];
+				}
+				if (contEdu.hoursCmplInput)
+				{
+					contEdu.hoursCmplInput.value = contEduItem["contHoursCompleted"];
+				}		
+				if (contEdu.checkBox)
+				{
+					contEdu.checkBox.disabled = contEduItem["contRequiredFlag"] == 'Y' && !canDelRequired;
+				}
+			} 
+			
+			var contEduItemLength = getAvailableLength(contEducation.a_contEducations);
+			//Set the country value first, then could get the correct mask.
+			if (ccArr && ccArr.length > contEduItemLength)
+			{
+				ccArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*countryCode)"];
+				ccArr[itemInx+1].stateV = contEduItem["value(contProviderDetailModel*state)"];
+				ccArr[itemInx+1].hasLoad = true;
+				Ac360.dispatchEvent(ccArr[itemInx+1], 'change');
+				ccArr[itemInx+1].hasLoad = false;
+			}
+			if (addr1Arr && addr1Arr.length > contEduItemLength)
+			{
+				addr1Arr[itemInx+1].value = contEduItem["value(contProviderDetailModel*address1)"];
+			}
+			if (addr2Arr && addr2Arr.length > contEduItemLength)
+			{
+				addr2Arr[itemInx+1].value = contEduItem["value(contProviderDetailModel*address2)"];
+			}
+			if (addr3Arr && addr3Arr.length > contEduItemLength)
+			{
+				addr3Arr[itemInx+1].value = contEduItem["value(contProviderDetailModel*address3)"];
+			}
+			if (cityArr && cityArr.length > contEduItemLength)
+			{
+				cityArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*city)"];
+			}
+			if (stateArr && stateArr.length > contEduItemLength)
+			{
+				stateArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*state)"];
+			}
+			if (zipArr && zipArr.length > contEduItemLength)
+			{
+				zipArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*zip)"];
+			}
+			if (phone1Arr && phone1Arr.length > contEduItemLength)
+			{
+				phone1Arr[itemInx+1].value = contEduItem["value(contProviderDetailModel*phone1)"];
+			}
+			if (phone2Arr && phone2Arr.length > contEduItemLength)
+			{
+				phone2Arr[itemInx+1].value = contEduItem["value(contProviderDetailModel*phone2)"];
+			}
+			if (phone1CCArr && phone1CCArr.length > contEduItemLength)
+			{
+				phone1CCArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*phone1CountryCode)"];		
+			}
+			if (phone2CCArr && phone2CCArr.length > contEduItemLength)
+			{
+				phone2CCArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*phone2CountryCode)"];
+			}
+			if (emailArr && emailArr.length > contEduItemLength)
+			{
+				emailArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*email)"];
+			}
+			if (faxArr && faxArr.length > contEduItemLength)
+			{
+				faxArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*fax)"];
+			}
+			if (faxCCArr && faxCCArr.length > contEduItemLength)
+			{
+				faxCCArr[itemInx+1].value = contEduItem["value(contProviderDetailModel*faxCountryCode)"];
+			}
+			if (commentArr && commentArr.length > contEduItemLength)
+			{
+				commentArr[itemInx+1].value = contEduItem["value(contComments)"];
+			}	
+			
+			dealValues("contProviderDetailModel", contEdu.i_index, contEduItem);
+			itemInx++;
+		}//end for loop
+		return false;
+}
+
+function resetBalTableView(theContEducation,contBalanceTbl)
+{	
+	for (var key in contBalanceTbl.a_contBalnaceItems)
+	{
+		var balItem = contBalanceTbl.a_contBalnaceItems[key];		
+		if (balItem != null && balItem instanceof ContBalnaceItem)
+		{		
+			if(balItem.requiredFlag == "Y")
+			{
+				var contRequiredHours = balItem.requiredHours ;
+				var contCompletedHours = 0;
+            	
+				balItem.completedHours = contCompletedHours;
+				balItem.balanceDue = getBalanceDue(contRequiredHours, contCompletedHours);		
+				if(balItem.contEduNameCell != null && isEqualsIgnoreCase(balItem.contEduNameCell.innerText,balItem.contName))
+				{
+					balItem.destroy();
+				}
+			}
+			else
+			{
+				balItem.destroy();
+				contBalanceTbl.a_contBalnaceItems[key] = null;
+			}
+		} 
+	}	
+
+	for (var key in theContEducation.a_contEducations)
+	{
+		var contEdu = theContEducation.a_contEducations[key];
+		
+		if (contEdu != null && contEdu instanceof ContEducationItem)
+		{
+			var itemName = contEdu.contEduNameCombo.getValue();
+			if (itemName != null && trim(itemName) != '')
+			{			
+				contBalanceTbl.updateContBalanceItemData(itemName, '');				
+			}
+		} 
+	}	
+}
+
+function clearTemplateBackup(uiuid)
+{
+	var templateBakStringUIName =TemplateHelper.addUIUID(GENERIC_TEMPLATE_STRUCTURE_BAK_PREFIX,uiuid);
+	var layoutBakStringUIName =TemplateHelper.addUIUID(GENERIC_TEMPLATE_LAYOUT_BAK_PREFIX,uiuid);
+
+	var templateBak = document.getElementById(templateBakStringUIName);
+	var layoutBak = document.getElementById(layoutBakStringUIName);
+	var templateModelBridge = document.getElementById(templateBakStringUIName + 'templateModelBridge');
+	var layoutModel1Bridge = document.getElementById(layoutBakStringUIName + 'layoutModel1Bridge');
+	
+	if (templateBak)
+		templateBak.value = "";
+	if (layoutBak)
+		layoutBak.value = "";
+	if (templateModelBridge)
+		templateModelBridge.value = "";
+	if (layoutModel1Bridge)
+		layoutModel1Bridge.value = "";	
+}
+
+function putHiddenProviderDetailValue4Exam(exam,examItem)
+{
+	exam.addressLine1.value = examItem["value(examProviderDetailModel*address1)"];
+	exam.addressLine2.value = examItem["value(examProviderDetailModel*address2)"];
+	exam.addressLine3.value = examItem["value(examProviderDetailModel*address3)"];
+	exam.city.value = examItem["value(examProviderDetailModel*city)"];
+	exam.state.value = examItem["value(examProviderDetailModel*state)"];
+	exam.zip.value = examItem["value(examProviderDetailModel*zip)"];
+	exam.fax.value = examItem["value(examProviderDetailModel*fax)"];
+	exam.phone1.value = examItem["value(examProviderDetailModel*phone1)"];
+	exam.phone2.value = examItem["value(examProviderDetailModel*phone2)"];
+	exam.phone1CountryCode.value = examItem["value(examProviderDetailModel*phone1CountryCode)"];
+	exam.phone2CountryCode.value = examItem["value(examProviderDetailModel*phone2CountryCode)"];
+	exam.faxCountryCode.value = examItem["value(examProviderDetailModel*faxCountryCode)"];
+	exam.countryCode.value = examItem["value(examProviderDetailModel*countryCode)"];
+	exam.email.value = examItem["value(examProviderDetailModel*email)"];
+	exam.comment.value = examItem["value(examComments)"];
+	exam.supportedLanguages.value = examItem["value(examProviderDetailModel*supportedLanguages)"];
+	exam.drivingDirections.value = examItem["value(examProviderDetailModel*drivingDirections)"];
+	exam.reschedCancelReason.value = examItem["value(examProviderDetailModel*reschedCancelReason)"];
+	exam.handicapAccessibleDes.value = examItem["value(examProviderDetailModel*handicapAccessibleDes)"];	
+	exam.isHandicapAccessible.value = examItem["value(examProviderDetailModel*isHandicapAccessible)"];
+}
+
+function resetExamination(examination,examinationItems,canDelRequired,requiredLbl,optionalLbl,passLbl,failLbl,emptyExam,naLbl,isFromRef)
+{
+	var addr1Arr = document.getElementsByName("value(examProviderDetailModel*address1)");
+	var addr2Arr = document.getElementsByName("value(examProviderDetailModel*address2)");
+	var addr3Arr = document.getElementsByName("value(examProviderDetailModel*address3)");
+	var cityArr = document.getElementsByName("value(examProviderDetailModel*city)");
+	var stateArr = document.getElementsByName("value(examProviderDetailModel*state)");
+	var zipArr = document.getElementsByName("value(examProviderDetailModel*zip)");
+	var phone1Arr = document.getElementsByName("value(examProviderDetailModel*phone1)");
+	var phone2Arr = document.getElementsByName("value(examProviderDetailModel*phone2)");
+	var phone1CCArr = document.getElementsByName("value(examProviderDetailModel*phone1CountryCode)");
+	var phone2CCArr = document.getElementsByName("value(examProviderDetailModel*phone2CountryCode)");
+	var emailArr = document.getElementsByName("value(examProviderDetailModel*email)");
+	var faxArr = document.getElementsByName("value(examProviderDetailModel*fax)");
+	var faxCCArr = document.getElementsByName("value(examProviderDetailModel*faxCountryCode)");
+	var commentArr = document.getElementsByName("value(examComments)");
+	var supportLanguagesArr = document.getElementsByName("value(examProviderDetailModel*supportedLanguages)");
+	var isHandicapAccessibleArr = document.getElementsByName("value(examProviderDetailModel*isHandicapAccessible)");
+	var isHandicapAccessibleHiddenArr = document.getElementsByName("value(isHandicapAccessible)");
+	var handicapAccessibleDesArr = document.getElementsByName("value(examProviderDetailModel*handicapAccessibleDes)");
+	var drivingDirectionsArr = document.getElementsByName("value(examProviderDetailModel*drivingDirections)");
+	var ccArr = document.getElementsByName("value(examProviderDetailModel*countryCode)");
+	var reschedCancelReasonElArr = document.getElementsByName("value(examProviderDetailModel*reschedCancelReason)");
+	
+	if (!examination.a_examinations)
+	{
+		return false;
+	}
+	var itemInx=0; 
+	for (var count=0;count< examination.a_examinations.length;count++)
+		{			
+			var exam = examination.a_examinations[count];	
+			if (exam == null)
+			{
+				continue;
+			}
+			var examItem = emptyExam;
+			if (examinationItems && examinationItems.length > exam.i_index)
+			{
+				examItem = examinationItems[exam.i_index];
+			}			
+			if (exam != null && exam instanceof ExaminationItem)
+			{
+				if (exam.pnameCombo)
+				{
+					exam.pnameCombo.setValue(examItem["examProviderName"]);
+				}
+				exam.sequence.value = examItem["examEduSequence"];
+				exam.examNameCombo.setValue(examItem["examName"]);
+				exam.examName.value = examItem["examName"];
+				exam.pname.value = examItem["examProviderName"];
+				
+				exam.pno.value = examItem["examProviderNoDes"];
+				exam.examDate.value = examItem["examDateDes"];
+				exam.examStartTimeH.value = examItem["examStartTimeHDes"];
+				exam.examStartTimeM.value = examItem["examStartTimeMDes"];
+				exam.examStartTimeAMPM.value = examItem["examStartTimeAMPMDes"];
+				exam.examEndTimeH.value = examItem["examEndTimeHDes"];
+				exam.examEndTimeM.value = examItem["examEndTimeMDes"];
+				exam.examEndTimeAMPM.value = examItem["examEndTimeAMPMDes"];
+				exam.examStatus.value = examItem["examStatusDes"];
+				exam.examFinalScore.value = examItem["examFinalScoreDes"];
+				exam.examRosterID.value = examItem["examRosterIDDes"];
+				
+				putHiddenProviderDetailValue4Exam(exam,examItem);
+				
+				if (exam.examName.value == '')
+				{
+					var uiuidInput = document.getElementById("exam" + exam.i_index + "UIUID");
+					if (uiuidInput)
+					{
+					  clearTemplateBackup(uiuidInput.value);
+					}
+					
+					var country = document.getElementById('value(examProviderDetailModel*countryCode'+exam.i_index+')');
+					if(country)
+					{
+						country.deleted = "Y";
+					}
+					examination.a_examinations[exam.i_index] = null;
+					
+					if (examination.i_selectedItemIndex == exam.i_index)
+					{
+						examination.i_selectedItemIndex = -1;
+					}
+
+					exam.destroy();
+					continue;
+				}
+				
+				if (examItem["examRequiredFlag"] && examItem["examRequiredFlag"] == 'Y')
+				{					
+					exam.requiredFlag.value = "Y";
+				}
+				if (exam.examNameHidden)
+				{
+					exam.examNameHidden.value = examItem["examName"];
+				}
+				if (exam.pnoInput)
+				{
+					exam.pnoInput.value = examItem["examProviderNo"];
+					setFldStatus(exam.pnoInput, examItem);
+				}
+				setExamData(exam,examItem,requiredLbl,optionalLbl,passLbl,failLbl,naLbl);
+				if (exam.finalScoreInput)
+				{
+					exam.finalScoreInput.value = examItem["examFinalScore"];
+				}				
+				if (exam.dateOfClassInput)
+				{
+					exam.dateOfClassInput.value = examItem["examDate"];
+				}		
+				if (examItem["examApprovedFlag"])
+				{
+					exam.approvedFlag.value = examItem["examApprovedFlag"];
+				}
+				if (examItem["examSyncFlag"] && examItem["examSyncFlag"] == 'Y')
+				{		
+					exam.syncFlag.value = examItem["examSyncFlag"];
+				}
+				if (examItem["examEntityID"])
+				{
+					exam.entityID.value = examItem["examEntityID"];
+				}
+				if (examItem["examContactSeqNbr"])
+				{
+					exam.contactSeqNumber.value = examItem["examContactSeqNbr"];
+				}
+				if (exam.checkBox)
+				{
+					exam.checkBox.disabled = examItem["examRequiredFlag"] == 'Y' && !canDelRequired;
+				}
+				if (exam.examStatusInput)
+				{
+					setSelectedValue(exam.examStatusInput, examItem["examStatus"]);
+				}
+				
+				if (exam.startTimeHInput)
+				{
+					exam.startTimeHInput.value = examItem["examStartTimeH"];
+					changeEleStyle(examItem, exam.startTimeHInput);
+				}
+				if (exam.startTimeMInput)
+				{
+					exam.startTimeMInput.value = examItem["examStartTimeM"];
+					changeEleStyle(examItem, exam.startTimeMInput);
+				}
+				if (exam.startTimeAMPMInput)
+				{
+					exam.startTimeAMPMInput.value = examItem["examStartTimeAMPM"];
+					changeEleStyle(examItem, exam.startTimeAMPMInput);
+				}
+				if (exam.endTimeHInput)
+				{
+					exam.endTimeHInput.value = examItem["examEndTimeH"];
+					changeEleStyle(examItem, exam.endTimeHInput);
+				}
+				if (exam.endTimeMInput)
+				{
+					exam.endTimeMInput.value = examItem["examEndTimeM"];
+					changeEleStyle(examItem, exam.endTimeMInput);
+				}
+				if (exam.endTimeAMPMInput)
+				{
+					exam.endTimeAMPMInput.value = examItem["examEndTimeAMPM"];
+					changeEleStyle(examItem, exam.endTimeAMPMInput);
+				}
+				if (exam.rosterIDInput)
+				{
+					exam.rosterIDInput.value = examItem["examRosterID"];
+					changeEleStyle(examItem, exam.rosterIDInput);
+				}
+				
+				if (exam.dateOfClassInput)
+				{
+					exam.dateOfClassInput.value = examItem["examDate"];
+				}
+				
+				resetExamDataStyleByStatus(exam, examItem, itemInx, isFromRef)
+			} 
+			
+			var examItemLength = getAvailableLength(examination.a_examinations);
+			// Reset the field "Reschedule Cancel Reason".
+			if (reschedCancelReasonElArr && reschedCancelReasonElArr.length > examItemLength)
+			{
+				reschedCancelReasonElArr[itemInx+1].value = examItem["value(examProviderDetailModel*reschedCancelReason)"];
+			}
+			//Set the country value first, then could get the correct mask.
+			if (ccArr && ccArr.length > examItemLength)
+			{
+				ccArr[itemInx+1].value = examItem["value(examProviderDetailModel*countryCode)"];
+				ccArr[itemInx+1].stateV = examItem["value(examProviderDetailModel*state)"];
+				ccArr[itemInx+1].hasLoad = true;
+				Ac360.dispatchEvent(ccArr[itemInx+1], 'change');
+				ccArr[itemInx+1].hasLoad = false;
+			}
+			if (addr1Arr && addr1Arr.length > examItemLength)
+			{
+				addr1Arr[itemInx+1].value = examItem["value(examProviderDetailModel*address1)"];
+			}
+			if (addr2Arr && addr2Arr.length > examItemLength)
+			{
+				addr2Arr[itemInx+1].value = examItem["value(examProviderDetailModel*address2)"];
+			}
+			if (addr3Arr && addr3Arr.length > examItemLength)
+			{
+				addr3Arr[itemInx+1].value = examItem["value(examProviderDetailModel*address3)"];
+			}
+			if (cityArr && cityArr.length > examItemLength)
+			{
+				cityArr[itemInx+1].value = examItem["value(examProviderDetailModel*city)"];
+			}
+			if (stateArr && stateArr.length > examItemLength)
+			{
+				stateArr[itemInx+1].value = examItem["value(examProviderDetailModel*state)"];
+			}
+			if (zipArr && zipArr.length > examItemLength)
+			{
+				zipArr[itemInx+1].value = examItem["value(examProviderDetailModel*zip)"];
+			}
+			if (phone1Arr && phone1Arr.length > examItemLength)
+			{
+				phone1Arr[itemInx+1].value = examItem["value(examProviderDetailModel*phone1)"];
+			}
+			if (phone2Arr && phone2Arr.length > examItemLength)
+			{
+				phone2Arr[itemInx+1].value = examItem["value(examProviderDetailModel*phone2)"];
+			}
+			if (phone1CCArr && phone1CCArr.length > examItemLength)
+			{
+				phone1CCArr[itemInx+1].value = examItem["value(examProviderDetailModel*phone1CountryCode)"];		
+			}
+			if (phone2CCArr && phone2CCArr.length > examItemLength)
+			{
+				phone2CCArr[itemInx+1].value = examItem["value(examProviderDetailModel*phone2CountryCode)"];
+			}
+			if (emailArr && emailArr.length > examItemLength)
+			{
+				emailArr[itemInx+1].value = examItem["value(examProviderDetailModel*email)"];
+			}
+			if (faxArr && faxArr.length > examItemLength)
+			{
+				faxArr[itemInx+1].value = examItem["value(examProviderDetailModel*fax)"];
+			}
+			dealValues("examProviderDetailModel", exam.i_index, examItem);
+			if (faxCCArr && faxCCArr.length > examItemLength)
+			{
+				faxCCArr[itemInx+1].value = examItem["value(examProviderDetailModel*faxCountryCode)"];
+			}
+			if (commentArr && commentArr.length > examItemLength)
+			{
+				commentArr[itemInx+1].value = examItem["value(examComments)"];
+			}	
+			if (supportLanguagesArr && supportLanguagesArr.length > examItemLength)
+			{
+				supportLanguagesArr[itemInx+1].value = examItem["value(examProviderDetailModel*supportedLanguages)"];
+			}				
+			if (isHandicapAccessibleArr && isHandicapAccessibleArr.length > examItemLength)
+			{
+				isHandicapAccessibleHiddenArr[itemInx+1].value = examItem["value(examProviderDetailModel*isHandicapAccessible)"];
+				isHandicapAccessibleHiddenArr[itemInx+1].id = "isHandicapAccessible" + parseInt(itemInx);
+				if ("Y" == examItem["value(examProviderDetailModel*isHandicapAccessible)"])
+				{
+					isHandicapAccessibleArr[itemInx+1].checked= true;
+				}
+				else
+				{				
+					isHandicapAccessibleArr[itemInx+1].checked = false;
+				}
+				
+			}				
+			if (handicapAccessibleDesArr && handicapAccessibleDesArr.length > examItemLength)
+			{
+				handicapAccessibleDesArr[itemInx+1].value = examItem["value(examProviderDetailModel*handicapAccessibleDes)"];
+				if("Y" == examItem["value(examProviderDetailModel*isHandicapAccessible)"])
+				{
+					handicapAccessibleDesArr[itemInx+1].readonly = false;
+				}
+				else
+				{
+					handicapAccessibleDesArr[itemInx+1].readOnly = true;
+				}
+				readOnlyObj.resetReadOnly([handicapAccessibleDesArr[itemInx+1]]);
+				handicapAccessibleDesArr[itemInx+1].value = examItem["value(examProviderDetailModel*handicapAccessibleDes)"];
+			}				
+			if (drivingDirectionsArr && drivingDirectionsArr.length > examItemLength)
+			{
+				drivingDirectionsArr[itemInx+1].value = examItem["value(examProviderDetailModel*drivingDirections)"];
+			}	
+			itemInx++;
+		}//end for loop
+		return false;
+}
+
+
+function resetExamDataStyleByStatus(exam, examItem, itemInx, isFromRef)
+{
+	if (isEqualsIgnoreCase("PENDING",examItem["examStatus"]))
+	{
+		if ("Y" == examItem["examNewDefined"])
+		{
+			setReadWrite4AllFields(exam, examItem);
+			if (exam.dateOfClassInput)
+			{
+				exam.scheduleLink.style.display = "none";
+			}
+		}
+		else if (exam.dateOfClassInput)
+		{
+			exam.scheduleLink.style.display = "";
+		}
+		notShowScheduleLink(exam, examItem);
+	}
+	else if (isEqualsIgnoreCase("SCHEDULED" ,examItem["examStatus"]))
+	{
+		if (isEqualsIgnoreCase("Y", examItem["allowScoreEdit"]))
+		{
+			disableItemComboBox(exam.examNameCombo);
+			setReadOnly4AllFieldsExceptExamNameAndScore(exam, itemInx);
+		}
+		else
+		{
+			setReadOnly4AllFields(exam, itemInx);
+		}
+		
+		if (exam.examStatusInput)
+		{
+			exam.examStatusInput.add(new Option(eScheduledLbl, "SCHEDULED"));
+		}
+		if (exam.dateOfClassInput)
+		{
+			exam.scheduleLink.style.display = "";
+		}
+		notShowScheduleLink(exam, examItem);
+	}
+	else if (isEqualsIgnoreCase("READYTOSCHEDULEPAID" ,examItem["examStatus"])
+			|| isEqualsIgnoreCase("READYTOSCHEDULEUNPAID" ,examItem["examStatus"]))
+	{
+		if (isEqualsIgnoreCase("Y", examItem["allowScoreEdit"]))
+		{
+			disableItemComboBox(exam.examNameCombo);
+			setReadOnly4AllFieldsExceptExamNameAndScore(exam, itemInx);
+		}
+		else
+		{
+			setReadOnly4AllFields(exam, itemInx);
+		}
+		
+		if (exam.examStatusInput)
+		{
+			exam.examStatusInput.add(new Option(eReadyToScheduledLbl, examItem["examStatus"].toUpperCase()));
+		}
+		if (exam.dateOfClassInput)
+		{
+			exam.scheduleLink.style.display = "";
+		}
+		notShowScheduleLink(exam, examItem);
+	}
+	else
+	{
+		setReadWrite4AllFields(exam, examItem);
+		if (exam.dateOfClassInput)
+		{
+			exam.scheduleLink.style.display = "none";
+		}
+	}
+	
+	if (isEqualsIgnoreCase("Y" ,examItem["examApprovedFlag"]) && 'Y' != isFromRef)
+	{
+		setReadOnly4AllFields(exam, itemInx);
+		setDetailReadOnly(itemInx);	
+	}
+}
+
+
+function disableEduSectionByType(sectionObj, sectionType)
+{
+	if (sectionType == "education")
+	{
+		for (var itemInx=0;itemInx< sectionObj.a_educations.length;itemInx++)
+		{
+			disableEducationItem(sectionObj.a_educations[itemInx]);
+		}
+	} else if (sectionType == "contEducation")
+	{
+		for (var itemInx=0;itemInx< sectionObj.a_contEducations.length;itemInx++)
+		{
+			disableContEducationItem(sectionObj.a_contEducations[itemInx])
+		}
+	} else if (sectionType == "examination")
+	{
+		for (var itemInx=0;itemInx< sectionObj.a_examinations.length;itemInx++)
+		{
+			disableExaminationItem(sectionObj.a_examinations[itemInx]);
+		}
+	}	
+}
+
+function disableEducationItem(eduItem)
+{
+	if (eduItem != null && eduItem instanceof EducationItem)
+	{		
+		disableItemComboBox(eduItem.disciplineCombo);
+		disableItemComboBox(eduItem.pnameCombo);
+		disableEle(eduItem.pnoInput);
+		disableEle(eduItem.yearsAttInput);
+		disableEle(eduItem.yearsgradInput);
+		disableEle(eduItem.degreeOptions);
+	}
+}
+
+function enableEducationSection(education)
+{
+	for (var itemInx=0;itemInx<education.a_educations.length;itemInx++)
+	{				
+		var edu = education.a_educations[itemInx];	
+		if (edu == null)
+		{
+			continue;
+		}	
+		if (edu != null && edu instanceof EducationItem)
+		{
+			edu.destroy();
+		}
+	}
+	education.i_nextEduIndex = 0;
+	education.isInitialView = false;
+	loadEduData();		
+	doPageInit();
+}
+
+function disableContEducationItem(contEduItem)
+{
+	if (contEduItem != null && contEduItem instanceof ContEducationItem)
+	{		
+		disableItemComboBox(contEduItem.contEduNameCombo);
+		disableItemComboBox(contEduItem.pnameCombo);
+		disableEle(contEduItem.pnoInput);
+		disableEle(contEduItem.finalScoreInput);
+		disableEle(contEduItem.classNameInput);
+		disableEle(contEduItem.dateOfClassInput);
+		disableDatePicker(contEduItem.datePickLink);
+		disableEle(contEduItem.hoursCmplInput);
+	}
+}
+
+function enableContEducationSection(contEducation)
+{
+	for (var itemInx=0;itemInx< contEducation.a_contEducations.length;itemInx++)
+	{			
+		var contEdu = contEducation.a_contEducations[itemInx];	
+		if (contEdu == null)
+		{
+			continue;
+		}				
+		if (contEdu != null && contEdu instanceof ContEducationItem)
+		{
+			contEdu.destroy();
+		}
+	}
+	contEducation.i_nextEduIndex = 0;
+	contEducation.isInitialView = false;
+	loadContEduData();		
+	doPageInit();
+}
+
+function enableDatePicker(dateLink, dateCellInput)
+{
+	if (dateLink)
+	{
+		dateLink.innerHTML =  "<A href=\"#\" onKeyDown=\"if(event.keyCode==32) event.keyCode=13;\" onclick=\"return selectDate('"+ dateCellInput.id + "')\"><img src=\"/"+webPath+"/images/selectDate.gif\" "
+		+ 'alt="'+altMsg+'"'
+		+" border=0 ></A>&nbsp;";
+	}
+}
+
+function disableExaminationItem(examItem)
+{
+	if (examItem != null && examItem instanceof ExaminationItem)
+	{
+		disableItemComboBox(examItem.pnameCombo);
+		disableItemComboBox(examItem.examNameCombo);
+		disableEle(examItem.pnoInput);
+		disableEle(examItem.dateOfClassInput);
+		disableEle(examItem.startTimeHInput);
+		disableEle(examItem.startTimeMInput);
+		disableEle(examItem.endTimeHInput);
+		disableEle(examItem.endTimeMInput);
+		disableDatePicker(examItem.datePickLink);		
+		disableEle(examItem.finalScoreInput);		
+		disableEle(examItem.examStatusInput);
+		disableEle(examItem.rosterIDInput);
+		disableEle(examItem.startTimeAMPMInput);
+		disableEle(examItem.endTimeAMPMInput);
+	} 	
+}
+
+function setReadOnly4AllFieldsExceptExamName(exam, itemInx)
+{
+	setReadOnly4AllFieldsExceptExamNameAndScore(exam)
+	setReadOnlyStyle(exam.finalScoreInput);		
+	setDetailReadOnly(itemInx);
+}
+
+function setReadOnly4AllFieldsExceptExamNameAndScore(exam)
+{
+	disableItemComboBox(exam.pnameCombo);
+	setReadOnlyStyle(exam.pnoInput);
+	setReadOnlyStyle(exam.dateOfClassInput);
+	setReadOnlyStyle(exam.startTimeHInput);
+	setReadOnlyStyle(exam.startTimeMInput);
+	setReadOnlyStyle(exam.endTimeHInput);
+	setReadOnlyStyle(exam.endTimeMInput);
+	disableDatePicker(exam.datePickLink);		
+	setReadOnlyStyle(exam.examStatusInput);
+	setReadOnlyStyle(exam.rosterIDInput);
+	setReadOnlyStyle(exam.startTimeAMPMInput);
+	setReadOnlyStyle(exam.endTimeAMPMInput);
+	
+
+}
+
+function setReadOnly4AllFieldsEducation(edu)
+{	
+
+	disableItemComboBox(edu.pnameCombo);
+	setReadOnlyStyle(edu.pnoInput);
+	setReadOnlyStyle(edu.yearsAttInput);
+	setReadOnlyStyle(edu.yearsgradInput);
+	setReadOnlyStyle(edu.degreeOptions);
+	disableItemComboBox(edu.disciplineCombo);
+}
+
+function setDetailReadOnly4Education(itemInx)
+{
+	var addr1Arr = document.getElementsByName("value(providerDetailModel*address1)");
+	var addr2Arr = document.getElementsByName("value(providerDetailModel*address2)");
+	var addr3Arr = document.getElementsByName("value(providerDetailModel*address3)");
+	var cityArr = document.getElementsByName("value(providerDetailModel*city)");
+	var stateArr = document.getElementsByName("value(providerDetailModel*state)");
+	var zipArr = document.getElementsByName("value(providerDetailModel*zip_disp)");
+	var phone1Arr = document.getElementsByName("value(providerDetailModel*phone1_disp)");
+	var phone2Arr = document.getElementsByName("value(providerDetailModel*phone2_disp)");
+	var phone1CCArr = document.getElementsByName("value(providerDetailModel*phone1CountryCode)");
+	var phone2CCArr = document.getElementsByName("value(providerDetailModel*phone2CountryCode)");
+	var emailArr = document.getElementsByName("value(providerDetailModel*email)");
+	var faxArr = document.getElementsByName("value(providerDetailModel*fax_disp)");
+	var faxCCArr = document.getElementsByName("value(providerDetailModel*faxCountryCode)");
+	var commentArr = document.getElementsByName("value(comments)");
+	var stdCommentLinkArr = document.getElementsByName("eduStdCommentLink");
+	var ccArr = document.getElementsByName("value(providerDetailModel*countryCode)");
+	setReadOnlyStyle(addr1Arr[itemInx+1]);
+	setReadOnlyStyle(addr2Arr[itemInx+1]);
+	setReadOnlyStyle(addr3Arr[itemInx+1]);
+	setReadOnlyStyle(cityArr[itemInx+1]);
+	setReadOnlyStyle(stateArr[itemInx+1]);
+	setReadOnlyStyle(zipArr[itemInx+1]);
+	setReadOnlyStyle(phone1Arr[itemInx+1]);
+	setReadOnlyStyle(phone2Arr[itemInx+1]);
+	setReadOnlyStyle(phone1CCArr[itemInx+1]);
+	setReadOnlyStyle(phone2CCArr[itemInx+1]);
+	setReadOnlyStyle(emailArr[itemInx+1]);
+	setReadOnlyStyle(faxArr[itemInx+1]);
+	setReadOnlyStyle(faxCCArr[itemInx+1]);
+	setReadOnlyStyle(commentArr[itemInx+1]);
+	setReadOnlyStyle4StdComment(stdCommentLinkArr[itemInx]);
+	setReadOnlyStyle(ccArr[itemInx+1]);
+}
+
+
+function setReadOnlu4AllFieldscontEducation(contEdu)
+{
+	
+	disableItemComboBox(contEdu.contEduNameCombo);
+	disableItemComboBox(contEdu.pnameCombo);
+	setReadOnlyStyle(contEdu.pnoInput);
+	setReadOnlyStyle(contEdu.finalScoreInput);
+	setReadOnlyStyle(contEdu.classNameInput);
+	setReadOnlyStyle(contEdu.hoursCmplInput);
+	setReadOnlyStyle(contEdu.dateOfClassInput);
+	disableDatePicker(contEdu.datePickLink);
+}
+
+function setDetailReadOnly4contEducation(itemInx)
+{	
+	var addr1Arr = document.getElementsByName("value(contProviderDetailModel*address1)");
+	var addr2Arr = document.getElementsByName("value(contProviderDetailModel*address2)");
+	var addr3Arr = document.getElementsByName("value(contProviderDetailModel*address3)");
+	var cityArr = document.getElementsByName("value(contProviderDetailModel*city)");
+	var stateArr = document.getElementsByName("value(contProviderDetailModel*state)");
+	var zipArr = document.getElementsByName("value(contProviderDetailModel*zip_disp)");
+	var phone1Arr = document.getElementsByName("value(contProviderDetailModel*phone1_disp)");
+	var phone2Arr = document.getElementsByName("value(contProviderDetailModel*phone2_disp)");
+	var phone1CCArr = document.getElementsByName("value(contProviderDetailModel*phone1CountryCode)");
+	var phone2CCArr = document.getElementsByName("value(contProviderDetailModel*phone2CountryCode)");
+	var emailArr = document.getElementsByName("value(contProviderDetailModel*email)");
+	var faxArr = document.getElementsByName("value(contProviderDetailModel*fax_disp)");
+	var faxCCArr = document.getElementsByName("value(contProviderDetailModel*faxCountryCode)");
+	var commentArr = document.getElementsByName("value(contComments)");
+	var stdCommentLinkArr = document.getElementsByName("contStdCommentLink");
+	var ccArr = document.getElementsByName("value(contProviderDetailModel*countryCode)");
+	
+	setReadOnlyStyle(addr1Arr[itemInx+1]);
+	setReadOnlyStyle(addr2Arr[itemInx+1]);
+	setReadOnlyStyle(addr3Arr[itemInx+1]);
+	setReadOnlyStyle(cityArr[itemInx+1]);
+	setReadOnlyStyle(stateArr[itemInx+1]);
+	setReadOnlyStyle(zipArr[itemInx+1]);
+	setReadOnlyStyle(phone1Arr[itemInx+1]);
+	setReadOnlyStyle(phone2Arr[itemInx+1]);
+	setReadOnlyStyle(phone1CCArr[itemInx+1]);
+	setReadOnlyStyle(phone2CCArr[itemInx+1]);
+	setReadOnlyStyle(emailArr[itemInx+1]);
+	setReadOnlyStyle(faxArr[itemInx+1]);
+	setReadOnlyStyle(faxCCArr[itemInx+1]);
+	setReadOnlyStyle(commentArr[itemInx+1]);
+	setReadOnlyStyle4StdComment(stdCommentLinkArr[itemInx]);
+	setReadOnlyStyle(ccArr[itemInx+1]);
+	
+}
+
+function setDetailReadOnly(itemInx)
+{
+	if (itemInx != "undefined" && itemInx != null)
+	{
+		var addr1Arr = document.getElementsByName("value(examProviderDetailModel*address1)");
+		var addr2Arr = document.getElementsByName("value(examProviderDetailModel*address2)");
+		var addr3Arr = document.getElementsByName("value(examProviderDetailModel*address3)");
+		var cityArr = document.getElementsByName("value(examProviderDetailModel*city)");
+		var stateArr = document.getElementsByName("value(examProviderDetailModel*state)");
+		var zipArr = document.getElementsByName("value(examProviderDetailModel*zip_disp)");
+		var phone1Arr = document.getElementsByName("value(examProviderDetailModel*phone1_disp)");
+		var phone2Arr = document.getElementsByName("value(examProviderDetailModel*phone2_disp)");
+		var phone1CCArr = document.getElementsByName("value(examProviderDetailModel*phone1CountryCode)");
+		var phone2CCArr = document.getElementsByName("value(examProviderDetailModel*phone2CountryCode)");
+		var emailArr = document.getElementsByName("value(examProviderDetailModel*email)");
+		var faxArr = document.getElementsByName("value(examProviderDetailModel*fax_disp)");
+		var faxCCArr = document.getElementsByName("value(examProviderDetailModel*faxCountryCode)");
+		var commentArr = document.getElementsByName("value(examComments)");
+		var isHandicapAccessibleArr = document.getElementsByName("value(examProviderDetailModel*isHandicapAccessible)");
+		var handicapAccessibleDesArr = document.getElementsByName("value(examProviderDetailModel*handicapAccessibleDes)");
+		var drivingDirectionsArr = document.getElementsByName("value(examProviderDetailModel*drivingDirections)");
+		var supportedLanguagesArr = document.getElementsByName("value(examProviderDetailModel*supportedLanguages)");
+		var standardCommentsArr = document.getElementsByName("value(examComments)");
+		var stdCommentLinkArr = document.getElementsByName("examStdCommentLink");
+		var country = document.getElementsByName("value(examProviderDetailModel*countryCode)");
+		setReadOnlyStyle(addr1Arr[itemInx+1]);
+		setReadOnlyStyle(addr2Arr[itemInx+1]);
+		setReadOnlyStyle(addr3Arr[itemInx+1]);
+		setReadOnlyStyle(cityArr[itemInx+1]);
+		setReadOnlyStyle(stateArr[itemInx+1]);
+		setReadOnlyStyle(zipArr[itemInx+1]);
+		setReadOnlyStyle(phone1Arr[itemInx+1]);
+		setReadOnlyStyle(phone2Arr[itemInx+1]);
+		setReadOnlyStyle(phone1CCArr[itemInx+1]);
+		setReadOnlyStyle(phone2CCArr[itemInx+1]);
+		setReadOnlyStyle(emailArr[itemInx+1]);
+		setReadOnlyStyle(faxArr[itemInx+1]);
+		setReadOnlyStyle(faxCCArr[itemInx+1]);
+		setReadOnlyStyle(commentArr[itemInx+1]);
+		setReadOnlyStyle(isHandicapAccessibleArr[itemInx+1]);
+		setReadOnlyStyle(handicapAccessibleDesArr[itemInx+1]);
+		setReadOnlyStyle(drivingDirectionsArr[itemInx+1]);
+		setReadOnlyStyle(supportedLanguagesArr[itemInx+1]);
+		setReadOnlyStyle4StdComment(stdCommentLinkArr[itemInx]);
+		setReadOnlyStyle(country[itemInx + 1]);
+	}
+}
+
+function setReadOnlyStyle4StdComment(field)
+{
+	if (typeof(field) != 'undefined' && field != null && field.id != null)
+	{
+		field.onclick = "";
+	}
+}
+
+function setReadOnly4AllFields(exam, itemInx)
+{
+	if (exam != null && exam instanceof ExaminationItem)
+	{
+		disableItemComboBox(exam.examNameCombo);
+		setReadOnly4AllFieldsExceptExamName(exam, itemInx);
+	}
+}
+
+function setReadWrite4AllFields(exam, examItem)
+{
+	if (exam != null && exam instanceof ExaminationItem)
+	{
+		setReadWriteStyle4ComboBox(exam.pnameCombo);
+		setReadWriteStyle4ComboBox(exam.examNameCombo);
+		setReadWriteStyle4Field(exam.dateOfClassInput);
+		setReadWriteStyle4Field(exam.startTimeHInput);
+		setReadWriteStyle4Field(exam.startTimeMInput);
+		setReadWriteStyle4Field(exam.endTimeHInput);
+		setReadWriteStyle4Field(exam.endTimeMInput);
+		enableDatePicker(exam.datePickLink,exam.dateOfClassInput);		
+		setReadWriteStyle4Field(exam.finalScoreInput);		
+		setReadWriteStyle4Field(exam.examStatusInput);
+		setReadWriteStyle4Field(exam.rosterIDInput);
+		setReadWriteStyle4Field(exam.startTimeAMPMInput);
+		setReadWriteStyle4Field(exam.endTimeAMPMInput);
+		
+		if(exam && exam.pnoInput && examItem
+				&& examItem["readonly"] && examItem["readonly"] == 'true')
+		{
+			exam.pnoInput.readOnly = true;
+			readOnlyObj.resetReadOnly([exam.pnoInput]);
+		}
+		else
+		{
+			setReadWriteStyle4Field(exam.pnoInput);
+		}
+	}
+}
+
+function setReadWriteStyle4ComboBox(comboEle)
+{
+	if (comboEle)
+	{
+		comboEle.setDisabled(false);
+	}
+}
+
+function setReadWriteStyle4Field(field)
+{
+	if(typeof(field) != 'undefined' && field != null)
+	{
+		field.readOnly = false;
+		readOnlyObj.resetReadOnly([field]);
+	}
+}
+
+function enableDatePicker(dateLink, dateCellInput)
+{
+	if (dateLink)
+	{
+		dateLink.innerHTML =  "<A href=\"#\" onKeyDown=\"if(event.keyCode==32) event.keyCode=13;\" onclick=\"return selectDate('"+ dateCellInput.id + "')\"><img src=\"/"+webPath+"/images/selectDate.gif\" "
+		+ 'alt="'+altMsg+'"'
+		+" border=0 ></A>&nbsp;";
+	}
+}
+
+function setReadOnlyStyle(field)
+{
+	if(typeof(field) != 'undefined' && field != null)
+	{
+		if (field.type == "select-one")
+		{
+			setReadOnlyStyle4DropDown(field);
+		}
+		else if (field.type == "checkbox")
+		{
+			setReadOnlyStyle4CheckBox(field);
+		}
+		else
+		{
+			field.readOnly = true;
+			field.style.backgroundColor = "#f7f7f7";
+			readOnlyObj.resetReadOnly([field]);
+		}
+	}
+}
+
+function setReadOnlyStyle4DropDown(field)
+{
+	var sIdx = '';
+	
+	field.onfocus = function(){
+		sIdx = this.selectedIndex;
+	}
+
+	field.onchange = function(){
+		this.selectedIndex = sIdx;	
+	}
+	field.disabled = true;
+	readOnlyObj.resetReadOnly([field]);
+}
+
+
+function setReadOnlyStyle4CheckBox(field)
+{
+	field.onclick = function()
+	{
+		this.checked=!this.checked;
+	}		
+}
+
+
+function setSelectedValue(targetEle, value)            
+{
+	if (targetEle)
+	{
+		for(var i=0; i<targetEle.options.length; i++)
+		{
+			if(targetEle.options[i].value == value)
+			{
+				targetEle.options[i].selected = true;
+				return;
+			}			
+		}
+	}
+}
+
+function enableExaminationSection(examination)
+{
+	for (var itemInx=0;itemInx< examination.a_examinations.length;itemInx++)
+	{			
+		var exam = examination.a_examinations[itemInx];	
+		if (exam == null)
+		{
+			continue;
+		}		
+		if (exam != null && exam instanceof ExaminationItem)
+		{
+			exam.destroy();
+		}
+	}
+	examination.i_nextExamIndex = 0;
+	examination.isInitialView = false;
+	loadExamData();		
+	doPageInit();
+}
+
+function disableEle(ele)
+{
+	if (ele)
+	{
+		ele.disabled = true;	
+		readOnlyObj.resetReadOnly([ele]);
+	}
+}
+
+function disableItemComboBox(comboEle)
+{
+	if (comboEle)
+	{
+		comboEle.setDisabled(true);
+	}
+}
+
+function filterNumInput(evt)
+{	
+	var keyCode, Char, inputField;
+	var filter = '0123456789.';
+	if(window.event){
+		keyCode = window.event.keyCode;
+		evt = window.event;
+	}
+	else if(evt)
+	{
+		keyCode = evt.which;
+	}
+	else 
+	{
+		return true;
+	}
+			
+	// Get the Element that triggered the Event
+	inputField = evt.srcElement ? evt.srcElement : evt.target || evt.currentTarget;
+	// If the Key Pressed is a CTRL key like Esc, Enter etc - allow
+	if((keyCode==null) || (keyCode==0) || (keyCode==8) || (keyCode==9) || (keyCode==13) || (keyCode==27) )
+	{
+		return true;
+	}
+	// prevent the event from being pocessed by parent component
+	evt.cancelBubble = true;
+	Char = String.fromCharCode(keyCode);
+	if((filter.indexOf(Char) > -1)) 
+	{
+		if (Char == '.' && inputField.value==''){
+			inputField.value ='0';
+			return true;
+		}
+		if (Char == '.' && inputField.value.indexOf('.') > -1)
+		{
+			return false;
+		}
+		if (inputField.value.match(/^[0-9]{0,10}(\.{0,1})[0-9]{0,2}$/))
+		{	
+			return true;
+		}
+		else
+		{	
+			return false;	
+		}
+	}	
+	else
+	{
+		return false;
+	}
+}
+
+function expandOrCollapseTable(webpath,divName)
+{ 
+	var objFrame = document.getElementById(divName).style; 
+	var objImg = document.getElementById(divName+'Img');
+	if (objFrame.display=="block") 
+	{
+		objFrame.display="none"; 
+		objImg.src= webpath + "/images/arrow_black.gif";
+		objImg.alt= objImg.openAlt;
+	}
+	else 
+	{
+		objFrame.display="block"; 
+		objImg.src= webpath + "/images/arrow_down_black.gif";
+		objImg.alt =objImg.closeAlt;
+	}
+	var contBalTable = document.getElementById("contEduBalanceTable");	
+	
+	nHeight = contBalTable.height;
+	if(objFrame.display == "none")
+	{
+		nHeight = 0;
+	}
+	
+	objFrame.height = nHeight;									
+
+	scrollBarIssue.autoAdjustOuterContainer();
+}
+
+function setFldStatus(eleFld, data)
+{
+	if(data["readonly"] && data["readonly"] == 'true'){
+		eleFld.readOnly = true;	
+	}else {
+		eleFld.readOnly = false;
+	}
+	readOnlyObj.resetReadOnly([eleFld]);
+}
+
+function resetForms()
+{
+	var formObj = document.forms;		
+	for (var i=0; i<formObj.length; i++)
+	{
+		formObj[i].reset();
+	}
+}
+
+function getStoreMaxLength(myStore)
+{
+	var len = myStore.getTotalCount();
+	var maxLen = 0;
+	for (var i = 0; i < len; i++)
+	{
+		var myRecord = myStore.getAt(i);
+		if (myRecord !=null && myStore != undefined)
+		{
+			maxLen = Math.max(maxLen,myRecord.get('name').length);
+		}		
+	}
+	return maxLen;
+}
+
+function setComboListWidth(myStore, myCombo,minListWidth)
+{
+	if (myStore != undefined && myCombo != undefined)
+	{
+		
+		var maxLen = getStoreMaxLength(myStore) * 5.5;	
+		myCombo.listWidth = Math.max(maxLen+55,myCombo.getSize().width+17,minListWidth);
+	}
+}
+
+function sleep(millis) {
+    date = new Date();
+    var curDate = null;
+    do {
+        curDate = new Date();
+    }
+    while (curDate - date < millis);
+}
+
+
+function getComboStyleStr()
+{
+	var styleStr = 'vertical-align:middle;position: relative;top:-2px;margin:0px;padding:0px;height:19px;';
+	return styleStr;
+}
+
+function scrollListIntoView(scrollIntoViewFlag, anchorId)
+{
+	if ( scrollIntoViewFlag && scrollIntoViewFlag == 'true' && document.getElementById(anchorId))
+	{
+		document.getElementById(anchorId).scrollIntoView();
+	}
+}
+
+function isEqualsIgnoreCase(val1, val2)
+{
+	if (val1 == null || val1 == undefined || trim(val1) == '' 
+		|| val2 == null || val2 == undefined || trim(val2) == '' )
+	{
+		return false;
+	}
+	else
+	{
+		return val1.toUpperCase() == val2.toUpperCase();
+	}
+}
+
+function reprepareVirtualBuffer()
+{
+	if(!profile.isEnabled508)
+	{
+		return;
+	}
+	 //Focus in the errorMsgPanel
+	 var popupMsg = "";
+	 var errorMsgPanels = document.getElementsByName('errorMsgPanel');
+	 if(errorMsgPanels.length>0)
+	 {
+		 for(i=0;i<errorMsgPanels.length;i++)
+		 {
+			 popupMsg += '\r' + errorMsgPanels[i].innerText;
+		 }
+	 }
+	 var errListPanel=document.getElementById('err_msg');
+	 if(errListPanel)
+	 {
+		 //--Append error list panel
+		 var errDiv = document.createElement('div');
+		 var errHtml='';
+		 var fontArr=document.getElementsByTagName("font");
+		 
+		 for (i=0;i<fontArr.length;i++) 
+		 {
+			 if(fontArr[i].getAttribute("air-error") && fontArr(i).getAttribute("air-error")=='true')
+		     {
+			    var errorMsg = fontArr[i];
+			    var label = errorMsg.parentElement.innerHTML;
+			    if(label.indexOf('<LABEL')>=0)
+			    {
+			    	label = errorMsg.parentElement.firstChild.innerText;
+			    }
+			    else if(fontArr[i].getAttribute("air-label"))
+			    {
+			    	label = fontArr[i].getAttribute("air-label");
+			    }
+			    else
+			    {
+				    label = label.substr(0,label.indexOf('<'));
+			    }
+		    	var fieldId = fontArr(i).getAttribute("air-for");
+		    	
+		    	if(!fieldId){
+		    		fieldId = errorMsg.parentElement.firstChild.htmlFor;
+		    		if(fieldId)
+		    		{
+		    			var err_ele=document.getElementById(fieldId)
+		    			if(!err_ele)
+					{
+		    				popupMsg += '\r' + errorMsg.innerText;
+		    				continue;
+		    			}
+		    			if(err_ele && (err_ele.readOnly==true || err_ele.disabled == true))
+		    			{	
+		    				popupMsg += '\r' + errorMsg.innerText;
+				    		continue;
+		    			}		    			
+		    		}
+		    		else
+		    		{
+			    		popupMsg += '\r' + errorMsg.innerText;
+			    		continue;
+			    	}
+		    	}
+		    	
+		    	if(label!='')
+		    	{
+		    		label = label + " : " + errorMsg.innerText;
+		    	}
+		    	else
+		    	{
+		    		label = errorMsg.innerText;
+		    	}
+		    	var fieldErrorArray = document.getElementsByName(fieldId);
+		    	if(fieldErrorArray.length>1){
+		    		for(j=0;j<fieldErrorArray.length;j++){
+		    			if(fieldErrorArray[j].value==''){
+			    			if(!fieldErrorArray[j].id||fieldErrorArray[j].id==fieldErrorArray[j].name){
+			    				fieldErrorArray[j].id = fieldErrorArray[j].name+'_['+j+']';
+			    			}
+		    				errHtml += '<a class="Redstar" href="#'
+			    				+ fieldErrorArray[j].id + '" title="Error | '+label+'">'+label +'</a><br>';
+		    			}
+		    		}
+		    	}else{
+		    			errHtml += '<a class="Redstar" href="#'
+		    				+ fieldId + '" title="Error | '+label+'">'+label +'</a><br>';
+		    	}
+		     }
+		 }
+		 errDiv.innerHTML=errHtml;
+		 errListPanel.appendChild(errDiv);	
+		 if(errListPanel.innerText!='' && popupMsg == '')
+		 {
+			 alert(getTextlable("common.error.prompt"));
+		 }
+	 }
+	 if(errListPanel)
+	 {
+		 errListPanel.accessKey = gErrorPanleAccessKey;
+		 errListPanel.focus();
+	 }
+}
+
+function changeEleStyle(examObj, examEle)
+{
+	if (isEqualsIgnoreCase("SCHEDULED",examObj["examStatus"])){
+		examEle.readOnly = true;
+	}else{
+		examEle.readOnly = false;
+	} 
+	readOnlyObj.resetReadOnly([examObj]);
+}
+
+function scheduleExam(index)
+{
+	if(!resumeCap4ScheduleExamInDaily())
+	{
+		return false;
+	}
+	document.getElementById("examDynamicError").innerText = "";
+	var examProviderName = document.getElementById("examProviderName" + index) == null ? "" : document.getElementById("examProviderName" + index).value;
+	var examProviderNo = document.getElementById("examProviderNo" + index) == null ? "" : document.getElementById("examProviderNo" + index).value;
+	var examName = document.getElementById("examName" + index).value;
+	var examSeqNbr = document.getElementById("examEduSequence" + index).value;
+	var refExamNbr = document.getElementById("refExamNbr" + index).value;
+	var url = "/portlets/commons/education/schedule/scheduleExamFrame.jsp?module=" + module 
+				+ "&examProviderName=" + examProviderName + "&examName="+encodeURIComponent(examName)
+				+ "&examProviderNo="+encodeURIComponent(examProviderNo) + "&examSeqNbr=" + examSeqNbr 
+				+ "&scheduleType=schedule" + "&refExamNbr=" + refExamNbr;
+
+	window.showModalDialog(url,window, 'dialogWidth:1000px;dialogHeight:700px;resizable:yes;scroll:yes;Minimize=yes;Maximize=yes');
+}
+
+function rescheduleExam(index)
+{
+	document.getElementById("examDynamicError").innerText = "";
+	var url = "/portlets/cap/examinationSchedule.do?mode=checkBizValue4Reasons&scheduleType=reschedule&module=" + module + "&index=" + index;
+	remoteAccess(url, checkReasonsResult,  document.forms[0]);
+	return false;
+}
+
+function checkReasonsResult(data)
+{
+	var responseMsg = eval('('+data+')');
+	if (!responseMsg.hasBizValue4Reason)
+	{
+		alert(giveReasons4ReschedCanc + '\n' + noReasons4ReschedCanc + '\n' + contactAdminAgency);
+		return false;
+	}
+	else
+	{
+		var index = responseMsg.index;
+		var examProviderName = document.getElementById("examProviderName" + index) == null ? "" : document.getElementById("examProviderName" + index).value;
+		var examProviderNo = document.getElementById("examProviderNo" + index) == null ? "" : document.getElementById("examProviderNo" + index).value;
+		var examName = document.getElementById("examName" + index).value;
+		var examSeqNbr = document.getElementById("examEduSequence" + index).value;
+		var examDate = document.getElementById("date(examDate"+index+")") == null ? "" : document.getElementById("date(examDate"+index+")").value;
+		var examStartTimeH = document.getElementById("examStartTimeH" + index) == null ? "" : document.getElementById("examStartTimeH" + index).value;
+		var examStartTimeM = document.getElementById("examStartTimeM" + index) == null ? "" : document.getElementById("examStartTimeM" + index).value;
+		var examStartTimeAMPM = document.getElementById("examStartTimeAMPM" + index) == null ? "" : document.getElementById("examStartTimeAMPM" + index).value;
+		var refExamNbr = document.getElementById("refExamNbr" + index).value;
+		var url = "/portlets/commons/education/schedule/scheduleExamFrame.jsp?module=" + module
+				+ "&examProviderName="+encodeURIComponent(examProviderName)+"&examName="+encodeURIComponent(examName)
+				+ "&examProviderNo="+encodeURIComponent(examProviderNo) + "&examDate="+encodeURIComponent(examDate)
+				+ "&examStartTimeH=" + encodeURIComponent(examStartTimeH) +"&examStartTimeM=" + encodeURIComponent(examStartTimeM) 
+				+ "&examStartTimeAMPM=" + encodeURIComponent(examStartTimeAMPM)
+				+ "&scheduleType=" + responseMsg.scheduleType + "&refExamNbr=" + refExamNbr + "&examSeqNbr=" + examSeqNbr
+				+ "&from=daily";
+		window.showModalDialog(url,window,'dialogWidth:1000px;dialogHeight:700px;resizable:yes;scroll:no;Minimize=yes;Maximize=yes');
+	}
+}
+
+function cancelExam(index)
+{
+	document.getElementById("examDynamicError").innerText = "";
+	var url = "/portlets/cap/examinationSchedule.do?mode=checkBizValue4Reasons&scheduleType=cancel&module=" + module + "&index=" + index;
+	remoteAccess(url, checkReasonsResult,  document.forms[0]);
+	return false;
+
+}
+
+function resetExam(examSeqNbr, examName, examDate, refExamNbr)
+{
+	document.getElementById("examDynamicError").innerText = "";
+	if(confirm(getTextlable("exam.daily.resetscheduleexamfromready.label")))
+	{
+		var url = "/portlets/education/providerexamination/providerExaminationForm.do?mode=checkRescheduleOrCancelDate";
+		url = url + "&examSeqNbr=" + examSeqNbr + "&examName=" + examName + "&examDate=" + examDate + "&refExamNbr=" + refExamNbr;
+		remoteAccess(url, resetExamAfterCheckDate);
+	}
+}
+
+function resetExamAfterCheckDate(data)
+{
+	var responseMsg = eval('('+data+')');
+	if (responseMsg.outOfRange)
+	{
+		if(confirm(responseMsg.messageForReadyToSchedule))
+		{
+			var url = "/portlets/cap/examinationSchedule.do?mode=resetExam&examSeqNbr="+responseMsg.examSeqNbr;
+			return SimulateClick('1', 'accelasubmitbuttonname','resetExam','refresh_target','','refresh_url','', 'target', '',
+					'action', url, 'presubmit', '');
+		}
+	}
+	else
+	{
+		var url = "/portlets/cap/examinationSchedule.do?mode=resetExam&examSeqNbr="+responseMsg.examSeqNbr;
+		return SimulateClick('1', 'accelasubmitbuttonname','resetExam','refresh_target','','refresh_url','', 'target', '',
+				'action', url, 'presubmit', '');
+	}
+}
+
+function scheduleExamFromReady(examSeqNbr, examName, examDate, refExamNbr, index)
+{
+	document.getElementById("examDynamicError").innerText = "";
+	if(confirm(getTextlable("exam.daily.confirmscheduleexamfromready.label")))
+	{
+		var url = "/portlets/education/providerexamination/providerExaminationForm.do?mode=checkRescheduleOrCancelDate";
+		url = url + "&examSeqNbr=" + examSeqNbr + "&examName=" + examName + "&examDate=" + examDate + "&refExamNbr=" + refExamNbr;
+		url = url + "&index=" + index;
+		remoteAccess(url, ScheduleFromReadyAfterCheckDate);
+	}
+}
+
+function ScheduleFromReadyAfterCheckDate(data)
+{
+	var responseMsg = eval('('+data+')');
+	if (responseMsg.outOfRange)
+	{
+		if(confirm(responseMsg.messageForReadyToSchedule))
+		{
+			scheduleExam(responseMsg.index);
+		}
+	}
+	else
+	{
+		var url = "/portlets/cap/examinationSchedule.do?mode=scheduleExamFromReady&examSeqNbr="+responseMsg.examSeqNbr;
+		return SimulateClick('1', 'accelasubmitbuttonname','scheduleExamFromReady','refresh_target','','refresh_url','', 'target', '',
+				'action', url, 'presubmit', '');
+	}
+}
+
+function setExamProviderPassingScore(examItem,data,passLbl,failLbl,naLbl)
+{
+	examItem.gradingStyle.value = data["examGradingStyle"];
+	examItem.passingScore.value = data["examPassingScore"];	
+	
+	if (examItem.passingScoreInput)
+	{
+		if ('passfail' == data["examGradingStyle"])
+		{
+			examItem.passingScoreInput.value = naLbl;
+		}
+		else
+		{
+			if(!('percentage' == data["examGradingStyle"])&& examItem.passingScore.value == 0)
+			{
+				examItem.passingScoreInput.value = '';
+			}				
+			else	
+			{
+				examItem.passingScoreInput.value = data["examPassingScore"];
+			}
+			
+		}
+	}	
+	
+	if (examItem.passingScoreInput && examItem.passingScoreSymbol)
+	{
+		if ('percentage' == data["examGradingStyle"])
+		{
+			examItem.passingScoreSymbol.innerHTML = "%";
+		}
+		else
+		{
+			examItem.passingScoreSymbol.innerHTML = "";
+		}
+	}	
+	drawFinalScoreEle(examItem, data["examGradingStyle"],"examFinalScore",passLbl,failLbl);
+}
+
+//format the values with mask or bind mask.
+function dealValues(prefix, itemInx, data, targetID)
+{
+	if(typeof bindMaskAndDealValue == "undefined")
+	{
+		return;
+	}
+	var ids = [];
+	var indexes = [];
+	
+	var zipId = 'value(' + prefix + '*zip' + itemInx + '_disp)';
+	var zipIndex = 'value(' + prefix + '*zip)';
+	
+	var phone1Id = 'value(' + prefix + '*phone1' + itemInx + '_disp)';
+	var phone1Index = 'value(' + prefix + '*phone1)';
+	
+	var phone2Id = 'value(' + prefix + '*phone2' + itemInx + '_disp)';
+	var phone2Index = 'value(' + prefix + '*phone2)';
+	
+	var faxId = 'value(' + prefix + '*fax' + itemInx + '_disp)';
+	var faxIndex = 'value(' + prefix + '*fax)';
+	
+	ids.push(zipId);
+	ids.push(phone1Id);
+	ids.push(phone2Id);
+	ids.push(faxId);
+	
+	indexes.push(zipIndex);
+	indexes.push(phone1Index);
+	indexes.push(phone2Index);
+	indexes.push(faxIndex);
+	
+	var countryId = 'value(' + prefix + '*countryCode' + itemInx + ")";
+	for(var i = 0; i < ids.length; i++)
+	{
+		var maskType = ids[i].indexOf("zip") > -1 ? "postalCode" : "phoneNumber";
+		bindMaskAndDealValue
+		(
+			ids[i], 
+			'Yes', 
+			'/portlets/regional/regionalSyncMask.do?mode=syncMask&maskType=' + maskType, 
+			countryId,
+			data ? data[indexes[i]] : null,
+			maskType,
+			targetID
+		);
+	}
+}
+
+//Avoid to create too many of  ajaxAnyWhere object.
+function getStatesByCountry(url, param, zoneId)
+{
+	var xmlHttp = createXMLHttpRequest();
+	if (!xmlHttp) 
+	{
+		throw new Error("XMLHttp object could be created.");
+	}
+	var isAsynchronized = true;
+	if (param != null && param.indexOf("stateProperty=") > -1)
+	{
+		isAsynchronized = false;
+	}
+	xmlHttp.open("POST", url, isAsynchronized);
+	xmlHttp.onreadystatechange = callBack;
+	xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	xmlHttp.send(param);
+	
+	function callBack()
+	{
+		if(xmlHttp.readyState == 4)
+		{
+			if (xmlHttp.status == 200)
+			{
+				var zones = xmlHttp.responseXML.getElementsByTagName("zone");
+				if (zones.length != 0) {
+	                for (var i = 0; i < zones.length; i++) {
+	                    var zoneNode = zones[i];
+
+	                    var name = zoneNode.getAttribute("name");
+	                    var id = zoneNode.getAttribute("id");
+	                    var html = "";
+	                    for (var childIndex = 0; childIndex < zoneNode.childNodes.length; childIndex++) {
+	                        html += zoneNode.childNodes[childIndex].data
+	                    }
+	                    var zoneHolder = name!=null?
+	                                     document.getElementById("aazone." + name):
+	                                     document.getElementById(id);
+	                    if (zoneHolder != null && typeof(zoneHolder) != "undefined") {
+	                        zoneHolder.innerHTML = html;
+	                        scrollBarIssue.autoAdjustOuterContainer(document);
+	                    }
+	                }
+	            }
+			}
+		}
+	}
+}
+
+
+function setValueById(label,index,value) {
+	var obj =  document.getElementById("value("+label+index+")");
+	if(obj)
+	{
+		obj.value = value;
+	}
+	
+}
+
+function showErrorMsgById(label,errInx,value) {
+	var obj =  document.getElementById(label+errInx+"*msg");
+	if(obj && value)
+	{
+		if(obj.previousSibling && value.indexOf('X')>0)
+		{
+			obj.previousSibling.innerText = "";
+		}
+		obj.innerText = value;
+		obj.setAttribute("air-for","value("+label+errInx+")");
+		obj.setAttribute("air-error","true");
+		return true;
+	}
+}
+
+function openLookUpWindow(url)
+{
+		var property="height=400, width=800, top=200, left=200,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=yes";
+		if(getDirection())
+		{
+		   windowOpen(url, "popUpWindow", property+",left=" + getScreenLeft(100,800));
+		}
+		else
+		{
+		    windowOpen(url, "popUpWindow",property );
+		}
+}
+
+function createHiddenInputElement(eleName,obj)
+{
+	var inputEle = document.createElement("input");
+	inputEle.type = "hidden";
+	inputEle.name = eleName;
+	inputEle.id = eleName + obj.i_index;
+	inputEle.value = "";
+	return inputEle;
+}
+
+function setHiddenProviderDetailData(obj, elePrefix)
+{
+	obj.addressLine1 = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*address1Des)",obj);
+	obj.addressLine2 = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*address2Des)",obj);
+	obj.addressLine3 = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*address3Des)",obj);
+	obj.city = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*cityDes)",obj);
+	obj.state = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*stateDes)",obj);
+	obj.zip = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*zipDes)",obj);
+	obj.fax = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*faxDes)",obj);
+	obj.phone1 = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*phone1Des)",obj);
+	obj.phone2 = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*phone2Des)",obj);
+	obj.phone1CountryCode = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*phone1CountryCodeDes)",obj);
+	obj.phone2CountryCode = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*phone2CountryCodeDes)",obj);
+	obj.faxCountryCode = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*faxCountryCodeDes)",obj);
+	obj.countryCode = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*countryCodeDes)",obj);
+	obj.email = createHiddenInputElement("value("+elePrefix+"ProviderDetailModel*emailDes)",obj);
+	obj.comment = createHiddenInputElement("value("+elePrefix+"CommentsDes)",obj);
+	obj.checkCell.appendChild(obj.addressLine1);
+	obj.checkCell.appendChild(obj.addressLine2);
+	obj.checkCell.appendChild(obj.addressLine3);
+	obj.checkCell.appendChild(obj.city);
+	obj.checkCell.appendChild(obj.state);
+	obj.checkCell.appendChild(obj.zip);
+	obj.checkCell.appendChild(obj.fax);
+	obj.checkCell.appendChild(obj.phone1);
+	obj.checkCell.appendChild(obj.phone2);
+	obj.checkCell.appendChild(obj.phone1CountryCode);
+	obj.checkCell.appendChild(obj.phone2CountryCode);
+	obj.checkCell.appendChild(obj.faxCountryCode);
+	obj.checkCell.appendChild(obj.countryCode);
+	obj.checkCell.appendChild(obj.email);
+	obj.checkCell.appendChild(obj.comment);
+}
+
+//Fix bug 53610 that do reset function twice when add a new record, 
+//the new item unsaved will be set as null, but the items still contains the null object.
+function getAvailableLength(items)
+{
+	var availableLen = 0;
+	for(var i = 0; i < items.length; i++)
+	{
+		if (items[i] != null)
+		{
+			availableLen++;	
+		}
+	}
+	return availableLen;
+}
+
+function getElementsByIndex(name,rowIndex)
+{
+	var nameIndex = rowIndex+1;
+	var element = document.getElementsByName(name)[nameIndex];
+	return element;
+}
+
+function createMessageElement(elementName)
+{
+	var messageElement = document.createElement("a");
+	messageElement.id = elementName;
+	messageElement.name = elementName;
+	messageElement.style.whiteSpace = "nowrap";
+	return messageElement;
+}
+
+

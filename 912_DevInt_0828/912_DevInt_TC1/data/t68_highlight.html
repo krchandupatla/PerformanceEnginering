@@ -1,0 +1,25 @@
+/**
+ * Highlight a selected phrase within some text.
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .filter('highlight', filter);
+
+  /**
+   * @ngInject
+   */
+  function filter($sce) {
+    return function (text, phrase) {
+      var template ='<span class="highlight">$1</span>';
+
+      if (phrase) {
+        text = text.replace(new RegExp('(' + phrase + ')', 'gi'), template);
+      }
+
+      return $sce.trustAsHtml(text);
+    };
+  }
+})();

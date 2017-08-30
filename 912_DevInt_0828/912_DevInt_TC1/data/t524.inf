@@ -1,0 +1,11 @@
+[t524]
+FileName1=t524_content-right-bottom.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/tab/content-right-bottom.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_524.xml
+RequestHeaderFile=t524_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t524_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

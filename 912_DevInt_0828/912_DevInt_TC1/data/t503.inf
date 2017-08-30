@@ -1,0 +1,11 @@
+[t503]
+FileName1=t503_Drop_Menu_Button_Hover.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/reskin/Drop_Menu_Button_Hover.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_503.xml
+RequestHeaderFile=t503_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t503_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

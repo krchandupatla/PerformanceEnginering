@@ -1,0 +1,339 @@
+/**
+ * 
+ * V360	 
+ * File: Util.js
+ * 
+ * Accela, Inc.
+ * Copyright (C): 2012-2014
+ * 
+ * Description:
+ * <<General description of the class>>
+ * 
+ * Notes:
+ * <<Specific programming notes>>
+ * 
+ * Revision History:
+ * <<Date>>, <<Who>>, <<What>>
+ * 15/01/2012, Ray Zhang, Initial version
+ *
+ */
+
+Util = {
+	//true - AR
+	checkAr : function() {
+		var p = self;
+		var i = 0;
+		if (typeof (p) == 'undefined') {
+			return false;
+		}
+
+		while (p) {
+			if (typeof (p.profile) != "undefined") {
+				if (p.profile.language.toLowerCase().indexOf("ar") >= 0) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			p = p.parent;
+			i++;
+			if (i >= 10)
+				break;
+
+		}
+		return false;
+	},
+
+	extend : function(subClass, superClass, o) {
+
+		if (typeof superClass == "object") {
+			this.apply(subClass.prototype, superClass);
+			return;
+		}
+
+		var spp = superClass.prototype;
+		var F = function() {
+		};
+		F.prototype = spp;
+		subClass.prototype = new F();
+		if (o) {
+			this.apply(subClass.prototype, o);
+		}
+		subClass.prototype.constructor = subClass;
+		//set super class
+		subClass.prototype.superClass = superClass;
+
+		return subClass;
+	},
+
+	//name space
+	namespace : function() {
+		var a = arguments, o = null, i, j, d, rt;
+		for (i = 0; i < a.length; ++i) {
+			d = a[i].split(".");
+			rt = d[0];
+			eval('if (typeof ' + rt + ' == "undefined"){' + rt + ' = {};} o = '
+					+ rt + ';');
+			for (j = 1; j < d.length; ++j) {
+				o[d[j]] = o[d[j]] || {};
+				o = o[d[j]];
+			}
+		}
+	},
+
+	applyIf : function(o, c) {
+		if (o && c) {
+			for ( var p in c) {
+				if (typeof o[p] == "undefined") {
+					o[p] = c[p];
+				}
+			}
+		}
+		return o;
+	},
+
+	apply : function(o, c) {
+		if (o && c && typeof c == 'object') {
+			for ( var p in c) {
+				if (c[p])
+					o[p] = c[p];
+			}
+		}
+		return o;
+	},
+
+	increase : (function() {
+		var id = 0;
+		return function() {
+			return id++;
+		};
+	})(),
+
+	handleHref : function(aHref) {
+		if (aHref.toUpperCase().trim().startsWith("JAVASCRIPT:")) {
+			if (aHref.indexOf("?") > 0)
+				aHref = aHref.substring(0, aHref.indexOf("?"));
+		}
+		return aHref;
+	},
+	
+	specialLetters : "!@#$%^&*()_=+?<>?.,;'\"\\|[]",
+	
+	dealwithSpecialLetter: function(letters){
+		var letter;
+		var pattern;
+		var arrays = new Array();
+		for (var i = 0; i < letters.length; i++)
+		{
+			letter = letters.charAt(i);
+			if (this.specialLetters.indexOf(letter) >= 0)
+			{
+				//pattern = new RegExp(letter, 'ig');
+				letter = letter.replace(letter, "\\"+letter);
+			}
+			arrays.push(letter);
+		}
+		
+		letters = arrays.join("");
+		return letters;
+	},
+	
+	/*
+	 * word: should query word
+	 * tag:  should search tag
+	 * className: hight bright class
+	 * scopeObj: Affect area.
+	 * excludeExpress: exclude express, use for filter exclude element.
+	 * */
+	highLight : function(word, tag, className,scopeObj, excludeExpress) {
+
+		word = word.trim();
+		var isNum = false;
+		if (!isNaN(parseInt(word)))
+		{
+			isNum = true;
+		}
+		if (word)
+		{
+			word = word.replace(/\\/g, "");
+		}
+		
+		word = this.dealwithSpecialLetter(word);
+		
+		var express = new RegExp(word, 'ig');
+
+		if(scopeObj){
+			tag= scopeObj.getElementsByTagName(tag);
+		}else{
+		 tag= document.getElementsByTagName(tag);
+		}
+		//high bright style
+		var replaceTo = function(sentence, data){
+			for (var key in data)
+			{
+				sentence = sentence.replace(key, data[key]);
+			}
+			return sentence;
+		};
+		//the style between sentence
+		var pattern = "<font class=" + className + ">([\\w\\s\\/\\#\\$\\%\\^\\&\\*\\(\\)\\_\\+\\|=\\?\\-\\!@'\":\\.\\,\\[\\]\\{\\}\\~\\`\\;]*)<\\/font>";
+		var beforeRegular = new RegExp(pattern, "ig");
+		//html patten
+		var htmlPattern = /<[^>]*>/ig;
+		var htmlSpecialPattern = "\\&[a-zA-Z]{1,10};";
+		var htmlSpecialRegular = new RegExp(htmlSpecialPattern, 'ig');
+
+		//rs: result which is found by regular. wasChange: Is the innerHTML change?
+		var rs, wasChange;
+
+		for ( var i = 0; i < tag.length; i++) {
+			this.wasChange = false;
+			var innerHTML = tag[i].innerHTML;
+			var innerText = tag[i].innerText;
+			var tmpHTML = innerHTML;
+
+			//1. replace all before changed style
+			while ((rs = beforeRegular.exec(innerHTML)) != null) {
+				//alert(rs[0] + " :  " + rs[1] + " begin: "+rs.index + " lastIndex:  "+rs.lastIndex);
+				tmpHTML = tmpHTML.replace(rs[0], rs[1]);
+				this.wasChange = true;
+			}
+
+			innerHTML = tmpHTML;
+            //filter exclude element.
+            if (excludeExpress && excludeExpress.exec(innerHTML)) {
+                continue;
+            }
+			//2. hight bright(except html gat content)
+			if (word && innerText.trim()) {
+				innerHTML = this.specialChar(innerText, innerHTML, word,
+						replaceTo, htmlPattern, htmlSpecialRegular, express, className, isNum);
+			}
+
+			//3. if the innerHTML was change ant 1&2 step, we must reset the html.
+			if (this.wasChange) {
+				tag[i].innerHTML = innerHTML;
+			}
+		}
+		
+		this.wasChange = null;
+	},
+
+	specialChar : function(innerText, innerHtml, word, replaceTo, htmlPattern,
+			htmlSpecialRegular, express, className, isNum) {
+		var rs, tmpHtml = innerHtml, i = 0, content, tmpSentence, result;
+		//replaceAll("\\&[a-zA-Z]{1,10};", "").replaceAll("<[^>]*>", "").replaceAll("[(/>)<]", "");   
+		var array = innerHtml.split(htmlPattern);
+		var contentArray, wordObject, shuldReplace, tmp, key;
+
+		
+		//1. split from html code(<...></..>)
+		for ( var j = 0; j < array.length; j++) {
+			content = array[j];
+			if (!content) {
+				continue;
+			}
+			//2.split form special html(&...;)
+			contentArray = content.split(htmlSpecialRegular);
+			for ( var z = 0; z < contentArray.length; z++) {
+				shuldReplace = false;
+				var index = 0;
+				rs = contentArray[z];
+				tmp = rs;
+				wordObject = {};
+				var replaceIndex = 0;
+				while ((result = express.exec(rs)) != null) {
+					shuldReplace = true;
+				}
+				
+				if (shuldReplace)
+				{
+					var pattern = "<font class='" + className + "'>";
+					var regStr = "(" + pattern + ")" + word + "</font>|" + "(\\&[a-zA-Z]{1,10};)|<[a-zA-Z\/]+[^<>]*" +word+ "[^<]*>|<" + word+"[^<>]*>|" + word;
+					var reg = new RegExp(regStr, "ig");
+					tmpHtml = tmpHtml.replace(reg, function(matchWord){
+						return Util.handleMatchedCharacters(matchWord,className,pattern,reg);
+					});
+					this.wasChange = true;
+				}
+			}
+		}
+		
+		return tmpHtml;
+	},
+
+	/*
+	 * handle the characters that match the regex,
+	 * special handle the "<font class='" + className + "'>", &,<a>
+	 */
+	handleMatchedCharacters : function(matchWord, className, pattern, reg) 
+	{
+		if (matchWord.search("&") != -1 || matchWord.search(pattern) != -1 || matchWord.search("<[a-zA-Z\/]+[^<>]*>") != -1) 
+		{
+			return matchWord;
+		}
+		else 
+		{
+			return "<font class='" + className + "'>" + matchWord + "</font>";
+		}
+	},
+
+	
+	/**
+	* Find the nearest parent node which tag name is same to the specific tag name
+	*/
+	findParentNodeByTag : function(srcObj, tagName, maxLevel){
+		var p = srcObj;
+		var count = 0;
+		var maxLevelVal = maxLevel || 5;
+		while (p) 
+		{
+			p = p.parentNode;
+			count++;
+			if (p.tagName == tagName || count == maxLevelVal) 
+			{
+				break;
+			}
+		}
+		return p;
+	},
+	
+	/**
+	 * remove dom node
+	 */
+	removeNode : function(id)
+	{
+		var node = document.getElementById(id);
+		if (node.parentNode) {   
+			node.parentNode.removeChild(node); 
+		}
+	}
+}
+
+Function.prototype.bind = function() {
+	var a = arguments;
+	var __method = this;
+	var args = null;
+	var object = a[0];
+
+	if (a.length > 1) {
+		args = Array.prototype.slice.call(arguments, 1);
+	} else {
+		if (typeof object != "object") {
+			object = window;
+			args = Array.prototype.slice.call(arguments, 0);
+		}
+	}
+
+	return function() {
+		return __method.apply(object, args || arguments);
+	}
+};
+
+String.prototype.startsWith = function(str) {
+	return (this.match("^" + str) == str)
+};
+
+String.prototype.trim = function() {
+	return (this.replace(/^[\s\xA0]+/, "").replace(/[\s\xA0]+$/, ""));
+};

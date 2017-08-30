@@ -1,0 +1,287 @@
+/**
+ * NOTE: If adding more functionality to the launchpad,
+ * will need to make the same call as those tagged with "CAGAMMA-1144"
+ *
+ */
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.dashboard')
+    .controller('LaunchpadController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($rootScope, $scope, $log, $state, $timeout, LaunchpadManager, ServerSessionService, SpaceManager, UserManager, AGENCY_TAB_CONFIG) {
+
+    // PRIVATE data
+
+    var availablePages = [];
+    var i18n = $rootScope.i18n;
+
+    // PUBLIC data
+
+    $scope.loaded = false;
+    $scope.isLoading = true;
+    $scope.recentPages = [];
+    $scope.favoritePages = [];
+    $scope.recentActivity = [];
+    $scope.availableCategoryPages = [];
+    $scope.spaceNavigationDisabled = false;
+    $scope.referenceLinks = [ // pageName to locate the url in availablePages
+      {label: i18n.Launchpad.Address, pageName: 'Addresses', icon: 'location'},
+      {label: i18n.Launchpad.Parcels, pageName: 'Parcels', icon: 'location'},
+      {label: i18n.Launchpad.Owners, pageName: 'Owners', icon: 'people-dark'},
+      {label: i18n.Launchpad.Assets, pageName: 'Assets', icon: 'assets'},
+      {label: i18n.Launchpad.Contacts, pageName: 'Contacts', icon: 'people-dark'}
+    ];
+
+    $scope.$on('space-status:loading', function () {
+      $scope.spaceNavigationDisabled = true;
+
+      $timeout(function () {
+        $scope.spaceNavigationDisabled = false;
+      }, 20000);
+    });
+
+    $scope.$on('space-status:loaded', function () {
+      $scope.spaceNavigationDisabled = false;
+    });
+
+    $scope.pageSortOptions = { // for ng-sortable
+      containment: '#favorite-pages',
+      getPlaceholderText: function (element) {
+        var text = element.text().trim();
+        return text.length > 26 ? text.substr(0, 26) : text;
+      },
+      orderChanged: function (event) {
+        LaunchpadManager.updateFavoritePages($scope.favoritePages).then(function () {
+          $log.log('Favorite Pages updated');
+        });
+      }
+    };
+
+    // EVENT handlers
+
+    $scope.$on('main-menu-flyout', function (event, flyout) {
+      var activeSpaceName = ServerSessionService.getActiveSpaceName();
+
+      if (flyout.active && flyout.overlayName === 'launchpad') {
+        ServerSessionService.start('null').then(function() { // CAGAMMA-1144
+          $scope.getRecentActivity().then(function () {
+            if (activeSpaceName) {
+              ServerSessionService.start(activeSpaceName);
+            }
+          });
+        });
+      }
+    });
+
+    // PUBLIC methods
+
+    $scope.allPagesFilterChanged = function (value) {
+      filterPages(availablePages, value);
+
+      $scope.$apply(function () {
+        $scope.availableCategoryPages = getCategoryPages(availablePages);
+      });
+    };
+
+    $scope.clearAllRecentActivity = function () {
+      var activeSpaceName = ServerSessionService.getActiveSpaceName();
+
+      ServerSessionService.start('null').then(function() { // CAGAMMA-1144
+        LaunchpadManager.clearAllRecentActivity().then(function () {
+          $scope.recentActivity.length = 0;
+          if (activeSpaceName) {
+            ServerSessionService.start(activeSpaceName);
+          }
+        });
+      });
+    };
+
+    $scope.favoritePagesFilterChanged = function (value) {
+      $('#favorite-filter-input').toggleClass('hidden');
+
+      filterPages($scope.favoritePages, value);
+    };
+
+    $scope.getAvailablePages = function () {
+      LaunchpadManager.getAvailablePages().then(function (data) {
+        availablePages = data;
+        $scope.availableCategoryPages = getCategoryPages(availablePages);
+
+        // setup reference links
+        angular.forEach($scope.referenceLinks, function (reference) {
+          reference.page = findAvailablePageByName(reference.pageName);
+        });
+
+        LaunchpadManager.getFavoritePages().then(function (data) {
+          $scope.favoritePages = data;
+
+          angular.forEach($scope.favoritePages, function (favoritePage) {
+            var availablePage = findAvailablePageByName(favoritePage.pageName);
+
+            if (availablePage) {
+              availablePage.isFavorite = true;
+            }
+          });
+
+          $scope.loaded = true;
+        });
+      });
+    };
+
+    $scope.getRecentActivity = function () {
+      $scope.isLoading = true;
+      return LaunchpadManager.getRecentActivity().then(function (data) {
+        $scope.isLoading = false;
+        $scope.recentActivity = data;
+      });
+    };
+
+    $scope.openPage = function (page) {
+      ServerSessionService.start('null').then(function() { // CAGAMMA-1144
+        $scope.$emit('dashboard.openPageSpace', page);
+      });
+    };
+
+    $scope.openRecentActivity = function (activity) {
+      ServerSessionService.start('null').then(function() { // CAGAMMA-1144
+        $scope.$emit('dashboard.openSpace', { // handled in aa-space-list directive
+          spaceName: activity.displayText,
+          spaceUrl: LaunchpadManager.getRecentActivityUrl(activity)
+        });
+      });
+    };
+
+    $scope.openReferencePage = function (page) {
+      if (!page) {
+        return;
+      }
+
+      ServerSessionService.start('null').then(function() { // CAGAMMA-1144
+        page.isReference = true;
+        $scope.$emit('dashboard.openPageSpace', page);
+      });
+    };
+
+    $scope.toggleFavorite = function (page) {
+      page.isFavorite = !page.isFavorite;
+
+      if (page.isFavorite) {
+        $scope.favoritePages.push(page);
+      } else {
+        $scope.favoritePages.splice($scope.favoritePages.indexOf(page), 1);
+      }
+
+      LaunchpadManager.updateFavoritePages($scope.favoritePages).then(function () {
+        $log.log('Favorite Pages updated');
+      });
+    };
+
+    $scope.toggleFavoritePagesFilter = function () { // TODO: replace with real implementation later
+      var filter = $('#favorite-filter-input');
+
+      if (filter.hasClass('hidden')) { // was hidden, now showing
+        setTimeout(function () {
+          filter.$('input')[0].focus();
+        }, 10);
+      }
+
+      filter.toggleClass('hidden');
+    };
+
+    // PRIVATE methods
+
+    function filterPages(pages, value) {
+      var filterValue = (value || '').trim();
+      var filter = new RegExp(filterValue, 'i');
+      var isFavoritePages = (pages === $scope.favoritePages);
+
+      $scope.$apply(function () {
+        angular.forEach(pages, function (page) {
+          if (filterValue === '' || page.i18ncategoryName) {
+            if (isFavoritePages) {
+              page.isFavoriteVisible = true;
+            } else {
+              page.isVisible = true;
+            }
+          } else {
+            if (isFavoritePages) {
+              page.isFavoriteVisible = filter.test(page.i18npageName);
+            } else {
+              page.isVisible = filter.test(page.i18npageName);
+            }
+          }
+        });
+      });
+    }
+
+    function findAvailablePageByName(name) {
+      return _.find(availablePages, { 'pageName': name });
+    }
+
+    function getCategoryPages(pages) {
+      var cats = {};
+      var keys = [];
+      var result = [];
+
+      var compare = function (a, b) { // ascending
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+      };
+
+      // first group pages by category
+      angular.forEach(pages, function (page) {
+        if (page.isVisible) {
+          if (!cats[page.i18npageCategory]) { // need to create this category
+            cats[page.i18npageCategory] = {pages: []};
+          }
+          cats[page.i18npageCategory].pages.push(page);
+        }
+      });
+
+      // create a key array for sorting
+      for (var key in cats) {
+        if (cats.hasOwnProperty(key)) {
+          keys.push(key);
+        }
+      }
+
+      // then sort ascending
+      keys.sort();
+
+      // then put them into a single list with a separate category entry before its pages
+      angular.forEach(keys, function (key) {
+        var catPages = cats[key].pages;
+
+        result.push({isCategory: true, i18npageCategory: key});
+
+        // sort them by page name
+        catPages.sort(function (a, b) {
+          return compare(a.i18npageName, b.i18npageName);
+        });
+
+        angular.forEach(catPages, function (page) {
+          result.push(angular.extend(page, {isPage: true}));
+        });
+      });
+
+      return result;
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('LAUNCHPAD-CONTROLLER');
+
+    $scope.getRecentActivity();
+    $scope.getAvailablePages();
+
+    UserManager.deferredSecurityProfile.then(function() {
+      if (UserManager.hasFID('0008', 'R')) { // AAETA-699
+        $scope.referenceLinks.push({label: i18n.Launchpad.Professionals, pageName: 'License Professionals', icon: 'permit'});
+      }
+    });
+  }
+})();

@@ -1,0 +1,11 @@
+[t719]
+FileName1=t719_hook.png
+URL1=https://aa-pt6245.dev.accela.com:5443/security/images/hook.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_719.xml
+RequestHeaderFile=t719_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t719_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

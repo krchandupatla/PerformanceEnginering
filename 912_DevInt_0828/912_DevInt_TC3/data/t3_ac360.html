@@ -1,0 +1,3658 @@
+//Accela Automation
+//File: menuBar.jsp
+//Accela, Inc.
+//Copyright (C): 2003-2014
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: ac360.js 278290 2014-09-01 08:16:28Z ACHIEVO\victor.tan $
+//
+
+document.write("<script src='/portlets/framework/includes/javascript/I18N.js'></script>");
+document.write("<script src='/portlets/framework/includes/javascript/checkTextAreaLength.js'></script>");
+// avoid duplicate import Util.js, cause increase method of the value is reset
+if (typeof(Util) == "undefined")
+{
+	document.write("<script src='/portlets/framework/includes/javascript/widget/Util.js'></script>");
+}
+
+var ns4 = document.layers? true : false;
+var ie = ("ActiveXObject" in window)? true : false;
+var dom = false;
+//stores currently highlighted row id
+var highlightedRow = '';
+var isSubmit=false;
+var blured = false;
+
+var primaryObjInd = '';
+
+var isFocusElement = false;
+var focusElementName = '';
+
+//section 508
+var gErrorPanleAccessKey = 9;
+var currentFocusMenu = null;
+
+//store the functions to run after click the reset button.
+var onAfterResetQueue=[];
+
+/* 
+ * This flag should always be false when submitting to SVN.
+ * It shows if developer is using console debug tool, such as FireBug, Companion.JS.
+ */
+var isSupportConsole = false;
+
+var accelaConsole = {
+	log: function(pMsg)
+	{
+		if (isSupportConsole)
+		{
+			if (window.console && window.console.log)
+			{
+				window.console.log(pMsg);
+			}
+		}
+	}	
+};
+
+function sendHttpRequest(url, param, sync)
+{
+	var returnData = "";
+	var xmlHttp = createXMLHttpRequest();
+	if (!xmlHttp) 
+	{
+		throw new Error("XMLHttp object could be created.");
+	}
+	xmlHttp.open("POST", url, sync);
+	xmlHttp.onreadystatechange = callBack;
+	xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	xmlHttp.send(param);
+	if(!sync)
+	{
+		callBack();
+	}
+	return returnData;
+	
+	function callBack()
+	{
+		if(xmlHttp.readyState == 4)
+		{
+			if (xmlHttp.status == 200)
+			{
+				returnData = xmlHttp.responseText;
+			}
+		}
+	}
+}
+
+function intercepterSubmit(a)
+{
+	return true;
+}
+
+//Validate mask format before submit.
+function validateMask(a)
+{
+	return true;
+}
+
+//For 10ACC-03482 feature, in condition detail page -> submit function   
+//intercepterSubmit() function has been used by template, add the below JS function for HTML editor to use.
+function htmlEditorIntercepterSubmit(a)
+{
+	return true;
+}
+
+function SimulateClick(){ //v1.0	
+	var flag,x,a=SimulateClick.arguments;
+	// Yan Xiao - Support Netscape and Firefox (SAN# 06ACT-00000-00235):
+	// Original code assumed that window.event is the current event.
+	// However, Firefox does not define window.event at all. As result, we need to use "this.even" instead of "even".
+	var event = (window.event) ? window.event : this.event;
+	if (event)
+	{
+		event.cancelBubble = true;		
+	}
+	var origFormAction;
+	var origFormTarget;
+	var token_button = "";
+	var token_orig = "";
+	if(!Ac360.validator.isEmpty(document.forms[0].CSRF_REQ_PARAM))
+	{
+		token_orig = document.forms[0].CSRF_REQ_PARAM.value;
+	}
+	
+	if (!validateMask(a) || !intercepterSubmit(a) || !htmlEditorIntercepterSubmit(a))
+	{
+		return false;
+	}
+	
+	
+	if(a.length>2)
+	{
+		flag=a[0];
+		for( var i=1; i<a.length; i+=2)
+		{
+			if(a[i] == "target")
+			{
+				if(a[i+1] != "")
+				{
+					origFormAction = document.forms[0].action;
+					origFormTarget = document.forms[0].target;
+					document.forms[0].target=a[i+1];
+				}
+				else
+				{
+					document.forms[0].target='_self';
+				}
+			}
+			else if(a[i] == "action" && a[i+1] != "")
+			{
+				document.forms[0].action=a[i+1];
+			}
+			else if(a[i] == "method" && a[i+1] != "")
+			{
+				document.forms[0].method=a[i+1];
+			}
+			else if(a[i] == "presubmit" && a[i+1] =="true")
+			{
+				reservedI = i;
+				//Here has a potenical javascript error, presubmit function does not exist.
+				try
+				{
+					if(!presubmit(a[2])) 
+					{
+						return false;
+					}
+				}
+				catch(e)
+				{
+					//ignore error
+				}
+				i = reservedI;
+			}
+			else if(a[i+1] == "accelareset")
+			{
+				formResetting = true;
+				document.forms[0].reset();
+				try
+				{
+					if(onAfterReset!=null)
+					{
+						onAfterReset();
+					}
+					//perform the customized functions.
+					for(var n=0;n<onAfterResetQueue.length;n++)
+					{
+						onAfterResetQueue[n]();
+					}
+					
+				}catch(E){}
+				formResetting = false;
+				return false;
+			}
+			else if ((x=MM_findObj(a[i]))!=null)
+			{
+				if(a[i] == "refresh_target" && x.value != null && x.value.length > 0)
+				{
+					//if the refresh target value is already exist, don't change the target again.
+					// And set the flag to disable blank function
+					var isBlankObj=getParentObject("isBlankThird");
+					if(isBlankObj !=null)
+					{
+						isBlankObj.value="No";
+					}					
+				}
+				else
+				{
+					x.value=a[i+1];
+				}
+			}
+			else if(a[i] == "errorShow" && a[i+1] =="Y")
+				document.forms[0].errorShow.value="Y";
+			else if(a[i] == "noRight" && a[i+1] =="Y")
+				document.forms[0].noRight.value="Y";				
+			else if(a[i] == "buttonToken")
+			{
+				token_button = a[i+1];
+			}
+			else if (a[i] == "noRefresh")
+			{
+			}
+		}
+	}
+	
+	if(!isSubmit)
+	{
+		enableAllSelect();
+		if(document.forms[0])
+		{
+			if (document.forms[0].target=='_self') isSubmit=true;
+		}
+		if(flag==0)
+		{
+			return true;
+		}		
+		if(document.forms[0])
+		{
+			document.forms[0].submit();
+			if(document.forms[0].target!='_self') 
+			{
+				document.forms[0].action = origFormAction;
+				document.forms[0].target = origFormTarget;
+				token.setTokenInForm(token_button);
+				token.obtainToken();
+			}
+			else
+			{
+				try{		
+					new UI.ProcessBar().render();
+				}catch(e){}
+			}
+		}
+	}
+	return false;
+}
+
+function MM_swapImgRestore() { //v3.0
+	var i,x,a=document.MM_sr;
+	for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++)
+	{
+		x.src=x.oSrc;
+	}
+}
+
+function MM_preloadImages() { //v3.0
+	var d=document;
+	if(d.images)
+	{
+		if(!d.MM_p)
+		{
+			d.MM_p=new Array();
+		}
+		var i,j=d.MM_p.length,a=MM_preloadImages.arguments;
+		for(i=0; i<a.length; i++)
+		{
+			if (a[i].indexOf("#")!=0)
+			{
+				d.MM_p[j]=new Image;
+				d.MM_p[j++].src=a[i];
+			}
+		}
+	}
+}
+
+function MM_findObj(n, d) { //v4.01
+	var p,i,x;
+	if(!d){
+		d=document;
+	}
+	if((p=n.indexOf("?"))>0&&parent.frames.length)
+	{
+		d=parent.frames[n.substring(p+1)].document;
+		n=n.substring(0,p);
+	}
+	if(!(x=d[n])&&d.all){
+		x=d.all[n];
+	}
+	for (i=0;!x&&i<d.forms.length;i++)
+	{
+		//x=d.forms[i][n];
+		if (d.forms[i])
+		{
+			x=(d.forms[i].getElementsByTagName('form'))[n];
+		}	
+	}
+	for(i=0;!x&&d.layers&&i<d.layers.length;i++)
+	{
+		x=MM_findObj(n,d.layers[i].document);
+	}
+	if(!x && d.getElementById)
+	{
+		x=d.getElementById(n);
+	}
+	return x;
+}
+
+function MM_swapImage() { //v3.0
+	var i,j=0,x,a=MM_swapImage.arguments;
+	document.MM_sr=new Array;
+	for(i=0;i<(a.length-2);i+=3)
+	{
+		x=MM_findObj(a[i]);
+		if (x!=null && !x.disabled)
+		{
+			document.MM_sr[j++]=x;
+			if(!x.oSrc)
+			{
+				x.oSrc=x.src;
+			}
+			x.src=a[i+2];
+		}
+	}
+}
+
+function MM_showHideLayers() { //v6.0
+  var i,p,v,obj,args=MM_showHideLayers.arguments;
+  var theMenuObj;
+  
+  //put the menu obj as last argument, if it is null, it means it is 'daynamicMenu'.
+  if (args.length % 3 != 1)
+  {
+  	theMenuObj = 'daynamicMenu';
+  }
+	else
+	{
+		theMenuObj = args[args.length-1];
+	}
+	
+	menuObj = getObject(theMenuObj);
+	  
+  for (i=0; i<(args.length-2); i+=3) if ((obj=MM_findObj(args[i]))!=null)
+  {
+  	v=args[i+2];
+	if (obj.style)
+    {
+	    obj=obj.style;
+	    v=(v=='show')?'visible':(v=='hide')?'hidden':v;
+    }
+    if ( menuObj != null)
+    {
+    	obj.top=menuObj.style.bottom;
+  	}
+    obj.visibility=v;
+  }
+	try{
+		var jetspeedTop = this;
+		var i = 0;
+		while(i<5)
+		{
+			if (jetspeedTop.iframeResize) 
+				break;
+			jetspeedTop = jetspeedTop.parent;	
+			i++;
+		}
+		if(jetspeedTop.iframeResize)
+		{
+			// call iframe resize on the parent
+			jetspeedTop.iframeResize();			
+		}
+	} catch (error) { 
+	//must be security violation... just ignore.
+	}
+
+}
+
+
+
+function PrintPage() {
+   document.forms[0].printbutton.style.visibility = 'hidden';
+   window.print();
+   return false;
+}
+
+function isNumber(s)
+{
+
+	var i;
+		for (i = 0; i < s.length; i++)
+		{
+    		// Check that current character is number.
+    		var c = s.charAt(i);
+    		if (((c < "0") || (c > "9"))) return false;
+		}
+		// All characters are numbers.
+		return true;
+}
+
+function findIndexByName(name)
+{
+	for(var i = 0; i < document.forms[0].elements.length; i++)
+	{
+		str = document.forms[0].elements[i].name;
+		if (str == name)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+/**
+ * function to get inspection calendar.
+ *
+ * isMultipleInspType 'Y','N'
+ */
+function selectInspectionDate(dateName, isInspection, inspectorID, isMultipleInspType, moduleName)
+{
+	var formName = document.forms[0].name;
+	var readOnly = document.forms[0].elements[dateName].getAttribute('readonly') + "";
+	if (readOnly == "true")
+	{
+		return false;
+	}
+
+	if (isInspection != "Y")
+	{
+		return selectDate(dateName);
+	}
+	
+	if (isMultipleInspType == "N") // inspectorID is inspection type in fact.
+	{
+		if (inspectorID == null || inspectorID == "" || inspectorID == "--Select--")
+		{
+			alert(getTextlable("error.js.ac360.selectInspection"));
+			return false;
+		}
+	}
+	
+	var event = (window.event) ? window.event : this.event;
+	
+	if (event)
+	{
+		var left1 = event.screenX;
+		var top1 = event.screenY;
+	}
+	
+	if(left1+227>screen.width){
+			left1 =left1-227;
+	}
+	if(top1+175>screen.height){
+			top1 =top1-175;
+	}	
+	var settings = "width=210,height=162,top="+top1+",left="+left1;
+	settings += ",scrollbars=yes,resizable=no,toolbar=no,status=no,menubar=no,scrollbars=no";
+	 
+	var url;
+	  		  	 
+	var userInputDate = eval("document."+formName+".elements['"+dateName+"'].value");
+	// Yan Xiao - Support Netscape and Firefox (SAN# 06ACT-00000-00235): 
+	// account for "document.getElementById('date(capModel*fileDate)) has no properties" causing date picker not working in Firefox and Netscape.
+	var inputDateName = eval("document.getElementsByName('"+dateName+"')[0].name");
+	if(inputDateName.indexOf("_value")!= -1)
+	{
+			var hidden_name = inputDateName.substring(0,inputDateName.indexOf("_value"))+"_maskformat"+inputDateName.substring((inputDateName.indexOf("_value")+7),(inputDateName.length-1));                                
+			var mask = eval("document."+formName+".elements[\'"+hidden_name+"\'].value");
+			url = "/portlets/commons/datapicker/inspectionCalendar.jsp?form=" + encodeURI(formName + "&inputDate=" +dateName + "&userInputDate=" + userInputDate + "&mask=" + mask + "&isInspection=" + isInspection + "&inspectorID=" + inspectorID + "&isMultipleInspType=" + isMultipleInspType + "&module=" + moduleName);
+	}
+	else
+	{
+	   		url = "/portlets/commons/datapicker/inspectionCalendar.jsp?form=" + encodeURI(formName + "&inputDate=" + dateName + "&userInputDate=" + userInputDate + "&isInspection=" + isInspection + "&inspectorID=" + inspectorID + "&isMultipleInspType=" + isMultipleInspType + "&module=" + moduleName);
+	} 
+	newwin = window.open(url,"DatePicker",settings);
+	 
+	if (newwin.opener == null)
+		  	newwin.opener=window;
+		 	newwin.focus();
+		 	return false; 
+}
+
+function MM_clickDropMenu(dropMenu)
+{		
+	if (dropMenu.click)
+	{
+		if(window.event.srcElement.tagName!='A' && window.event.srcElement.tagName!='FONT')			
+		{				
+			dropMenu.click();
+		}
+	}	
+	else
+	{	// Support Netscape and Firefox (SAN# 06ACT-00000-00235): dropMenu.click() is not a function in Firefox.
+		MozillaLinkClick(dropMenu);
+	}
+	// Yan Xiao - Support Netscape and Firefox (SAN# 06ACT-00000-00235): 
+	// Original code assumed that window.event is the current event.
+	// However, Firefox does not define window.event at all. As result, we need to use "this.even" instead of "even".
+	var event = (window.event) ? window.event : this.event;
+	if (event)
+	{
+		event.cancelBubble = true;			
+	}				
+}
+function textLengthLimit() { 
+	var maxLen;
+	var acEvent = _getACEvent();
+	var taObj=acEvent.srcElement;	
+	if(taObj.maxlength)
+	{
+		var realMaxlength = taObj.maxlength;
+		if(realMaxlength >4000)
+		{
+			realMaxlength = 4000;
+		}
+		if(isDoubleByte(taObj.value)){
+			maxLen=realMaxlength-getDoubleByteCount(taObj.value);
+		}else{
+			maxLen = realMaxlength;
+		}
+		if( taObj.value.length > maxLen*1)
+		{
+			alert(getTextLablebyArg("error.js.ac360.commentMaxlength", new Array(realMaxlength)));
+			taObj.value = taObj.value.substring(0, maxLen*1);
+		}
+	}
+}
+//07/23/2005  by Stanley Ding
+//to limit the length of the textarea.
+function getStringLength(str)
+{
+    var newLineChar = new String("\r\n");
+    var s = new String(str);
+    var length = s.length;
+    var i = 0;
+    while(i<newLineChar.length)
+    {
+    	var aChar = newLineChar.charAt(i);
+    	var j = s.indexOf(aChar);
+    	while ( j != -1)
+    	{
+   			length=length-1;
+   			j = s.indexOf(aChar,j+1);
+    	}
+    	i=i+1;
+    }
+    return length;
+}
+//07/23/2005  by Stanley Ding
+//to limit the length of the textarea.
+function textLengthLimitOnKeypress() 
+{ 
+	var acEvent = _getACEvent();
+	var taObj=acEvent.srcElement;	
+	var ret = true;
+	var length = taObj.value.length;
+	if  ( length > getMaxLength(taObj)-1) 
+    {
+    	ret = false;
+    }
+	acEvent.returnValue = ret;  
+}
+// get textarea maxLength property for IE10
+function getMaxLength(obj)
+{
+	if (obj.maxlength)
+	{
+		return obj.maxlength;
+	}
+	
+	if (obj.getAttribute('maxlength'))
+	{
+		return obj.getAttribute('maxlength');
+	}
+	
+	if (obj.getAttributeNode && obj.getAttributeNode('maxlength'))
+	{
+		return obj.getAttributeNode('maxlength').value;
+	}
+	return null;
+}
+//07/23/2005  by Stanley Ding
+//to limit the length of the textarea.
+function textLengthLimitOnPaste() 
+{ 
+   var acEvent = _getACEvent();
+   var obj = acEvent.srcElement; 
+   var maxLen = getMaxLength(obj); 
+   var curLen = obj.value.length; 
+   if (curLen >= maxLen) 
+   { 
+	   acEvent.returnValue = false; 
+       return; 
+   } 
+   var newText = window.clipboardData.getData("text"); 
+   if (newText.length + curLen <=maxLen ) 
+   { 
+	   acEvent.returnValue = true; 
+       return; 
+   } 
+   event.returnValue = false; 
+   obj.value = obj.value + newText.substring(0,maxLen-curLen);  
+}
+/**
+* Get event;
+* 
+* @return event
+*/
+function _getACEvent() {
+   return Ac360.getEvent();
+}
+/*
+adjust gis picture frame size
+*/
+function resizePictureIFrame() { 
+	var listFrame;
+	try{//Catch error if browser security violation... just ignore.
+		listFrame = window.parent.document.getElementById("capList");
+	}catch(Error){
+		return;
+	}
+	var lPicture = false;
+	var chart = false;
+	if(listFrame)
+	{
+		var d = window.parent.frames["capList"];
+		var shref;
+		try
+		{
+			shref = d.location.href;
+		}
+		catch(Error)
+		{
+			return;
+		}		
+		var indx = shref.indexOf('/portlets/');	
+		var saction = '';
+		if(indx >=0)
+		{
+			saction = shref.substring(indx, indx+17);
+		}
+		var listContainer = listFrame.contentWindow.document.getElementById("listContainer");
+		var picContainer = window.parent.document.getElementById("pictureArea");
+		if(listContainer && picContainer && saction == '/portlets/cap/cap') 
+		{
+			var origCapListLen = document.getElementById("origCapListLen");
+			/* To avoid execute change previous value at the second resizePictureIFrame execution in pageinit*/
+			if(origCapListLen && origCapListLen.value == "253px" && listContainer.offsetHeight  != "279")
+			{
+				origCapListLen.value = listContainer.offsetHeight;
+			}
+
+			lPicture = true;
+			var pictureArea = window.parent.document.getElementById("pictureArea");
+			if(pictureArea && pictureArea.style.display!="none"
+				&&listContainer.offsetWidth > picContainer.style.left)
+			{
+				//listContainer.style.pixelWidth = listContainer.style.pixelWidth -300;
+
+				if(listContainer.offsetHeight < 279)
+				{
+					listContainer.style.height = 279;
+				}
+			}
+			//picContainer.style.pixelLeft = listContainer.style.pixelWidth + 1;
+			var picTop = listFrame.offsetHeight - listContainer.offsetHeight;
+			if(picTop < 36)
+			{
+				picTop = 36;
+			} 
+			picContainer.style.top = picTop;
+		}
+	}
+	var listFrame = window.parent.document.getElementById("inspectionList");
+	if(listFrame)
+	{
+		var d=window.parent.frames["inspectionList"];
+		var shref = d.location.href;
+		var indx = shref.indexOf('/portlets/');	
+		var saction = '';
+		if(indx >=0)
+		{
+			saction = shref.substring(indx, indx+38);
+		}
+		var listContainer = listFrame.contentWindow.document.getElementById("listContainer");
+		var picContainer = window.parent.document.getElementById("pictureArea");
+		if(listContainer && picContainer && saction == '/portlets/inspection/inspectionList.do') 
+		{
+			var origInspListLen = document.getElementById("origInspListLen");
+			if(origInspListLen && origInspListLen.value == "253px" && listContainer.offsetHeight  != "279")
+			{
+				origInspListLen.value = listContainer.offsetHeight;
+			}
+
+			lPicture = true;
+			var pictureArea = window.parent.document.getElementById("pictureArea");
+			if(pictureArea && pictureArea.style.display!="none"
+				&&listContainer.offsetWidth > picContainer.style.left)
+			{
+				//listContainer.style.pixelWidth = listContainer.style.pixelWidth -300;
+				if(listContainer.offsetHeight < 279)
+				{
+					listContainer.style.height = 279;
+				}
+			}
+			//picContainer.style.pixelLeft = listContainer.style.pixelWidth + 1;
+			//picContainer.style.pixelTop = listFrame.style.pixelHeight - listContainer.style.pixelHeight;
+			picContainer.style.top = 56;
+		}
+	}
+	var listFrame4dataList = window.parent.document.getElementById("dataList");
+	if(listFrame4dataList)
+	{
+		var d=window.parent.frames["dataList"];
+		// in opener window, the tagName is 'form' 
+		if( d.tagName == 'FORM')
+		{
+			d = opener.window.parent.frames["dataList"];
+			listFrame4dataList = opener.window.parent.document.getElementById("dataList");
+		}
+		var shref = d.location.href;
+		var indx = shref.indexOf('/portlets/');	
+		var saction = '';
+		if(indx >=0)
+		{
+			saction = shref.substring(indx, indx+31);
+		}
+		var listContainer = listFrame4dataList.contentWindow.document.getElementById("listContainer");
+		var picContainer = window.parent.document.getElementById("pictureArea");
+		if(listContainer && picContainer && saction == '/portlets/ams/asset/dataList.do') 
+		{
+			var origDataListLen = document.getElementById("origDataListLen");
+			if(origDataListLen && origDataListLen.value == "253px" && listContainer.offsetHeight  != "279")
+			{
+				origDataListLen.value = listContainer.offsetHeight;
+			}
+
+			lPicture = true;
+			var pictureArea = window.parent.document.getElementById("pictureArea");
+			if(pictureArea && pictureArea.style.display!="none"
+				&&listContainer.offsetWidth > picContainer.style.left)
+			{
+				//listContainer.style.pixelWidth = listContainer.style.pixelWidth -300;
+				if(listContainer.offsetHeight < 279)
+				{
+					listContainer.style.height = 279;
+				}
+			}
+			//picContainer.style.pixelLeft = listContainer.style.pixelWidth + 1;
+			picContainer.style.top = listFrame4dataList.offsetHeight - listContainer.offsetHeight;
+		}
+	}
+
+	//for show asset rating chart.
+
+	var  ratingTypeUrl = '/portlets/ams/asset/assetRatingList4Type.do';	
+	var listFrame = window.parent.document.getElementById("dataForm");
+	if(listFrame)
+	{
+		
+		var d=window.parent.frames["dataForm"];
+		// in opener window, the tagName is 'form' 
+		if( opener && d.tagName == 'FORM')
+		{
+			//catch the exception when report dataForm from other domain. 
+			try
+			{
+				d = opener.window.parent.frames["dataForm"];
+				listFrame = opener.window.parent.document.getElementById("dataForm");
+			}
+			catch(e)
+			{ 
+			}
+		}
+		
+		if (d && d.tagName != 'FORM')
+		{
+			var shref = d.location.href;
+			var indx = shref.indexOf('/portlets/');	
+
+			var saction = '';
+			if(indx >=0)
+			{
+				saction = shref.substring(indx, indx+43);
+			}
+			var listContainer = listFrame.contentWindow.document.getElementById("listContainer");
+			var picContainer = window.parent.document.getElementById("chartArea");
+			if(listContainer && picContainer && saction == ratingTypeUrl) 
+			{
+				var origAssetRatingListLen = document.getElementById("origAssetRatingListLen");
+				if(origAssetRatingListLen && origAssetRatingListLen.value == "253px" && listContainer.offsetHeight  != "279")
+				{
+					origAssetRatingListLen.value = listContainer.offsetHeight;
+				}
+
+				chart = true;
+				var pictureArea = window.parent.document.getElementById("chartArea");
+				if(pictureArea && pictureArea.style.display!="none"
+					&&listContainer.offsetWidth > picContainer.style.left)
+				{
+
+					//listContainer.style.pixelWidth = listContainer.style.pixelWidth -300;
+					if(listContainer.offsetHeight < 279)
+					{
+						listContainer.style.height = 279;
+					}
+				}
+				//picContainer.style.pixelLeft = listContainer.style.pixelWidth + 1;
+				//picContainer.style.pixelTop = listFrame.style.pixelHeight - listContainer.style.pixelHeight;
+				if(listFrame4dataList)
+				{				
+					picContainer.style.top = listFrame4dataList.offsetHeight + 90;
+				}
+			}
+		}
+	}
+	else if (document.location.href.indexOf(ratingTypeUrl) > -1)
+	{
+		chart = true;			
+	}
+
+	if(!lPicture)
+	{
+		var pictureArea = window.parent.document.getElementById("pictureArea");
+		if(pictureArea && pictureArea.style.display!="none")
+		{
+			pictureArea.style.display="none";
+		}		
+	}
+
+
+	if(!chart)
+	{
+		var chartArea = window.parent.document.getElementById("chartArea");
+		if(chartArea && chartArea.style.display!="none")
+		{
+			chartArea.style.display="none";
+		}
+	}
+}
+
+
+/*
+* validate whether "userInputDate" is a valid date by the mask which provided by system
+* why named "validateDateBySystemMask": 
+* there is another validate date case which will use the mask which provided by page hidden property.
+* more detail please refer to checkDate(Input,i,currentDateStr) method in this file.
+*/
+function validateDateBySystemMask(userInputDate)
+{
+	var userInputDate = (userInputDate).replace(/(^\s*)|(\s*$)/ig,"");
+	
+	if (userInputDate != "")
+	{
+		// get system mask
+		var mask = getDateFormat();
+		
+		// get the method which can check whether a date is valid
+		var checkDateMethod = "IsDate('"+mask+"')";
+		
+		if (eval("\"" + userInputDate + "\"." + checkDateMethod))
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+
+function checkMask(mask)
+{  
+	var format=new Array(17);
+	format[0]="yyyy/M/d";
+	format[1]="yyyy/M/d h:m a";
+	format[2]="yyyy/M/d H:m a";
+	format[3]="yy/M/d";
+	format[4]="M/d";
+	format[5]="M/d/yy";
+	format[6]="MM/dd/yy";
+	format[7]="d-MMM";
+	format[8]="d-MMM-yy";
+	format[9]="dd-MMM-yy";
+	format[10]="MMM-yy";
+	format[11]="MMMMM-yy";
+	format[12]="MM/dd/yyyy";
+	format[13]="h:m a";
+	format[14]="H:m:s";
+	format[15]="h:m:s a";
+	format[16]="dd/MM/yyyy";
+	var m = 0;
+	for (var i=0; i<17;i++)
+	{
+		if(mask==format[i])
+		{ 
+			m = i;
+			break;
+		}	  
+	}
+	var checkDateMethod = "IsDate"+m+"()";
+	return checkDateMethod;
+}
+
+//mininum date: 01/01/1753
+var minimumDate = new Date('01/01/1753 00:00:00');
+//maxinum date: 12/31/9999
+var maximumDate = new Date('12/31/9999 23:59:59');
+
+/**
+ * Judge wether the date is over the date limit(01/01/1753 and 12/31/9999); 
+ * 
+ * @param d date object
+ * @return void
+ */
+function isOutOfDatelimit(d)
+{
+	var result = false;
+	if(minimumDate > d || maximumDate < d)
+	{
+		result = true;
+	}
+	
+	return result;
+}
+
+// method for  yyyy/M/d  format 
+String.prototype.IsDate0=function()
+{
+	var str=this;
+	var reg =/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/;    
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[2]=r[2]-1; 
+	var d=new Date(r[1],r[2],r[3]);  
+	if(d.getFullYear()!=r[1])return false;    
+	if(d.getMonth()!=r[2])return false;    
+	if(d.getDate()!=r[3])return false;    
+	return !isOutOfDatelimit(d);  
+}
+
+// method for  yyyy/M/d h:m a  format 
+String.prototype.IsDate1=function()
+{
+	var str=this;
+	var reg =/^(\d{4})\/(\d{1,2})\/(\d{1,2})\s(\d{1,2}):(\d{1,2})\s(AM|PM)$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[2]=r[2]-1; 
+	var d=new Date(r[1],r[2],r[3],r[4],r[5]);  
+	if(d.getFullYear()!=r[1])return false;    
+	if(d.getMonth()!=r[2])return false;    
+	if(d.getDate()!=r[3])return false;
+	if(r[4]>12) return false;
+	if(d.getHours()!=r[4])return false;
+	if(d.getMinutes()!=r[5])return false;	
+	return !isOutOfDatelimit(d);
+}
+
+// method for  yyyy/M/d H:m a  format 
+String.prototype.IsDate2=function()
+{
+	var str=this;
+	var reg =/^(\d{4})\/(\d{1,2})\/(\d{1,2})\s(\d{1,2}):(\d{1,2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[2]=r[2]-1; 
+	var d=new Date(r[1],r[2],r[3],r[4],r[5]);  
+	if(d.getFullYear()!=r[1])return false;    
+	if(d.getMonth()!=r[2])return false;    
+	if(d.getDate()!=r[3])return false;	
+	if(d.getHours()!=r[4])return false;
+	if(d.getMinutes()!=r[5])return false;    
+	return !isOutOfDatelimit(d);
+}
+
+// method for  yy/M/d   format 
+String.prototype.IsDate3=function()
+{
+	var str=this;
+	var reg =/^(\d{2})\/(\d{1,2})\/(\d{1,2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[2]=r[2]-1; 
+	var d=new Date(r[1],r[2],r[3]);  
+	if(d.getYear()!=r[1])return false;    
+	if(d.getMonth()!=r[2])return false;    
+	if(d.getDate()!=r[3])return false;	  
+	return !isOutOfDatelimit(d);  
+}
+
+// method for  M/d format
+String.prototype.IsDate4=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2})\/(\d{1,2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[1]=r[1]-1; 	
+	var d=new Date(0,r[1],r[2]);  
+	if(d.getMonth()!=r[1])return false;    
+	if(d.getDate()!=r[2])return false;	  
+	return !isOutOfDatelimit(d); 
+}
+
+// method for  M/d/yy format
+String.prototype.IsDate5=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[1]=r[1]-1; 
+	var d=new Date(r[3],r[1],r[2]);  
+	if(d.getYear()!=r[3])return false;    
+	if(d.getMonth()!=r[1])return false;    
+	if(d.getDate()!=r[2])return false;	  
+	return !isOutOfDatelimit(d);
+}
+
+// method for  MM/dd/yy format
+String.prototype.IsDate6=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[1]=r[1]-1; 
+	var d=new Date(r[3],r[1],r[2]);  
+	if(d.getYear()!=r[3])return false;    
+	if(d.getMonth()!=r[1])return false;    
+	if(d.getDate()!=r[2])return false;	  
+	return !isOutOfDatelimit(d);  
+}
+
+// method for  d-MMM format
+String.prototype.IsDate7=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	var d=new Date(0,0,r[1]);    
+	if(d.getDate()!=r[1])return false;	  
+	return !isOutOfDatelimit(d);  
+}
+
+// method for  d-MMM-yy format
+String.prototype.IsDate8=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d{2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false; 	   
+	var d=new Date(r[3],0,r[1]);    
+	if(d.getYear()!=r[3])return false; 
+	if(d.getDate()!=r[1])return false;
+	return !isOutOfDatelimit(d);  
+}
+
+// method for  dd-MMM-yy format
+String.prototype.IsDate9=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d{2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;  
+	var d=new Date(r[3],0,r[1]);    
+	if(d.getYear()!=r[3])return false;    
+	if(d.getDate()!=r[1])return false;	  
+	return !isOutOfDatelimit(d);  
+}
+
+// method for  MMM-yy format
+String.prototype.IsDate10=function()
+{
+	var str=this;
+	var reg =/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d{2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false; 
+	var d=new Date(r[2],1,1);    
+	if(d.getYear()!=r[2])return false;    	  
+	return !isOutOfDatelimit(d);  
+}
+
+// method for  MMMMM-yy format
+String.prototype.IsDate11=function()
+{
+	var str=this;
+	var reg =/^(January|February|March|April|May|June|July|Auguste|September|October|November|December)-(\d{2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false; 
+	var d=new Date(r[2],1,1);    
+	if(d.getYear()!=r[2])return false;    	  
+	return !isOutOfDatelimit(d);  
+}
+
+// method for  MM/dd/yyyy format
+String.prototype.IsDate12=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;    
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[1]=r[1]-1;
+	var d=new Date(r[3],r[1],r[2]);  
+	if(d.getFullYear()!=r[3])return false;
+	if(d.getMonth()!=r[1])return false;    
+	if(d.getDate()!=r[2])return false;
+	return !isOutOfDatelimit(d);  
+}
+/**
+ * A tools method to parse a string and generate a date object
+ * based on the specific mask
+ * For example:
+ *     parse string "2009-10-16" need set the mask to "yyyy-mm-dd"
+ */
+String.prototype.ToDate=function(mask)
+{
+	var year,month,day;
+	var mskDateArr;
+	var mskArr;
+	var spchar;
+	
+	var slipChar=new Array('-','/','\\');
+	for(var i=0;i<slipChar.length;i++){
+		if(mask.indexOf(slipChar[i])>0){
+			spchar = slipChar[i];
+			mskArr = mask.split(slipChar[i]);
+			mskDateArr = this.split(slipChar[i]);
+			break;
+		}
+	}
+
+	for (i=0;i<mskArr.length;i++)
+	{
+		if (mskArr[i].toLowerCase().indexOf("y")>=0)
+		{
+			year = mskDateArr[i];
+		}
+		else if(mskArr[i].toLowerCase().indexOf("m")>=0)
+		{
+			month = mskDateArr[i];
+		}
+		else if(mskArr[i].toLowerCase().indexOf("d")>=0)
+		{
+			day = mskDateArr[i];
+		}
+	}
+	
+	month = month - 1;
+	var maskDate=new Date(year,month,day);
+	
+	return maskDate;
+}
+String.prototype.IsDate=function(mask)
+{
+	
+	
+	var year,month,day;
+	var mskDateArr;
+	var mskArr;
+	var spchar;
+	try{
+		
+		var slipChar=new Array('-','/','\\');
+		for(var i=0;i<slipChar.length;i++){
+			if(mask.indexOf(slipChar[i])>0){
+				spchar = slipChar[i];
+				mskArr = mask.split(spchar);
+				mskDateArr = this.split(spchar);
+				
+				break;
+			}
+		}
+	
+		for (i=0;i<mskArr.length;i++)
+		{
+			if (mskArr[i].toLowerCase().indexOf("y")>=0)
+			{
+				year = mskDateArr[i];
+			}
+			else if(mskArr[i].toLowerCase().indexOf("m")>=0)
+			{
+				month = mskDateArr[i];
+			}
+			else if(mskArr[i].toLowerCase().indexOf("d")>=0)
+			{
+				day = mskDateArr[i];
+			}
+		}
+		
+	
+		
+		month = month - 1;
+		
+		var maskDate=new Date(year,month,day);
+		var df=new DateFormat();
+		var strDate = df.format(maskDate, mask);
+		var result = false;
+		if(strDate==this)
+		{
+			result = true;
+		}
+		else
+		{
+			// remove 0 and check again, 
+			// e.g., if the mask is 'dd/mm/yyyy', and user input value is '1/1/2009', it should return true
+			if (strDate.indexOf('0') == 0)
+			{
+				strDate = strDate.substring(1);
+			}
+			strDate = strDate.replace(spchar + '0', spchar); // replace twice for both month and date
+			strDate = strDate.replace(spchar + '0', spchar);
+			if (strDate == this)
+			{
+				result = true;
+			}
+		}
+		
+		return result && !isOutOfDatelimit(maskDate);
+	}
+	catch(e)
+	{
+		return false;
+	}
+}
+// method for h:m a format
+String.prototype.IsDate13=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2}):(\d{1,2})\s(AM|PM)$/;    
+	var r=str.match(reg);    
+	if(r==null)return false;        
+	var d=new Date(0001,01,01,r[1],r[2]);  
+	if(r[1]>12) return false;
+	if(d.getHours()!=r[1])return false;
+	if(d.getMinutes()!=r[2])return false;    
+	return !isOutOfDatelimit(d);  
+}
+// method for H:m:s format
+String.prototype.IsDate14=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2}):(\d{1,2}):(\d{1,2})$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;   
+	var d=new Date(0001,01,01,r[1],r[2],r[3]);     	
+	if(d.getHours()!=r[1])return false;
+	if(d.getMinutes()!=r[2])return false;  
+	if(d.getSeconds()!=r[3])return false;    
+	return !isOutOfDatelimit(d);
+}
+// method for h:m:s a format
+String.prototype.IsDate15=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2}):(\d{1,2}):(\d{1,2})\s(AM|PM)$/;      
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	var d=new Date(0001,01,01,r[1],r[2],r[3]);       
+	if(r[1]>12) return false;  	
+	if(d.getHours()!=r[1])return false;
+	if(d.getMinutes()!=r[2])return false;  
+	if(d.getSeconds()!=r[3])return false;    
+	return !isOutOfDatelimit(d);
+}
+
+// method for  dd/MM/yyyy format
+String.prototype.IsDate16=function()
+{
+	var str=this;
+	var reg =/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;    
+	var r=str.match(reg);    
+	if(r==null)return false;    
+	r[1]=r[1]-1; 
+	var d=new Date(r[3],r[2],r[1]);  
+	if(d.getFullYear()!=r[3])return false;    
+	if(d.getMonth()!=r[2])return false;    
+	if(d.getDate()!=r[1])return false;    
+	return true;  
+}
+
+function DateFormat()
+{
+	var shortMonth=new Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+	var longMonth=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+
+	this.format=function (dateObj, pattern)
+	{
+		var year=dateObj.getFullYear(),month=dateObj.getMonth()+1,date=dateObj.getDate();		
+		var hours=dateObj.getHours(),minutes=dateObj.getMinutes(),seconds=dateObj.getSeconds();
+		var ap;
+		var res=pattern;	
+		if(res.indexOf("H")>=0 && res.indexOf(" a")>=0 )
+		{
+			res = res.replace(" a","");	  	
+		} 
+		if(pattern.indexOf("y")>=0)	
+		   res=setFieldValue(res, "y", year);
+		if(pattern.indexOf("M")>=0)
+		   res=setFieldValue(res, "M", month);
+		if(pattern.indexOf("d")>=0)
+		   res=setFieldValue(res, "d", date);
+		if(pattern.indexOf("H")>=0)
+		   res=setFieldValue(res, "H", hours);
+		if(pattern.indexOf("h")>=0)
+		   res=setFieldValue(res, "h", hours);
+		if(pattern.indexOf("m")>=0)
+		   res=setFieldValue(res, "m", minutes);
+		if(pattern.indexOf("s")>=0)
+		   res=setFieldValue(res, "s", seconds);
+		if(pattern.indexOf("a")>=0)
+		   res=setFieldValue(res, "a", ap);	
+				
+		return res;
+	}
+	  
+	function setFieldValue(pattern, targ, value)
+	{
+		var i1=pattern.indexOf(targ);		
+		if(i1<0)
+		{
+			return pattern;			
+		}
+		var i2=i1+1;
+		while(i2>0 && i2<pattern.length && pattern.substring(i2,i2+1)==targ)
+		{
+			i2++;			
+		}
+		var targs=pattern.substring(i1,i2);
+		var l=targs.length;
+		switch(targ)
+		{
+			case "y":
+				if(l==4)
+				{
+					if(value<10)
+						value="200"+value;
+					else if(value<100)
+						value="20"+value;
+					else if(value<1000)
+					   value="2"+value;
+				}
+				else if(l<4)
+				{
+					value=""+(value % Math.pow(10,l));
+					for(var i=0; i<l; i++)
+					{
+						if(value.length<(i+1))
+							value="0"+value;
+					}
+				}
+				break;
+			case "M":
+				//l++;
+				if(l==2 && value<10)
+				{
+					value="0"+value;
+				}
+				else if(l==3)
+				{
+					value=shortMonth[value-1];
+				}
+				else if(l>3)
+				{
+					value=longMonth[value-1];
+				}
+				break;
+			case "d":
+				if(l==2 && value<10)
+				{
+					value="0"+value;
+				}
+				break;
+			case "H":				
+				value=+value;				
+				break;
+			case "h":				
+				value=value-12;				
+				break;
+			case "m":				
+				value=+value;				
+				break;
+			case "s":				
+				value=+value;				
+				break;
+			case "a":				
+				var today = new Date();
+				if(today.getHours()>12)
+				{
+					value="PM";				
+				}
+				else
+				{
+					value="AM";	
+				} 			  	  
+				break;			
+		}
+		pattern=pattern.substring(0,i1)+value+pattern.substring(i2,pattern.length);
+		return pattern;
+	}
+
+}
+
+
+function getTopIframe(innerFrame)	
+{
+	try{
+		var i = 0;
+		while(i<5)
+		{
+			if (innerFrame.iframeResize) 
+				break;
+			innerFrame = innerFrame.parent;
+			i++;
+		}
+		return innerFrame;
+	}catch(E){
+		return innerFrame;
+	}
+}
+
+function iframeResizeToTop()
+{
+	var tmpFrame = this.parent;
+	
+	if(tmpFrame)
+	{
+		for(var i=0; i< tmpFrame.frames.length; i++)
+		{
+			try {
+				var oBody =tmpFrame.frames[i].document.body;
+				var oFrame = tmpFrame.document.getElementById(parent.frames[i].name);
+				nHeight = oBody.scrollHeight + oBody.offsetHeight-oBody.clientHeight;
+				if(nHeight > 50)
+				{
+					oFrame.style.height = nHeight + "px";
+				}	
+			} catch (error) { //Must be security violation...
+				continue;
+			}
+		}
+	}
+}
+
+/*
+	This function is used to disable all form fields
+*/
+function disableInputField()
+{
+	var loop = document.forms.length;
+	for (var i=0;i<loop;i++)
+	{
+		for( var j=0;j<document.forms[i].elements.length;j++)
+		{
+			Ele=document.forms[i].elements[j];
+			disableSingleInputField(Ele);
+		}
+	}
+}
+
+/*
+	This function is used to disable some inputed form filed.
+*/
+function disableSingleInputField(inputField)
+{
+	var Ele = inputField;
+	switch(Ele.tagName)	
+	{
+		case 'INPUT':
+			if (Ele.type=="text" || Ele.type=="password") 
+			{
+				Ele.disabled=false;
+				Ele.readOnly=true;
+			}else if(Ele.type=="checkbox" || Ele.type=="radio")
+			{
+				Ele.disabled=true;
+				Ele.readOnly=true;
+				if (Ele.checked)
+				{
+					var hiddenObj = document.getElementById("assistant_"+Ele.name);
+					var parents = getParentByType(Ele, "td");
+					if(!hiddenObj && parents!=null)
+					{
+						hiddenObj = document.createElement("input");
+						hiddenObj.type="hidden";
+						hiddenObj.name="assistant_" + Ele.name;
+						hiddenObj.id="assistant_" + Ele.name;
+						hiddenObj.value=Ele.value;
+						parents.appendChild(hiddenObj);
+					}
+				}
+			}
+			break;
+		case 'SELECT':
+			Ele.disabled=true;
+			Ele.readOnly=true;
+			break;
+		case 'TEXTAREA':
+			Ele.readOnly=true;
+			Ele.disabled=false;
+			break;
+	}	
+	readOnlyObj.resetReadOnly([Ele]);
+}
+
+function getParentByType(node, type)
+{
+	if(node && type)
+	{
+		var parent = node;
+		var _document = document;
+		while(parent)
+		{
+			if(parent==(_document["body"]||_document["documentElement"]))
+			{
+				return null;
+			}
+			parent = parent.parentNode;
+			if(parent.nodeName.toLowerCase()==type)
+			{
+				break;
+			}
+		}
+		return parent;
+	}
+	return null;
+}
+
+function focusInputableElement(doc)
+{
+	if(doc == undefined) return;
+	if (doc.forms.length > 0) 
+	{
+		var field = doc.forms[0];
+		//add by Jeff. It will do nothing when encounter edit view form or form portlet designer form.
+		if (field.name =="genericviewDailyAdminSetup" 
+			|| field.name == "genericviewForm" 
+			|| field.name == "genericscreenForm" 
+			|| field.name == "aposcreenForm" 
+			||field.name == "assetscreenForm" 
+			||field.name == "taskspecinfoscreenForm"
+			|| field.name == "capExamination" 
+			|| field.name == "capContEducation" 
+			|| field.name == "capEducation"
+			|| field.name == "capHearingList"
+			|| field.name == "hearingAgendaList")
+		{
+			return ;
+		}
+	  //end of adding.
+
+
+	if(window.location.href.indexOf("autoFocus=false") > -1)
+	{
+		if(top.jetspeedOnLoad)
+		{
+			top.jetspeedOnLoad();
+			return;
+		}
+	  }
+		
+	  var focusFlagField = doc.forms[0].needFocus;
+	  if (focusFlagField && focusFlagField.value == 'false')
+	  {//need focus to popup window 
+		  return;
+	  }
+	  
+	  // The Cookie "window_pop_up" is defined in the pop up windows (like EMSEMessage.jsp, selectPendingInspections.jsp)
+	  popUpValue = getCookieValue("window_pop_up");
+	  if(popUpValue == "yes")
+	  {
+		  return;
+	  }
+	  
+	    //To check if section 508 FID is opened. 
+	  	if(profile.isEnabled508)
+	  	{
+			focusFirstFormElement(field);
+			return;
+		}
+		
+		for (i = 0; i < field.length; i++)
+		{
+			// Avoid focusing on dropdown list field.
+			// if (((field.elements[i].type == "text") || (field.elements[i].type == "textarea") || (field.elements[i].type.toString().charAt(0) == "s"))&&(!field.elements[i].disabled)) 
+			if (((field.elements[i].type == "text") || (field.elements[i].type == "textarea"))&&(!field.elements[i].disabled)) 
+			{
+				if(doc.forms[0].elements[i].style && doc.forms[0].elements[i].style['visibility'] != "hidden")
+				{	
+					
+				    try{
+						if(typeof focusobj != "undefined" && focusobj != null)
+						{
+							focusobj.focus();
+						}
+						var firstEle = doc.forms[0].elements[i];
+						if(!(firstEle.id && "page-navigator-input-id" == firstEle.id))
+				    	{	
+							var ignoreFocus = scrollBarIssue.getAttribute(firstEle, "ignoreFocus");
+							if(ignoreFocus && ignoreFocus.toUpperCase() == "TRUE")
+					    	{
+								continue
+					    	}
+							if(!oldUI && scrollBarIssue.getBrowserType() === "IE")
+							{
+								setTimeout(function(){firstEle.focus();} , 500);
+							}
+							else
+							{
+								firstEle.focus();
+							}
+				    	}
+						if(typeof(top.setGlobalFocus) != "undefined")
+						{
+							top.setGlobalFocus = true;
+						}
+
+						break;
+				    }
+				    catch(e)
+				    {
+				    	//Can't move focus to the control because it is invisible, not enabled, or of a type that does not accept the focus. 
+				    }
+				}
+			}
+		}
+	}	
+}
+
+function getCookieValue(c_name)
+{
+	if (document.cookie.length>0)
+	{
+		c_start=document.cookie.indexOf(c_name + "=")
+		if (c_start!=-1)
+		{ 
+			c_start=c_start + c_name.length+1 
+			c_end=document.cookie.indexOf(";",c_start)
+			if (c_end==-1) c_end=document.cookie.length
+			return unescape(document.cookie.substring(c_start,c_end))
+		} 
+	}
+	return ""
+}
+
+//To set the first element of Form.
+function focusFirstFormElement(form)
+{
+	var ret = false;
+	if(isFocusElement)
+	{
+		var focusElement = document.getElementsByName(focusElementName)[0];
+		if(focusElement == null)
+		{
+			return false;
+		}
+
+		focusElement.focus();
+		return true;
+	}
+	isFocusElement = false;
+	window.focusFlag = true;
+	if(form)
+	{
+		var listChk = form.ownerDocument.getElementById("ac360_list_id");
+		if(listChk == null)
+		{
+			var eles = form.elements;
+			for(var i=0;i<eles.length;i++){
+				try{
+					if ((((eles[i].type == "text") || (eles[i].type == "textarea")) )&&(!eles[i].disabled) && (eles[i].type != "hidden"))
+					{
+						eles[i].focus();
+						ret= true;
+						break;
+					}
+				}catch(e){
+					continue;
+				}
+			}
+		}
+	}
+	return ret;
+}
+
+
+function resetRefreshTarget()
+{
+	var targetobj=getObject("refresh_target");
+	if(targetobj !=null)
+	{
+		targetobj.value="";
+	}	
+}
+
+function closeWindow()
+{
+	window.close();
+	return false;
+}
+function printWindow()
+{
+	window.print();
+	return false;
+}
+function hideDropdownMenu(theDiv)
+{
+	try
+	{
+		obj = MM_findObj(theDiv);
+		obj.style.display = "none";
+		MM_showHideLayers(theDiv,'','hidden');
+
+	}catch(E){}
+}
+
+function appendRefreshFlag(url,flag)
+{
+	if(url.indexOf("refreshFlag=")<0)
+	{
+		if(url.indexOf("?")<0)
+		{
+			url = url + "?";
+		}
+		else
+		{
+			url = url + "&";
+		}
+		url = url + "refreshFlag=" + flag;
+	}
+	return url;
+}
+
+/**
+* Yan Xiao - Support Netscape and Firefox (SAN# 06ACT-00000-00235)
+* Emulate the IE link.click method in FireFox.
+* linkObject - The link object to emulate the click on.
+*/
+function MozillaLinkClick(linkObject)
+{
+	// Emulate click on Mozilla
+	var bolFollowLink = true;
+	var strTarget = null;
+
+	// Run the link onClick event.
+	if (linkObject.onclick)
+	{
+		if (linkObject.onclick() == false)
+		{
+			bolFollowLink = false;
+		}
+	}
+
+	// Get the link target.
+	if (linkObject.target)
+	{
+		strTarget = linkObject.target;
+	}
+	if (bolFollowLink)
+	{
+		if (strTarget == null)
+		{
+			// Open using the default target if not set on the link.
+			//window.open(linkObject.href);
+		} 
+		else 
+		{
+			// Open using the link target.
+			window.open(linkObject.href, strTarget);
+		}
+	}
+}
+
+/**
+* Troy Yang - Set focus element name of the page and open set focuse.
+* _focusElementName the name of focus element
+*/
+function setFocusElementName(_focusElementName) 
+{
+	isFocusElement = true;
+	this.focusElementName = _focusElementName;
+}
+
+function setFocusById(elementId)
+{
+	if(elementId && elementId!='')
+	{
+		var elementObj = document.getElementById(elementId);
+		if(elementObj)
+		{
+			focusElement(elementObj);
+		}
+	}
+}
+//Focus element and catch the exception
+function focusElement(ele){
+	setTimeout(function(){try{ele.focus();}catch(e){}},0);
+}
+/**
+* Troy Yang - Set element focus
+*/
+function setFocusElement()
+{
+	if(isFocusElement)
+	{
+		var focusElement = document.getElementsByName(focusElementName)[0];
+		if(focusElement == null)
+		{
+			return;
+		}
+
+		focusElement.focus();
+	}
+
+	isFocusElement = false;
+	window.focusFlag = true;
+}
+/*
+*  Cooler Chu, set cap Status
+*/
+function closeCap()
+	{
+		var eleClosedDate = document.getElementById("date(capDetailModel*closedDate)");
+		if(eleClosedDate.value == '')
+		{
+			return false;
+		}
+		var ele = document.getElementById("value(capModel*capStatus)");
+		var ops = ele.options;
+		if(!ops)
+		{
+			return false;
+		}
+		for(var i=0; i<ops.length;i++)
+		{
+			if (ops[i].value == 'Closed' || ops[i].value == 'closed' || ops[i].value == 'CLOSED')
+			{
+				ops[i].selected = true;
+				return false;
+			}
+		}
+		return false;
+	}
+	
+/* add by kyle for direct search begin */	
+// remote access by DOJO
+function remoteAccess(url, response,form)
+{
+	dojo.io.bind({ 
+		url:url, 
+		method:"POST",
+		formNode:form, 
+		load:function(type,data,evt) {
+			response(data);
+			scrollBarIssue.pageAdjust();
+		}, 
+		error:function(type,error) {}, 
+	    timeout:function (type) {},
+		mimetype:"text/plain"
+	});
+}
+
+/* add by kyle for direct search begin */	
+//remote access by DOJO
+function remoteAccess(url, response,form, sync)
+{
+	dojo.io.bind({ 
+		url:url, 
+		method:"POST",
+		formNode:form, 
+		load:function(type,data,evt) {
+			response(data);
+			scrollBarIssue.pageAdjust();
+		}, 
+		error:function(type,error) {}, 
+	    timeout:function (type) {},
+		mimetype:"text/plain",
+		sync: sync
+	});
+}
+
+// remote access by DOJO without form, the params will transfer by url 
+function remoteAccessNoForm(url, response)
+{
+	dojo.io.bind({ 
+		url:url, 
+		method:"POST",
+		load:function(type,data,evt) {
+			response(data);
+			scrollBarIssue.pageAdjust();
+		}, 
+		error:function(type,error) {}, 
+	    timeout:function (type) {},
+		mimetype:"text/plain" 
+	});
+}
+
+function remoteAccessShowEMSE(url, response)
+{
+	url += "&ajaxRequested=Y";
+	dojo.io.bind({ 
+		url:url, 
+		method:"POST",
+		load:function(type,data,evt) {
+		showEMSEMessage(currModule);
+		response(data);
+		scrollBarIssue.pageAdjust();
+	}, 
+	error:function(type,error) {}, 
+	timeout:function (type) {},
+	mimetype:"text/plain" 
+	});
+}
+
+// encapsulate the key and value 
+function JSONObject()
+{
+	this.keys = new Array();
+	this.values = new Array();
+	this.put = function(key,value)
+	{			
+		this.keys[this.keys.length] = "'" +key+"'";
+		this.values[this.values.length] = "'" +value+"'";
+	}
+	this.length = function()
+	{			
+		return this.keys.length;
+	}
+	this.getValue = function(key)
+	{			
+		for(var i=0; i<this.keys.length; i++)
+		{
+			if(this.keys[i] == key)
+			{
+				return this.values[i];
+			}
+		}
+		return '';
+	}
+	this.getKey = function(index)
+	{			
+		return this.keys[index];
+	}
+	this.toString = function()
+	{
+		var str = "{";
+		for(var i = 0; i< this.keys.length; i++)
+		{
+			if(i == 0)
+			{
+				str += this.keys[i] + ":" + this.values[i]; 
+			}
+			else
+			{
+				str += "," + this.keys[i] + ":" + this.values[i];
+			}	 
+		}
+		str += "}";
+		return str;
+	}		
+}	
+
+// display the msg
+function displayMsg(name, value)
+{
+	_displayMsg(name, value, value);
+}
+
+function _displayMsg(name, value, msg)
+{
+	if (ie && Ac360.getElementByIdOrName(name))
+	{			
+		Ac360.getElementByIdOrName(name).innerHTML=value;
+		Ac360.getElementByIdOrName(name).style.display = '';
+	}
+	else if (ns4 && document.layers[name])
+	{
+		document.layers[name].innerHTML=value;
+		document.layers[name].style.display = '';
+	}
+	
+	if (window.refreshAllWatermarks)
+	{
+		window.refreshAllWatermarks();
+	}
+	
+	//check value
+	if(msg && msg.replace(/(^\s*)|(\s*$)/g, "").length > 0)
+	{
+		popMessage508(msg);
+	}
+}
+
+function displayMsgWithStyle(name, value)
+{  
+	
+	//value like  "<font class=error>The contact is valid</font>"
+	if(value) 
+	{
+		var msg = null;
+		var start = value.indexOf(">");
+		var end = value.lastIndexOf("</");
+		if(start > 0 && end > 0)
+		{
+	      msg = value.substring(start + 1, end);
+		}
+	}
+	
+	
+	_displayMsg(name, value, msg);
+}
+// display the msg
+function appendMsg(name, value)
+{
+	
+	if (ie && Ac360.getElementByIdOrName(name))
+	{			
+		Ac360.getElementByIdOrName(name).innerHTML = document.getElementById(name).innerHTML + value;
+		Ac360.getElementByIdOrName(name).style.display = '';
+	}
+	else if (ns4 && document.layers[name])
+	{
+		document.layers[name].innerHTML = document.layers[name].innerHTML + value;
+		document.layers[name].style.display = '';
+	}
+}
+
+// update the msg
+function updateMsg(name, value)
+{
+	
+	if (ie && Ac360.getElementByIdOrName(name))
+	{					
+		Ac360.getElementByIdOrName(name).value = value;		
+	}
+	else if (ns4 && document.layers[name])
+	{		
+		document.layers[name].value = value;		
+	}
+	scrollBarIssue.autoAdjustForErrorMsgDisplay();
+}
+
+// clear message
+function clearMsg(name)
+{
+	if (ie && Ac360.getElementByIdOrName(name))
+	{		
+		Ac360.getElementByIdOrName(name).innerHTML='';
+		Ac360.getElementByIdOrName(name).style.display = 'none';
+	}
+	else if (ns4 && document.layers[name])
+	{
+		document.layers[name].innerHTML="";
+		document.layers[name].style.display = 'none';
+	}
+	
+	scrollBarIssue.autoAdjustForErrorMsgDisplay();
+	
+	if (window.refreshAllWatermarks)
+	{
+		window.refreshAllWatermarks();
+	}
+}
+
+// Clear message by ID for 508
+function clearMessage(id)
+{
+	if(profile.isEnabled508 && id && document.getElementById(id))
+	{
+		document.getElementById(id).innerHTML='';
+		scrollBarIssue.autoAdjustForErrorMsgDisplay();
+	}
+}
+
+// show error message
+function showErrorMessage(name, msg)
+{
+	var errMsg = document.getElementById(name);		
+	if(errMsg)
+	{	
+		errMsg.innerHTML = '<font class="Error">'+msg+'</font>';
+		scrollBarIssue.autoAdjustForErrorMsgDisplay();
+		popMessage508(msg);
+	}
+}
+//show error message
+function popErrorAndFocusById508(id, msg)
+{
+	if(profile.isEnable508)
+	{
+		popMessage508(msg);
+		setFocusById(id);
+	}
+}
+/* add by kyle for direct search end */
+
+function getTopOffset(e)
+{
+	var offset=e.offsetTop;
+	if(e.offsetParent!=null) 
+	{
+		offset+=getTopOffset(e.offsetParent);
+	}
+	return offset;
+}
+
+function getLeftOffset(e)
+{
+	var offset=e.offsetLeft;
+	if(e.offsetParent!=null)
+	{
+		offset+=getLeftOffset(e.offsetParent);
+	}
+	return offset;
+}
+	
+//--------------Begin: info table  --------------
+
+function getNameSuffix(indexStr)
+	{
+		var len=indexStr.toString().length;
+		if(len==1)
+		{
+			indexStr = "000" + indexStr.toString();
+		}
+		else if(len==2)
+		{
+			indexStr ="00" + indexStr.toString();
+		}
+		else if(len==3)
+		{
+			indexStr ="0" + indexStr.toString();
+		}
+		return indexStr;
+	}
+/**
+* Add an template Row to the end of objTable
+* @param tableName the name of target table that need to be appended row
+*/
+var calculationCount = 0;
+function addRow(tableName){
+	var fieldNamePrefix = "app_spec_info_table_" + "info_tbl_" + tableName + "_";
+	var lastfieldNamePrefix = "app_spec_info_table_" + "info_tbl_" + tableName +  "_status" + "_";
+	
+	var objTable = document.getElementById("info_tbl_" + tableName);
+	var hiddenRowCells = objTable.rows[1].cells;
+
+	var row = objTable.insertRow( objTable.rows.length );
+	var totalColumn = hiddenRowCells.length
+	row.id = "row_"+objTable+this.calculationCount;
+	row.className = (this.calculationCount%2) != 0 ? "singleRow" : "doubleRow";
+	this.calculationCount++ ;
+	row.onmouseout = function(){
+    	rowMouseout(row.id);
+    };
+    row.onmousemove = function(){
+    	rowMouseOver(row.id);
+    };
+    row.onclick = function(){
+    	highlight(row.id);
+    };	
+	var fieldIndex = document.getElementById("max_index_" + tableName).value;
+	fieldIndex = parseInt(fieldIndex);
+	
+	for(var i = 0; i < totalColumn; i ++)
+	{
+		var cellHtml = hiddenRowCells[i].innerHTML.replace(/template_/g,"");	
+		if(i != 0)
+		{
+			var	position = cellHtml.indexOf(fieldNamePrefix);
+			var positionLastColumn = cellHtml.indexOf(lastfieldNamePrefix);
+			if(positionLastColumn != -1)
+			{
+				var columnIndex = cellHtml.substring(positionLastColumn + lastfieldNamePrefix.length, positionLastColumn + lastfieldNamePrefix.length + 4);
+				var columnNameOld = lastfieldNamePrefix + columnIndex;
+				
+				columnIndex =  getNameSuffix( (fieldIndex+1)/(totalColumn -2)-1);		
+				var columnNameNew = lastfieldNamePrefix + columnIndex;	
+				
+				if(columnNameOld !=columnNameNew )
+				{
+					while(cellHtml.indexOf(columnNameOld)!=-1)
+					{
+						cellHtml = cellHtml.replace(columnNameOld,columnNameNew );
+					}
+				}
+			}
+			else if(position != -1)
+			{			
+				var columnIndex = cellHtml.substring(position + fieldNamePrefix.length, position + fieldNamePrefix.length + 4);
+				var columnNameOld = fieldNamePrefix + columnIndex;				
+				columnIndex =  getNameSuffix(++fieldIndex);
+				
+				var columnNameNew = fieldNamePrefix + columnIndex;	
+				
+				if(columnNameOld !=columnNameNew )
+				{
+					while(cellHtml.indexOf(columnNameOld)!=-1)
+					{
+						cellHtml = cellHtml.replace(columnNameOld,columnNameNew );
+					}	
+				}			
+			}
+			
+		}
+		var newCell = row.insertCell(i);
+		newCell.className = i==0 ? "AlignL-td-border" : "portlet-section-body";
+		newCell.style.paddingTop = 0;
+		newCell.style.paddingBottom = 0;
+		newCell.innerHTML =cellHtml;
+		if(newCell.innerHTML.indexOf("<TEXTAREA")!=-1)
+		{
+			addLimitedEventForAddASITRow(newCell);
+		}
+	}
+	
+	document.getElementById("max_index_" + tableName).value = fieldIndex;
+	document.getElementById("error_message_" + tableName).innerHTML="";
+}
+
+
+/**
+* Delete use picked row(s)
+* @param tableName the name of target table that need to be deleted row
+*/
+function removeRow(tableName){	
+	var objTable = document.getElementById("info_tbl_" + tableName);	
+	var cbs = document.getElementsByName("ac360_list_id_" + tableName);
+	var noselect = true;
+
+	for( var i = cbs.length ; i > 1; i--)
+	{
+		if( cbs[i-1].checked )
+		{	
+			noselect = false;
+			objTable.deleteRow(i);
+		}
+	}
+
+	//if user doesn't select any row to delete, prompt an error message.
+	if( noselect )
+	{
+		document.getElementById("error_message_" + tableName).innerHTML="<font color=red>"+getTextlable("error.js.ac360.selectRowDel")+"</font>";
+	}
+	else
+	{
+		document.getElementById("error_message_" + tableName).innerHTML="";		
+	}
+}
+
+/**
+* To selected or release all checkbox.
+*/
+function infoTableListClicked(tableName, isChecked)
+{
+	var obj = document.getElementsByName("ac360_list_id_" + tableName);
+	for(var i=0; i < obj.length; i++ )
+	{	
+		obj[i].checked=isChecked;			
+	}	
+}
+
+//--------------End:info table---------------------
+function setCancelBubbleTrue(evt)
+{
+	//Firefox does not define window.event at all. As result, we need to use "this.even" instead of "even".
+	var event=(evt)?evt:window.event;
+
+	if (window.event)
+	{
+		event.cancelBubble = true;
+	}
+	else
+	{
+		event.stopPropagation();
+	}
+}
+
+	function trim (str) 
+	{
+		return str.replace(/^\s+/g, '').replace(/\s+$/g, '');
+	}	
+
+	function  checkRange(objectValue, minValue, maxValue)
+	{    
+	    if (objectValue.length == 0)
+	        return true;
+	    if (! checkNumber(objectValue)){
+			return false;
+		}else{
+			return ( numberRange((eval(objectValue)), minValue, maxValue));
+		}
+	    return true;
+	}
+	
+	function  checkNumber(objectValue) 
+	{
+	    if (objectValue.length == 0)
+       		return true;
+
+		var startFormat = " .+-0123456789";
+		var numberFormat = " .0123456789";
+		var checkChar;
+		var decimal = false;
+		var trailingBlank = false;
+		var digits = false;
+
+	  	checkChar = startFormat.indexOf(objectValue.charAt(0))
+	  	if (checkChar == 1)
+		    decimal = true;
+		else if (checkChar < 1)
+			return false;
+		
+		for (var i = 1; i < objectValue.length; i++){
+			checkChar = numberFormat.indexOf(objectValue.charAt(i))
+			if (checkChar < 0)
+				return false;
+			else if (checkChar == 1){
+				if (decimal)		// Second decimal.
+					return false;
+				else
+					decimal = true;
+			}
+			else if (checkChar == 0){
+				if (decimal || digits)
+					trailingBlank = true;
+	        // ignore leading blanks
+			}
+		        else if (trailingBlank)
+				return false;
+			else
+				digits = true;
+		}
+		if(!validateDecimalPoints(objectValue))
+		{
+			return false;
+		}
+		    
+	    return true;
+	}
+	
+	function numberRange(objectValue, minValue, maxValue)
+    {
+	    if (minValue != null)
+		{
+	        if (objectValue < minValue)
+			return false;
+		}
+	    if (maxValue != null)
+		{
+		if (objectValue > maxValue)
+			return false;
+		}
+	    return true;
+    }
+	
+	function  forDight(Dight,How)  
+	{  
+    	Dight  =  Math.round(Dight*Math.pow(10,How))/Math.pow(10,How);  
+        return  Dight;  
+	}		
+
+	function validateDecimalPoints(value)
+	{
+		var pointPosition = value.indexOf(".");
+		if(pointPosition>-1)
+		{
+			var fraction = value.substring(pointPosition+1);
+			if(fraction.length>2)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+//-- FRD:03799 Code Enforcement Update, Anderson Begin --
+// Used in capFormModeEdit.jsp.
+// when user setting appearanced Date, system will auto set the value of Appearance Day of Week
+
+/**
+* Get the week string for the date object
+*
+* @return: current data's week number.
+* @author: Anderson Liu
+*/
+Date.prototype.getWeek = function(){
+	var d=new Date()
+	var weekday=new Array(7)
+	weekday[0]="Sunday"
+	weekday[1]="Monday"
+	weekday[2]="Tuesday"
+	weekday[3]="Wednesday"
+	weekday[4]="Thursday"
+	weekday[5]="Friday"
+	weekday[6]="Saturday"
+	return weekday[this.getDay()];
+}
+
+/**
+* Get Date object for string
+* @return if this is a MM/dd/yyyy date format string, then return a Date instance, else return null
+* @author Anderson Liu
+*/
+String.prototype.getDate = function(){
+
+	var the1st = this.indexOf('/');
+	var the2nd = this.lastIndexOf('/');
+
+	if (the1st !=2 || the2nd !=5 || this.length != 10)
+	{ 
+		return null;
+	}
+	else
+	{
+		var m =  this.substring(0,the1st);
+		var d = this.substring(the1st+1,the2nd);
+		var y = this.substring(the2nd+1,this.length);
+		var maxDays = 31;
+
+		if (isNaN(m) || isNaN(d) || isNaN(y))
+		{
+			return(null); 
+		}
+		else if (y.length != 4)
+		{
+			return(null); 
+		}
+		else if (!((m>=1) && (m<=12)))
+		{ 
+			return(null); 
+		}
+		else if (m==4 || m==6 || m==9 || m==11)
+		{
+			maxDays = 30;
+		}
+		else if (m==2)
+		{
+			if (y % 4 > 0)
+			{
+				maxDays = 28;
+			}
+			else if (y % 100 == 0 && y % 400 > 0)
+			{
+				maxDays = 28;
+			}
+			else 
+			{
+				maxDays = 29;
+			}
+		}
+
+		if (!((d>=1) && (d<=maxDays))) 
+		{ 
+			return null; 
+		}
+		else { 
+			var dateObject = new Date();
+			dateObject.setFullYear(y,m-1,d);
+			return dateObject; 
+		}
+		
+		return null;
+	}
+}
+
+function enableAllSelect()
+{
+	var selectCol = document.getElementsByTagName("select");
+	for(var i=0;selectCol&&i<selectCol.length;i++)
+	{
+		var select = selectCol[i];
+		if(select!=null&&select.disabled)
+		{
+			select.disabled=false;
+		}
+	}	
+}
+
+function checkUpdateCondition()
+{
+	var objs = document.getElementsByTagName("span");
+	for(var i = 0 ; i <objs.length ;i++ ){
+		if(objs[i].id && objs[i].id.indexOf("condition") == 0)
+		{
+			return "true";
+		}
+	}
+	return "false";
+}
+
+function getConditionList(url)
+{	
+	window.open(url,"conditionWin","width=770,height=570,scrollbars=yes,resizable=yes,toolbar=no,top=10,left=10,status=no,menubar=no");
+	return false;
+}
+
+
+function updateCapFormCondition()
+{
+	try
+	{
+	       
+		var capForm = Ac360.getElementByIdOrName('capForm',window.parent.opener.parent);
+		if (capForm)
+		{	
+			var link = capForm.contentWindow.location.href;
+			if(link.indexOf("refAddressListDetail.do") > 0 || link.indexOf("refParcelLookUp.do") > 0
+				|| link.indexOf("refOwnerList.do") > 0 || link.indexOf("refProfessionalListForCap.do") > 0
+				|| link.indexOf("capStructEstablListment.do") > 0
+				|| link.indexOf("refContactListForCap.do") > 0)
+			{
+				capForm.contentWindow.updateCondition();
+			}
+			else
+			{
+				Ac360.getElementByIdOrName("capList",window.parent.opener.parent).contentWindow.updateCondition();
+				goFirstEntryURL("capForm");
+			}
+		}
+	}catch(e){}
+}
+
+//-- FRD:03799 Code Enforcement Update, Anderson End --
+
+function popMessage508(msg){
+	if(profile.isEnabled508){
+		if(msg && msg != ""){
+			
+			alert(msg.replaceAll("</br>", "\n"));
+		}
+		if( typeof(event) == "undefined")
+		{
+			return;
+		}
+		if(event)
+		{
+			var evtSrc = event.srcElement ? event.srcElement:event.target;
+			if(evtSrc != null){
+				focusElement(evtSrc);
+			}
+		}
+	}
+}
+function popUpdatedMessage508(){
+	if( typeof(event) == "undefined" || !event)
+	{
+		return;
+	}
+	var evtSrc = event.srcElement ? event.srcElement:event.target;
+	if(evtSrc==null){
+		return ;
+	}
+	popMessage508(getTextlable("section508.common.onchange.message.label"));
+}
+
+function clearAndShowErrorMessage()
+{	
+	if(!profile.isEnabled508)
+	{
+		return;
+	}
+	var errListPanel=document.getElementById('err_msg');	
+	errListPanel.innerHTML='<SPAN/>'
+		+'<FONT accessKey=9 id=errorMsgPanel class=Error tabIndex=0>'+getTextlable("common.error.prompt")+'</FONT>'
+		+'<SPAN/>'
+		+'<DIV id=err_msg_div/>';
+	//set access key
+	var errorMsgPanel=document.getElementById('errorMsgPanel');
+	errorMsgPanel.accessKey = gErrorPanleAccessKey;
+	prepareVirtualBuffer();
+}
+
+/**
+ * Screen read will read the resultTxt
+ */
+function updateVirtualBuffer(resultTxt,msgId)
+{
+	 var errorMsgPanel;
+	 if(msgId)
+	 {
+		 errorMsgPanel = document.getElementById(msgId);
+	 }else
+	 {
+		 errorMsgPanel = document.getElementById('errorMsgPanel');
+	 }
+	  
+	 if(errorMsgPanel && profile.isEnabled508)
+	 {
+		 if(resultTxt)
+		 {
+			 errorMsgPanel.innerHTML = resultTxt;
+		 }
+		 focusElement(errorMsgPanel);
+	 }
+}
+
+function addErrorMessage(errorMessage)
+{
+	var errorPanel = document.getElementById("err_msg");
+	if(typeof(errorMessage) != "undefined" && errorMessage != null)
+	{
+		errorPanel.innerHTML = errorPanel.innerHTML + "<font class='portlet-msg-error' tabindex='-1' id='errorMsgPanel'><br>"+errorMessage+"</font>";
+		updateVirtualBuffer();
+	}
+}
+//-- FRD:03089 Evidence Tab, Hikelee Begin --
+
+var doValidValue=function(input){
+	var value=input.value;
+	onlyNumber(input);
+	if(input.value){
+		input.value=parseFloat(input.value).toFixed(2)
+	}
+};
+
+var onlyNumber=function(input){
+	var objRegExp = /^[\.\d]*$/;
+	if(!objRegExp.test(input.value)){
+		input.value=input.value.replace(/[^\.\d]/g,'');
+	}   
+	if(input.value.split('.').length>2){
+		input.value=input.value.split('.')[0]+'.'+input.value.split('.')[1];
+	}
+};
+/**
+ * select the cap type from cap type tree
+ * @param: capType name
+ * @param: you can define the function to execute your function after populate the cap type
+ * @return: capType string
+ * @author: Winter jiang
+ */
+function selectCapType(capTypeObjName,methodName,support4levels, isGenerateCap, module)    
+{   	
+		var formName = document.forms[0].name;
+		var event = (window.event) ? window.event : this.event;
+		
+		if (event)
+		{
+			var left1 = event.screenX;
+			var top1 = event.screenY;
+		}
+		if(left1+227>screen.width){
+			left1 =left1-227;
+		}
+		if(top1+175>screen.height){
+			top1 =top1-175;
+		}	
+		 var settings = "width=300,height=400,top="+top1+",left="+left1;
+		 settings += ",scrollbars=yes,resizable=no,toolbar=no,status=no,menubar=no,scrollbars=yes";		 
+		 var url;		
+
+		 if(support4levels=='true')	 
+		 {
+		 	if ('Y' == isGenerateCap){
+				url = "/portlets/commons/datapicker/capTypeTreeView.jsp?capTypeName=" + capTypeObjName + "&methodName=" + methodName + "&support4levels=true" + "&isGeneralCAP=Y";	
+			}else if ('ST' == isGenerateCap){//for standard comment group search
+				url = "/portlets/commons/datapicker/capTypeTreeView.jsp?capTypeName=" + capTypeObjName + "&methodName=" + methodName + "&support4levels=true" + "&isGeneralCAP=ST";	
+			}else if (undefined == module || "" == module){
+				url = "/portlets/commons/datapicker/capTypeTreeView.jsp?capTypeName=" + capTypeObjName + "&methodName=" + methodName + "&support4levels=true";
+			}else {
+				url = "/portlets/commons/datapicker/capTypeTreeView.jsp?capTypeName=" + capTypeObjName + "&methodName=" + methodName + "&support4levels=true" + "&module="+module;
+			}
+		 }
+		 else
+		 {
+		 	if ('Y' == isGenerateCap) {
+				url = "/portlets/commons/datapicker/capTypeTreeView.jsp?capTypeName=" + capTypeObjName + "&methodName=" + methodName + "&isGeneralCAP=Y";	
+			}else  if (undefined == module || "" == module) {
+				url = "/portlets/commons/datapicker/capTypeTreeView.jsp?capTypeName=" + capTypeObjName + "&methodName=" + methodName;
+			}else {
+				url = "/portlets/commons/datapicker/capTypeTreeView.jsp?capTypeName=" + capTypeObjName + "&methodName=" + methodName + "&module=" + module;
+			}
+		 }
+		//Fix bug 58318.If the vairable "notFilterChildCapType" value is "Y", 
+		//don't need to filter the "As Child Only" record type in ASI Lookup Tables .
+		var notFilterChildCapType = document.getElementById("notFilterChildCapType");
+		if(undefined != notFilterChildCapType && null != notFilterChildCapType && "Y" == notFilterChildCapType.value)
+		{
+			url = url + "&notFilterChildCapType=Y";   
+		}
+		 newwin = window.open(url,"capTypePicker",settings);		
+		 if (newwin.opener == null)
+		  	newwin.opener=window;
+		 	newwin.focus();
+		 	return false; 
+} 
+//-- FRD:03089 Evidence Tab, Hikelee End --
+
+// Clean the combobox
+function cleanCombobox(comboboxEle){
+	// clean the options
+    while(comboboxEle.options.length>0) {
+        comboboxEle.options[0]=null;
+    }
+    // add empty option
+    var emptyOption = new Option(getTextlable("common.select.label"),'',false,false);
+    comboboxEle.options[0] = emptyOption; 
+}
+
+// populate options to the combobox
+function populateCombobox(values,comboboxEle)            
+{
+    for(var p in values)
+	{
+		var optval = new Option(values[p],p,false,false);
+        comboboxEle.options[comboboxEle.options.length]=optval;			
+	}
+}
+
+// populate options to the combobox
+function setComboboxSelectedValue(comboboxEle, value)            
+{
+	for(var i=0; i<comboboxEle.options.length; i++)
+	{
+		//alert(comboboxEle.options[i]+":::"+value);
+		if( comboboxEle.options[i].value == value)
+		{
+			
+			comboboxEle.selectedIndex = i;
+			return;
+		}			
+	}
+}
+
+// Get selected key in the list
+// the prefix is the prefix for the key name
+function getCheckedKeys(prefix)
+{		
+	var param = "";
+	for(var p in document.forms[0].elements)
+	{								
+		if(p.indexOf(prefix) == 0)			
+		{
+			var ele = document.forms[0].elements[p];	
+			if(!ele.checked)
+			{
+				continue;
+			}
+			if(param == "")
+			{
+				param = ele.value;
+			}
+			else
+			{
+				param += "|" + ele.value;
+			}
+		}	
+	}
+	return param;
+}
+
+function AC360ListClicked()
+{
+	if(document.forms[0].ac360_list_id && document.forms[0].ac360_list_id[0])
+	{
+		var allIsChecked = document.forms[0].ac360_list_id[0].checked;
+		if(!allIsChecked)
+		{
+			unSelectAll();
+		}else{
+			selectAll();
+		}
+	}
+}
+
+function selectAll()
+{
+	if(document.forms[0].ac360_list_id)
+	{
+		for(var i=0; i<document.forms[0].ac360_list_id.length; i++)
+		{
+			if(document.forms[0].ac360_list_id[i].disabled == false)
+			{
+				document.forms[0].ac360_list_id[i].checked = true;
+			}
+		}
+	}
+}
+
+function unSelectAll()
+{
+	if(document.forms[0].ac360_list_id)
+	{
+		for(var i=0; i<document.forms[0].ac360_list_id.length; i++)
+		{
+			if(document.forms[0].ac360_list_id[i].disabled == false)
+			{
+				document.forms[0].ac360_list_id[i].checked = false;
+			}
+		}
+	}
+}
+
+function getAC360ListSelectedCount(){
+	var count = 0;	
+	var checkList=document.forms[0].ac360_list_id;
+	if(checkList)
+	{
+		var bType='';
+		if(checkList.length){
+			bType=checkList[0].type;
+		}else{
+			bType=checkList.type;
+			if(bType == 'radio' && checkList.checked){
+				return 1;
+			}
+		}
+		var i=1;//For checkbox
+		if(bType == 'radio'){
+			i=0;			
+		}	
+		for(; i<checkList.length; i++)
+		{
+			if(checkList[i].checked)
+			{
+				count ++;
+			}
+		}
+	}
+	return count;	
+}
+
+var executedCapScript = "";
+function openEMSE(scriptName,type)
+{	
+	var urlString = "/portlets/set/feeSetForm.do?mode=showEMSE&fromPage=";
+    
+    if (type == "cap_script")
+	{
+    	if (executedCapScript.indexOf(scriptName + ";") < 0) 
+    	{
+    		executedCapScript += scriptName + ";";
+    		location = urlString + "CAP&scriptName="+scriptName;
+    	}
+    	else 
+    	{
+    		return false;
+    	}
+	}
+	else if (type == "parcel_script")
+	{
+	  location = urlString +"PARCEL&scriptName="+scriptName;
+	}
+	else if (type == "address_script")
+	{
+	  location = urlString +"ADDRESS&scriptName="+scriptName;
+	}
+	else if (type == "professional_script")
+	{
+	  location = urlString + "PROFESSIONAL&scriptName="+scriptName;
+	}
+	else if (type == "auditset_script")
+	{
+	  location =  urlString + "fromAuditeSetList&scriptName="+scriptName;
+	}
+	else if (type == "auditset_inspection_script")
+	{
+	  location =  urlString + "fromInspectionAuditeSetList&scriptName="+scriptName;
+	}
+	return false;
+}
+
+function iniRestrict()
+{		
+	if ((document.getElementById("isRestrictFlag")!=null)&&(document.getElementById("selectRole")!=null))
+	{	
+		if (document.getElementById("isRestrictFlag").value=="Y")
+		{
+			document.getElementById("isRestrictCheckBox").checked = true;
+			document.getElementById("selectRole").disabled = false;
+		}
+		else
+		{
+			document.getElementById("isRestrictCheckBox").checked = false;
+			document.getElementById("selectRole").disabled = true;
+		}
+	}	
+}
+
+
+function checkRestrict(obj)
+{	
+	var checked = obj.checked;
+	if(checked)
+	{
+		document.getElementById("selectRole").disabled = false;
+		document.getElementById("isRestrictFlag").value="Y"		
+	}
+	else
+	{
+		document.getElementById("selectRole").disabled = true;
+		document.getElementById("isRestrictFlag").value="N"			
+	}	
+}   
+/*
+ * get current user's sso session id from cookie
+ */
+function getAcAuth()
+{
+	var cook = document.cookie;
+	return getCookValue(cook,"ACAuth=");
+}
+/*
+ * get current user's java session id from cookie
+ */
+function getJSessionID()
+{
+	var cook = document.cookie;	
+	return getCookValue(cook,"JSESSIONID=");
+}
+/*
+ * get cookie value by name 
+ */
+function getCookValue(cookie, name)
+{
+	var index = cookie.indexOf(name);	
+	if(index != -1)
+	{		
+		var start = index + name.length;		
+		var subCookie = cookie.substring(start);
+		var end = subCookie.indexOf(";");
+		return subCookie.substring(0,end);
+	}
+	return "";
+}
+
+/*
+  return true: If the layout is rtl  
+  return false: If the layout is ltl or no exit ltl   
+*/
+
+function getDirection()
+{
+	// IE10 test code
+	return Util.checkAr();
+	/**
+	var htmlTag="html";
+    var dirProperty="direction";
+    var dirPropertyValue="rtl"
+    var styleSheetLen = document.styleSheets.length;
+    if(!styleSheetLen) return; 
+    var ruleName = (document.styleSheets[0].cssRules)?'cssRules':'rules';
+    for(var i=0; i<styleSheetLen; i++)
+    {
+        var styleSheet = document.styleSheets[i]; 
+        var ruleLen = styleSheet[ruleName].length;
+        for(var j=0; j<ruleLen; j++) 
+        {
+            var selectors = styleSheet[ruleName][j].selectorText.toLowerCase();
+            selectors = selectors.replace(/(^\s*)|(\s*$)/g, ""); 
+            if (selectors == htmlTag)
+            {
+                var styleSet = styleSheet[ruleName][j].style;
+                for (property in styleSet)
+                {
+                        if(styleSet[property] && property != 'cssText')
+                        {
+                                property = property.replace(/(^\s*)|(\s*$)/g, ""); 
+                                if (property == dirProperty)
+                                {
+                                        var propertyValueStr = styleSet[property];
+                                        propertyValueStr = propertyValueStr.replace(/(^\s*)|(\s*$)/g, ""); 
+                                        if (propertyValueStr == dirPropertyValue)
+                                        {
+                                                return true;
+                                         }
+										 else
+                                         {
+                                                 return false;
+                                          }
+                                  }
+                           }
+                } 
+                break;
+            }
+            else
+            {
+                    continue;
+            }
+        }
+    }
+    return false;
+    **/
+}
+
+
+/*
+  return left: If the layout is rtl, get new left.     
+*/
+function getScreenLeft(left,width){
+          
+	 wwidth=window.screen.availWidth
+	 newLeft=wwidth-left-width
+	 if(newLeft<0)
+		return left;
+	 else
+		return newLeft;
+}
+
+/*
+  return UTF-8 Code.     
+*/
+function encode_utf8(rawtext) {
+    rawtext = rawtext.replace(/\r\n/g,"\n");
+    var utftext = "";
+    for(var n=0; n<rawtext.length; n++)
+        {
+        //
+        var c=rawtext.charCodeAt(n);
+        // 0-127 => 1byte
+        if (c<128)
+            utftext += String.fromCharCode(c);
+        // 127 - 2047 => 2byte
+        else if((c>127) && (c<2048)) {
+            utftext += String.fromCharCode((c>>6)|192);
+            utftext += String.fromCharCode((c&63)|128);}
+        // 2048 - 66536 => 3byte
+        else {
+            utftext += String.fromCharCode((c>>12)|224);
+            utftext += String.fromCharCode(((c>>6)&63)|128);
+            utftext += String.fromCharCode((c&63)|128);}
+        }
+    return utftext;
+}
+
+/*
+  return UTF-8 String.     
+*/
+function decode_utf8(utftext) {
+    var plaintext = ""; var i=0; var c=c1=c2=0;
+    while(i<utftext.length)
+        {
+        c = utftext.charCodeAt(i);
+        if (c<128) {
+            plaintext += String.fromCharCode(c);
+            i++;}
+        else if((c>191) && (c<224)) {
+            c2 = utftext.charCodeAt(i+1);
+            plaintext += String.fromCharCode(((c&31)<<6) | (c2&63));
+            i+=2;}
+        else {
+            c2 = utftext.charCodeAt(i+1); c3 = utftext.charCodeAt(i+2);
+            plaintext += String.fromCharCode(((c&15)<<12) | ((c2&63)<<6) | (c3&63));
+            i+=3;}
+        }
+    return plaintext;
+}
+/*
+  return Data.
+*/
+function toStandDate(dateStr,mask){
+        var year,month,day;
+	var mskDateArr;
+	var mskArr;
+
+	var slipChar=new Array('-','/','\\');
+	for(var i=0;i<slipChar.length;i++){
+	if(mask.indexOf(slipChar[i])>0){
+	   mskArr = mask.split(slipChar[i]);
+	   mskDateArr = dateStr.split(slipChar[i]);
+	   break;
+	   }
+	}
+	
+	for (var i=0;i<mskArr.length;i++)
+	{
+		if (mskArr[i].toLowerCase().indexOf("y")>=0)
+		{
+		  year = mskDateArr[i];
+		}
+		else if(mskArr[i].toLowerCase().indexOf("m")>=0)
+		{
+		  month = mskDateArr[i];
+		}
+		else if(mskArr[i].toLowerCase().indexOf("d")>=0)
+		{
+		  day = mskDateArr[i];
+		}
+	}
+		
+	month = month - 1;
+	var maskDate=new Date(year,month,day);
+	return maskDate;
+}
+
+function isDoubleByte(str){
+ for(var i=0;i<str.length;i++){
+   if(str.charCodeAt(i)>255){
+      return true;
+   }
+  }
+}
+
+function getDoubleByteCount(str)
+{
+	var j=0;
+	for(var i=0;i<str.length;i++)
+	{
+		if(str.charCodeAt(i)>255)
+		{
+			j++;
+		}
+	}
+	return j;
+}
+
+/*
+Update function name to not effect other JSP and JS files that has same function,by white 9/3/2008
+*/
+function getReturnItemIdForState(afl1, id)
+{	
+	var afl = document.forms[0].elements[afl1];
+	if (afl)
+	{
+		var rd = returnDataForState(id);	
+		var afLen = afl.maxLength;
+		if (rd.length > afLen)      	    		
+		{
+			rd = rd.substring(0,afLen);
+    	}	
+		afl.value = rd;
+	}
+}
+
+function returnDataForState(inputData)
+{
+	var returnData="";
+	if (inputData=="null")
+	{
+		returnData="";
+	}else if ( inputData == null )
+	{
+		returnData = "";
+	}
+	else
+	{
+		returnData=inputData;
+	}
+	return returnData;
+}
+
+function IEprint() {
+	// if(isFirefox=navigator.userAgent.indexOf("Firefox")>0){
+	if (scrollBarIssue.getBrowserType() == "Firefox"
+			|| scrollBarIssue.getBrowserType() == "Chrome") {
+		// alert('Firfox');
+		document.defaultView.print();
+   }else{ 
+	if (!document.parentWindow) {
+		this.parent.print();
+		return;
+	}
+
+       //alert('IE');
+       document.parentWindow.print();
+   }
+}
+ 
+function getItemIdx1bysingleForState(afl1, id)
+{
+	afl = document.getElementById(afl1);
+   	var ret ;
+	if(afl != null)
+    {
+		found = false;
+		for(var i=0; i<afl.length && !found; i++)
+		{
+			if(afl.item(i).value == id)
+			{
+				found = true;
+				ret = i;
+			}
+		}
+		if(found)
+		{
+		afl.options[ret].selected = true;
+		}
+	}
+}
+function countryStateReset(state_property,state_value,country_value,aaZoneId)
+{
+	if(aaZoneId==null||aaZoneId==undefined)
+	{
+		aaZoneId = "aazone-country-state";
+	}	
+	if(typeof ajaxAnywhere!= 'undefined')
+	{
+		var state = document.getElementById(state_property);
+		var inputWidth = "";
+		if(state != null)
+		{
+			inputWidth = state.style.width;
+		}
+		
+		ajaxAnywhere.getAJAX('/portlets/commons/address/countryStateAJAX.jsp?aaZoneId='+aaZoneId+'&stateProperty='+state_property+'&statevalue='+state_value+'&country='+country_value+'&width='+inputWidth,aaZoneId);
+	    
+		var orginalOnAfter = ajaxAnywhere.onAfterResponseProcessing;
+		ajaxAnywhere.onAfterResponseProcessing=function () 
+		{
+			if("US"==country_value)
+			{	    	       		  
+				getItemIdx1bysingleForState(state_property,state_value); 
+			}else
+			{	        
+				getReturnItemIdForState(state_property,state_value);
+			}
+			ajaxAnywhere.onAfterResponseProcessing = orginalOnAfter;
+		};      
+	}
+}
+
+function createXMLHttpRequest()
+{
+	var xmlHttp = false;
+	if (window.XMLHttpRequest)   // Mozilla, Safari, ...
+	{
+		xmlHttp = new XMLHttpRequest();
+	}
+	else if (window.ActiveXObject)  // IE
+	{
+		try
+		{
+	 		xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+		}
+		catch(e1)
+		{
+			try
+			{
+				xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			catch(e2)
+			{
+				xmlHttp = false;
+			}
+		}
+	}
+	
+	return xmlHttp;
+}
+
+
+// client-side will refresh the zoneId with inner html 
+// when once get response data from server-side
+function formAjaxRequest(url, param, sync,zoneId)
+{
+	var xmlHttp = createXMLHttpRequest();
+	if (!xmlHttp) 
+	{
+		throw new Error("XMLHttp object could be created.");
+	}
+	
+	xmlHttp.open("POST", url, sync);
+	xmlHttp.onreadystatechange = callBack;
+	xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	xmlHttp.send(param);
+	
+	function callBack()
+	{
+		if(xmlHttp.readyState == 4)
+		{
+			if (xmlHttp.status == 200)
+			{
+				var respData = xmlHttp.responseText;
+				var obj = document.getElementById(zoneId);
+				if(obj)
+				{
+					obj.innerHTML = respData;
+				}
+			}
+		}
+	}
+}
+function popUpReorderWindow(reorderURL)
+{
+	var returnValue = window.showModalDialog ('/portlets/commons/reorder/listReorder.jsp', reorderURL, 'dialogHeight=400px;dialogWidth=550px;scroll:no');
+	return returnValue;
+}
+
+//set element value by id, do nothing if the element is not existed
+function setElementValueById(elementId, value)
+{
+	if(document.getElementById(elementId)!=null)
+	{
+		document.getElementById(elementId).value=value;
+	}
+}
+
+//get element value by id, return empty string if the element is not existed
+function getElementValueById(elementId)
+{
+	var value = "";
+	if (document.getElementById(elementId) != null)
+	{
+		value = document.getElementById(elementId).value;
+	}
+
+	return value;
+}
+
+//Draw image and limit the size and the scale.
+function resizeImage(img, iwidth, iheight, isUseEditView) 
+{
+	if(typeof(Image)=="undefined")
+	{
+		return;
+	}
+	var image=new Image();
+	image.src=img.src;
+	
+	//If didn't use edit view and the image is smaller than assigned size,then do nothing.
+	if(!isUseEditView && image.width < iwidth && image.height < iheight)
+	{
+		//Do nothing, keep the original size.
+	}
+	//Case 1. No edit view, and image size is bigger than assigned size
+	//Case 2. Using edit view ,and image is bigger than assigned size
+	//Case 3. Using edit view, and image is smaller than assigned size
+	//Base on these 3 case, we need to keep the image size in proportion.
+	else
+	{
+		if(image.width>0 && image.height>0)
+		{
+			if(image.width/image.height>= iwidth/iheight)
+			{
+				img.width=iwidth;
+				img.height=(image.height*iwidth)/image.width;
+			}
+			else
+			{	
+				img.height=iheight; 
+				img.width=(image.width*iheight)/image.height;        
+			}
+		}
+	}
+	
+	var loadingImg = document.getElementById("loadingImg");
+	if (loadingImg)
+	{
+		loadingImg.style.display = "none";
+	}
+	
+	img.style.display = "";
+} 
+
+function jsonDecode(str)
+{
+	if(str)
+	{
+		return str.replace(/_\^LEFT\^_/g,"<")
+			.replace(/_\^RIGHT\^_/g,">")
+			.replace(/_\^AND\^_/g,"&")
+			.replace(/_\^SINGLE\^_/g,"'")
+			.replace(/_\^DOUBLE\^_/g,'"')
+			.replace(/_\^WELL\^_/g,"#")
+			.replace(/_\^PERSENT\^_/g,"%");
+	}else{
+		return str;
+	}
+}
+//Register event. 
+function addEvent(node, event_type, listener_method) 
+{  
+	if(document.addEventListener) 
+	{
+		node.addEventListener(event_type,listener_method,false); 
+	} 
+	else if (document.attachEvent) 
+	{
+		node.attachEvent('on'+event_type,listener_method);   
+	} 
+	else 
+	{
+		node.onkeyup = listener_method;   
+	}
+}
+
+//Get key.
+function getKey(e)
+{ 
+	e = e || window.event; 
+	var keycode = e.which ? e.which : e.keyCode;
+	if(keycode == 13 || keycode == 108)
+	{
+		enterKeyEvent();	
+	} 
+} 
+
+function enterKeyEvent()
+{
+	// Override this method to achieve your logic.
+}
+
+/**
+ * Execute refreshNav fuction.
+ */
+function doRefreshNav()
+{
+	if(top.refreshNav)
+	{
+		top.refreshNav();	
+	}
+	else if(opener && opener.top.refreshNav)
+	{
+		opener.top.refreshNav();
+	}
+}
+
+function disableKeyEventExceptSpace()
+{
+	if (window.event.keyCode != 32)
+	{
+		return false;
+	}
+	
+}
+
+//==============add keybord support for menubar===========
+var currentRow = 0;
+var rowObj;
+function MM_onKeyDown(preRowId){	
+	holdDocUpDownKey();
+	rowObj = document.getElementById(preRowId + currentRow);
+	if(event.keyCode == 27 || event.keyCode == 9)
+	{
+		if(rowObj){
+			onMouseOut(rowObj);
+		}
+		window.focus();		
+		parent.MM_hidenPanel();
+		return;
+	}	
+	
+	
+	if(rowObj)
+	{
+		onMouseOut(rowObj);
+	}
+	if(event.keyCode==13){//enter
+		rowObj.click();	
+	}
+			
+	
+	if(event.keyCode==38 && currentRow>0){//up
+		currentRow--;	
+		rowObj = document.getElementById(preRowId + currentRow);
+		if(!rowObj)
+		{
+			currentRow++;
+		}			
+	}
+	else if(event.keyCode==40)
+	{
+		currentRow++;	
+		rowObj = document.getElementById(preRowId + currentRow);
+		if(!rowObj)
+		{
+			currentRow--;
+		}					
+	}	
+	
+	
+	rowObj = document.getElementById(preRowId + currentRow);
+	if(rowObj)
+	{
+		onMouseOver(rowObj);
+		try{
+			rowObj.focus();
+		}catch(e){
+		}
+	}	
+}
+
+function holdDocUpDownKey()
+{
+	var keyCode = event.keyCode;
+	
+	if (keyCode == 40 || keyCode == 38)
+	{
+		var parentDoc = document.parentWindow.document;
+		addEvent(parentDoc, "keydown", returnFalse);
+		addEvent(parentDoc, "keyup", removeReturnFalse);
+	}
+}
+
+function returnFalse()
+{
+	return false;
+}
+
+function removeReturnFalse()
+{
+	var parentDoc = document.parentWindow.document;
+	removeEvent(parentDoc, "keydown", returnFalse);
+}
+
+function MM_firstFocus(preRowId,setRow){	
+	currentRow = setRow;
+	rowObj = document.getElementById(preRowId+setRow);
+	onMouseOver(rowObj);
+	rowObj.focus();	
+}
+
+function removeEvent(obj,eventName,func){
+	if(document.attachEvent)
+	{
+		obj.detachEvent("on"+eventName,func);
+	}
+	else
+	{
+		obj.removeEventListener(eventName,func,false);
+	}
+}
+
+function handleError()
+{	
+	arglen = arguments.length;
+	var errorMsg = ":"+arglen;
+	for(var i = 0;i < arglen;i++)
+	{
+	   errorMsg += arguments[i];
+	}
+	
+	if(errorMsg.toLowerCase().indexOf('unspecified error') >= 0)
+	{
+		window.event.returnValue = true;
+	}
+	else
+	{
+		window.event.returnValue = false;
+	}
+} 
+
+function showEMSEMessage(module)
+{
+	var url = "/portlets/cap/formAjaxUtil.do?mode=getEMSEResult&module=" + module;
+	dojo.io.bind({ 
+		url:url, 
+		method:"GET",
+		load:function(type,data,evt) {
+		    var json = eval('('+data+')')
+		    var messages = json.messages;
+		    if (messages)
+		    {
+			    var reportMessage = json.reportMessage;
+			    if (reportMessage)
+			    {
+				    var max = json.max;
+				    var rtnMsgArray = json.rtnMsgArray;
+				    for (var i = 0; i < rtnMsgArray.length; i++)
+				    {
+					    if (rtnMsgArray.length >= max)
+					    {
+						    
+					    }
+					    else
+					    {
+					    	var reMessage = json.prefixUrl + rtnMsgArray[i];
+					 		if(getDirection())
+						 	{
+					 			window.open(reMessage,"_blank","width=550,height=430,scrollbars=yes,resizable=yes,toolbar=no,top=10,status=no,menubar=no,left="+getScreenLeft(10,550));		
+							}
+							else
+							{
+								window.open(reMessage,"_blank","width=550,height=430,scrollbars=yes,resizable=yes,toolbar=no,top=10,left=10,status=no,menubar=no");		
+							}
+					    }
+				    }
+				    var urlCol = json.urlCol;
+				    if (urlCol && urlCol.length > 0)
+				    {
+				    	window.open(json.pageUrl,"_blank","width=800,height=600,scrollbars=yes,resizable=yes,toolbar=no,top=10,left=10,status=no,menubar=no");
+				    }
+			    }
+
+			    if ((reportMessage && messages > 1) || (!reportMessage && messages > 0))
+			    {
+			    	if(getDirection())
+					{
+						window.open(json.emseUrl,"_blank","width=550,height=430,scrollbars=yes,resizable=yes,toolbar=no,top=10,status=no,menubar=no,left="+getScreenLeft(10,550));
+					}
+					else
+					{
+						window.open(json.emseUrl,"_blank","width=550,height=430,scrollbars=yes,resizable=yes,toolbar=no,top=10,left=10,status=no,menubar=no");
+					}
+			    }
+		    }
+		}, 
+		error:function(type,error) {}, 
+	    timeout:function (type) {},
+		mimetype:"text/plain" 
+	});
+}
+
+function skipToPages(index, maxPages)
+{
+	if(index.value < 1)
+	{
+		index.value = 1;
+	}
+	else if(index.value > maxPages)
+	{
+		index.value = maxPages;
+	}
+	
+	var skipLink = document.getElementById('page-navigation');
+	
+	if(skipLink)
+	{
+		var skipLinkUrl = skipLink.href;
+		if(skipLinkUrl && skipLinkUrl.indexOf("page=@@##@@") > 0)
+		{
+			var newURL = skipLinkUrl.replace("page=@@##@@", "page="+ index.value);
+			skipLink.href = newURL; 
+		}
+		skipLink.click();
+	}
+	var eventObj = Ac360.getEvent();
+	setCancelBubbleTrue(eventObj);
+	if(eventObj.preventDefault)
+	{
+		eventObj.preventDefault();
+	}
+	else
+	{
+		eventObj.returnValue = false; 
+	}
+}
+
+function onlyNum() {
+	var event = Ac360.getEvent();
+	if(event.keyCode != 13 && event.keyCode != 9)
+	{
+	    if(!(event.keyCode==46)&&!(event.keyCode==8)&&!(event.keyCode==37)&&!(event.keyCode==39))
+	    {
+		    if(!((event.keyCode>=48&&event.keyCode<=57)||(event.keyCode>=96&&event.keyCode<=105)))
+		    {
+		    	if(event.preventDefault)
+		    	{
+		    		event.preventDefault();
+		    	}
+		    	else
+		    	{
+		    		event.returnValue = false; 
+		    	}
+		    }
+	    }
+	}
+} 

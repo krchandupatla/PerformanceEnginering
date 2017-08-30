@@ -1,0 +1,118 @@
+/**
+ * 
+ * V360	 
+ * File: permitPlus.js
+ * 
+ * Accela, Inc.
+ * Copyright (C): 2008-2012
+ * 
+ * Description:
+ * The file is used by capList.jsp
+ * 
+ * Notes:
+ * $Id: permitPlus.js 215345 2012-03-09 06:56:44Z ACHIEVO\winter.jiang $
+ * <<Specific programming notes>>
+ * 
+ * Revision History:
+ * <<Date>>, <<Who>>, <<What>>
+ * 04/17/2008 Winter Jiang launch permit plus system
+ */ 
+	
+/**
+ * launch permit plus system based 
+ * @param userName login user id
+ * @adpNumber A/D/P number
+ * @return void
+ */
+function launchPP(userName,ssoId,adpNumber)
+{
+	var msg ="";
+	/**
+	 * Load the active control
+	 */
+	var  oPermPlusCom=null;
+	try 
+	{ 
+		oPermPlusCom = new ActiveXObject("PermPlusCom.clsAccelaClient");
+	}
+	catch(e)
+	{
+		//do nothing	
+	} 
+	if(oPermPlusCom)
+	{	
+		var iResult = oPermPlusCom.AAShowAPD(userName,ssoId, adpNumber); 
+		// Login permit plus based user name
+		msg = getMessage(iResult);
+	}
+	else
+	{
+		//msg="You don't install Permit Plus sytem on your computer or your security settings do not allow websites to use activeX control installed on your computer.";
+		//msg= msg + "<br>" + "You must allow blocked content and approve use of Active X controls if you want to launch Permit Plus system.";
+		msg="The Permits Plus system must be installed on your computer to open the Source Permits Plus data.";
+		msg=msg+"<br>Once Permits Plus is installed, change your browser security settings to allow blocked content and activeX controls to be installed on your computer.";
+	}		
+	showMessage(msg);	
+}
+ /**
+ * Show Message
+ * @param message
+ * @return void
+ */
+function showMessage(msg)
+{
+	if(msg=="")
+	{
+		document.getElementById("err_msg").innerHTML="";
+	}
+	else
+	{
+        document.getElementById("err_msg").innerHTML="<font class=Error>" + msg +"</font> ";
+    	}
+	scrollBarIssue.autoAdjustForErrorMsgDisplay();
+}
+/**
+ * Get Message based on login result
+ * @param IResult 1,2,3,4
+ * 		 //0 - Launch permit plus Successfully
+ * 		 //1 - The Accela Automation(tm) Link is Disabled";
+ * 		 //2 - Permits Plus(c) application path not found.
+ * 		 //3 - An Error Occured launching Permits Plus(c).
+ * 		 //4 - Accela Automation User Name is required.
+ * 		 //5 - Permits Plus(c) is busy - Please try again.
+ * 		 //6 - An error occured displaying the requested APD. Please try again later.
+ * @return message
+ */
+function getMessage(iResult)
+{
+	var msg ="";
+	if (iResult == "0")
+	{
+		msg = "Launch Permit Plus Successfully.";
+	}
+	else if(iResult=="1")
+	{
+	    msg= "The Accela Automation(tm) Link is Disabled";
+	}
+	else if(iResult=="2")
+	{
+	    msg= "Permits Plus(c) application path not found.";
+	}
+	else if(iResult=="3")
+	{
+	    msg= "An Error Occured launching Permits Plus(c).";
+	}
+	else if(iResult=="4")
+	{
+	    msg= "Accela Automation User Name is required.";
+	}
+	else if(iResult=="5")
+	{
+	    msg= "Permits Plus(c) is busy - Please try again.";
+	}
+	else if(iResult=="6")
+	{
+	    msg= "An error occured displaying the requested APD. Please try again later.";
+	}
+	return msg;
+}

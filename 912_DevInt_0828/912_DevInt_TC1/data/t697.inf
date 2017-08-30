@@ -1,0 +1,11 @@
+[t697]
+FileName1=t697_tabRecordCount.xml
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/cap/tabRecordCount.do?module=Building&ID1=17BLD&ID2=00000&ID3=00100&xmlin=%3Croot%3E%3CcountID%3E18%3C/countID%3E%3C/root%3E
+Total=1
+ContentType=text/xml
+SnapshotXmlFile=snapshot_697.xml
+RequestHeaderFile=t697_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t697_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

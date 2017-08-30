@@ -1,0 +1,11 @@
+[t7]
+FileName1=t7_memoryLeakPatch.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/memoryLeakPatch.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_7.xml
+RequestHeaderFile=t7_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t7_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

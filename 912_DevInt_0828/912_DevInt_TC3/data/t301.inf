@@ -1,0 +1,11 @@
+[t301]
+FileName1=t301.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/address/refAddressForm.do?mode=viewCondition&module=Building&addressId=926449513
+Total=1
+RequestHeaderFile=t301_RequestHeader.txt
+RequestBodyFile=t301_RequestBody.txt
+ResponseHeaderFile=t301_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_301.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

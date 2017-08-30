@@ -1,0 +1,198 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    
+
+<html>
+  <head>
+    <base href="https://aa-pt6245.dev.accela.com:5443/jetspeed/">
+    <link href="/jetspeed/css/default.css" type="text/css" rel="stylesheet">
+        <title>Accela Automation&reg; </title>
+       </head>
+  <body bgcolor="#ffffff"  >
+        <table cellspacing="0" width="100%" border="0" cellpadding="0">
+      <tr>
+        <td>
+
+
+
+
+<div>
+  <table cellspacing="0" border="0" width="100%"   >
+    <tr valign="middle">
+                        <td align="left" width="30%">
+        <a href="https://aa-pt6245.dev.accela.com:5443/jetspeed/portal/media-type/html/language/en/user/anon_UTF8_ENCODED/page/default.psml/template/Home">
+          <img border="0" alt="Home" src="images/designer/slc_header.gif">
+        </a>
+      </td>
+                        <td align="center">
+         <img src="/jetspeed/images/welcome.gif" alt="welcome">
+      </td>
+                                        </tr>
+  </table>
+</div>
+</td>
+      </tr>
+    </table>
+        <table cellspacing="0" width="100%" cellpadding="0" border="0">
+      <tr>
+                <td width="10%" valign="top" bgcolor="#ffffff">   
+          
+
+<table width="100%" border="0" cellspacing="0" cellpadding="1">
+  <tr>
+    <td>
+      <a href="https://aa-pt6245.dev.accela.com:5443/jetspeed/portal">
+        <img src="images/leftnav_home.gif" border="0">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="/jetspeed/docs/">
+        <img src="images/leftnav_docs.gif" border="0">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="/jetspeed/apidocs/">
+        <img src="images/leftnav_api.gif" border="0">
+      </a>
+    </td>
+  </tr>
+</table>
+        </td>
+        <td>&nbsp;</td>
+                <td valign="top">
+          
+
+
+
+<table border=1 cellpadding="5"> 
+  
+  <tr> 
+    <td class="INPUTFORMTITLE">
+      <br>
+      <h2>There has been an Error!</h2>Reason: <pre>
+        org.apache.turbine.util.TurbineException: Error rendering Velocity template: layouts/html/default.vm: Invocation of method 'getAttribute' in  class com.accela.security.filters.ModuleSession threw exception class java.lang.IllegalStateException : JBWEB000212: Session already invalidated
+      </pre>
+    </td>
+  </tr> 
+
+  
+        <tr> 
+      <td class="INPUTFORM">
+        <br>
+        <h3>Get/Post Data:</h3>
+        <table border=0>           
+                      <tr>
+              <td><b> template </b></td>
+              <td> = ShowError.vm</td>
+            <tr>
+                      <tr>
+              <td><b> action </b></td>
+              <td> = JClearCookie</td>
+            <tr>
+                  </table>
+      </td> 
+    </tr> 
+  
+  
+          
+  
+      <tr> 
+      <td class="INPUTFORM">
+        <br>
+        <h3>Stacktrace:</h3>
+        <pre>      
+          org.apache.velocity.exception.MethodInvocationException: Invocation of method 'getAttribute' in  class com.accela.security.filters.ModuleSession threw exception class java.lang.IllegalStateException : JBWEB000212: Session already invalidated
+	at org.apache.velocity.runtime.parser.node.ASTMethod.execute(ASTMethod.java:246)
+	at org.apache.velocity.runtime.parser.node.ASTReference.execute(ASTReference.java:175)
+	at org.apache.velocity.runtime.parser.node.ASTReference.value(ASTReference.java:327)
+	at org.apache.velocity.runtime.parser.node.ASTExpression.value(ASTExpression.java:51)
+	at org.apache.velocity.runtime.parser.node.ASTSetDirective.render(ASTSetDirective.java:95)
+	at org.apache.velocity.runtime.parser.node.SimpleNode.render(SimpleNode.java:230)
+	at org.apache.velocity.Template.merge(Template.java:256)
+	at org.apache.velocity.app.Velocity.mergeTemplate(Velocity.java:449)
+	at org.apache.velocity.app.Velocity.mergeTemplate(Velocity.java:418)
+rethrown as org.apache.turbine.util.TurbineException: Error rendering Velocity template: layouts/html/default.vm: Invocation of method 'getAttribute' in  class com.accela.security.filters.ModuleSession threw exception class java.lang.IllegalStateException : JBWEB000212: Session already invalidated
+	at org.apache.turbine.services.velocity.TurbineVelocityService.renderingError(TurbineVelocityService.java:533)
+	at org.apache.turbine.services.velocity.TurbineVelocityService.decodeRequest(TurbineVelocityService.java:499)
+	at org.apache.turbine.services.velocity.TurbineVelocityService.handleRequest(TurbineVelocityService.java:336)
+	at org.apache.turbine.services.velocity.TurbineVelocity.handleRequest(TurbineVelocity.java:143)
+	at org.apache.turbine.modules.layouts.VelocityDirectLayout.doBuild(VelocityDirectLayout.java:106)
+	at org.apache.turbine.modules.Layout.build(Layout.java:91)
+	at org.apache.turbine.modules.LayoutLoader.exec(LayoutLoader.java:123)
+	at org.apache.turbine.modules.pages.DefaultPage.doBuild(DefaultPage.java:169)
+	at org.apache.turbine.modules.Page.build(Page.java:90)
+	at org.apache.turbine.modules.PageLoader.exec(PageLoader.java:123)
+	at org.apache.turbine.Turbine.doGet(Turbine.java:574)
+	at org.apache.turbine.Turbine.doPost(Turbine.java:669)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:754)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:847)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:295)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:214)
+	at com.accela.security.filters.AuthFilter.doFilter(AuthFilter.java:142)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:246)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:214)
+	at com.accela.security.SecurityFilter.doFilter(SecurityFilter.java:292)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:246)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:214)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:232)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:149)
+	at org.jboss.as.jpa.interceptor.WebNonTxEmCloserValve.invoke(WebNonTxEmCloserValve.java:50)
+	at org.jboss.as.jpa.interceptor.WebNonTxEmCloserValve.invoke(WebNonTxEmCloserValve.java:50)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:512)
+	at org.jboss.as.web.security.SecurityContextAssociationValve.invoke(SecurityContextAssociationValve.java:169)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:150)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:97)
+	at org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:559)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:102)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11AprProcessor.process(Http11AprProcessor.java:875)
+	at org.apache.coyote.http11.Http11AprProtocol$Http11ConnectionHandler.process(Http11AprProtocol.java:607)
+	at org.apache.tomcat.util.net.AprEndpoint$Worker.run(AprEndpoint.java:2083)
+	at java.lang.Thread.run(Thread.java:745)
+      
+        </pre>
+      </td> 
+    </tr>
+  </table> 
+ 
+
+
+ 
+        </td>
+      </tr>
+    </table>
+        <table cellspacing="0" width="100%" cellpadding="0" border="0">
+      <tr>
+        <td valign="bottom" bgcolor="#ffffff">
+          <table width="100%" cellpadding="0" cellspacing="0">
+		<tr>
+    		<td background="/jetspeed//jetspeed/accela/images/footer_bg.gif"><img src="/jetspeed//jetspeed/accela/images/spacer.gif" alt="" width="4" height="4"></td>
+		    <td background="/jetspeed//jetspeed/accela/images/footer_bg.gif"><img src="/jetspeed//jetspeed/accela/images/spacer.gif" alt="" width="4" height="4"></td>
+   			<td background="/jetspeed//jetspeed/accela/images/footer_bg.gif"><img src="/jetspeed//jetspeed/accela/images/spacer.gif" alt="" width="4" height="4"></td>
+		  </tr>
+  		<tr>
+    		<td>&nbsp;</td>
+		    <td>
+					<table width="100%" border="0" cellspacing="0" cellpadding="0">
+			      <tr>
+     			   <td><p>&nbsp;&nbsp;&nbsp;<a href="http://www.accela.com" class="poweredbyaccela">powered by<br> </a><a href="http://www.accela.com"><img src="/jetspeed//jetspeed/accela/images/accela_logo.gif" alt="Accela" width="100" height="25" border="0"></a><a href="http://www.accela.com" class="poweredbyaccela">        </a></p></td>
+						 <td>
+						 	<div align="right"><p><a href="mailto:support@accela.com">Contact Support</a> | <a href="mailto:jpurrier@accela.com">Suggestions</a><br><span class="footnote">&copy; Copyright 2007, Accela Inc. All Rights Reserved.</span></p> </div></td>
+		 	     </tr>
+				</table>
+			</td>
+    	<td>&nbsp;</td>
+		</tr>
+</table>
+
+        </td>
+      </tr>
+    </table>
+     </body>
+</html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><title>Error</title></head><body></body></html>

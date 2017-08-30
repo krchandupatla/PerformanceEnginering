@@ -1,0 +1,11 @@
+[t737]
+FileName1=t737.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/professional/ref/refProfessionalDetail.do?mode=viewCondition&module=Building&licSeqNbr=2200860535
+Total=1
+RequestHeaderFile=t737_RequestHeader.txt
+RequestBodyFile=t737_RequestBody.txt
+ResponseHeaderFile=t737_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_737.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

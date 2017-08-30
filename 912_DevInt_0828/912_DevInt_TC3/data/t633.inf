@@ -1,0 +1,11 @@
+[t633]
+FileName1=t633_field.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/commons/genericTemplate/js/field.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_633.xml
+RequestHeaderFile=t633_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t633_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

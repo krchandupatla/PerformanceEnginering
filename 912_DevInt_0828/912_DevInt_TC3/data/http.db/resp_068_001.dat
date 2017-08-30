@@ -1,0 +1,66 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core').filter('not', function () {
+      var filter = function (input) {
+        return !input;
+      };
+
+      return filter;
+    });
+
+  angular
+    .module('accela.core').filter('isNull', function () {
+      var filter = function (input) {
+        return (undefined === input || null === input || '' === input);
+      };
+
+      return filter;
+    });
+
+  angular
+    .module('accela.core').filter('notNull', function () {
+      var filter = function (input) {
+        return (undefined !== input && null !== input && '' !== input);
+      };
+
+      return filter;
+    });
+
+  angular
+    .module('accela.core').filter('isString', function () {
+      var filter = function (input) {
+        return angular.isString(input);
+      };
+
+      return filter;
+    });
+
+  angular
+    .module('accela.core').filter('isObject', function () {
+      var filter = function (input) {
+        return angular.isObject(input);
+      };
+
+      return filter;
+    });
+
+  angular
+    .module('accela.core').filter('isNotEmptyArray', function () {
+      var filter = function (input) {
+        return (angular.isArray(input)) && (input.length > 0);
+      };
+
+      return filter;
+    });
+
+  angular
+    .module('accela.core').filter('isArrayLengthMoreOne', function () {
+      var filter = function (input) {
+        return (angular.isArray(input)) && (input.length > 1);
+      };
+
+      return filter;
+    });
+})();

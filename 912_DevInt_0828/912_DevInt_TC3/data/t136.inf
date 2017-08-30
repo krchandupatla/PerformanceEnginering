@@ -1,0 +1,11 @@
+[t136]
+FileName1=t136_icon-space-pin.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/menubar/icon-space-pin.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_136.xml
+RequestHeaderFile=t136_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t136_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

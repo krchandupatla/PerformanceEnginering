@@ -1,0 +1,11 @@
+[t175]
+FileName1=t175_icon-notice.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/task/icon-notice.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_175.xml
+RequestHeaderFile=t175_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t175_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

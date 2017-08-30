@@ -1,0 +1,8 @@
+"value(FirstEntryURL)=%2Fportlets%2Fparcel%2FrefParcelList.do%3Fmode%3Dsearch%26lookup%3Dfalse&"
+"value(CurrentEntryURL)=%2Fportlets%2Fparcel%2FrefParcelList.do%3Fmodule%3DBuilding&portlet_lan"
+"guage=en_US&refresh_target=&refresh_url=&buttonName=searchresult&modeName=&module=Building&acc"
+"elasubmitbuttonname=&itemName=&CurrentViewID=20035&exceptionLogID=&generalCAPSearch=&gisPortle"
+"tName=&value(source)=&value(initMap)=&objectName=parcels&CheckBoxName=&MaxNumber=&ExportFileTy"
+"pe=print&CurrentViewID=20035&sessionIdFromWindow=OI%2Bx0hdJ0Pv1Z%2BKh5Fl1bVvX&listID=&printTyp"
+"e=&checkBoxValue=&isDynaPaging=true&page-navigator-input-id=1&uid=null&uid=null&uid=null&pageS"
+"izeR=5&"

@@ -1,0 +1,10 @@
+GET /portlets/framework/includes/error/blank.jsp HTTP/1.1
+Referer: https://aa-pt6245.dev.accela.com:5443/portlets/cap/capStatusHistory.do?mode=list&clearForm=clearForm&module=Building
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US
+Accept: */*
+Connection: Keep-Alive
+Host: aa-pt6245.dev.accela.com:5443
+Cookie: JSESSIONID=vZkludqgj8ZjGM2oojONEkOJ; JSESSIONID=***************************; LASTEST_REQUEST_TIME=1503945503843; hostSignOn=true; g_current_language_ext=en_US; LATEST_WEB_SERVER=10.1.0.6; LATEST_SESSION_ID=vZkludqgj8ZjGM2oojONEkOJ; ACAuth=77362014931366225728865374050896918466336672995049114918425059826528959016421526386917164835117753651466274739983331264558338360; ACSignOnModule=SSOStandard; AAPersistLoginServProvCode=FLAGSTAFF; LoginServProvCode4MultiAgency=FLAGSTAFF; LoginUsername4MultiAgency=179DD13A186028F4; ACSignoff="https://aa-pt6245.dev.accela.com:5443/portlets/security/signout.do"; ACSwitchAgency="https://aa-pt6245.dev.accela.com:5443/portlets/commons/sso/blank.jsp"
+

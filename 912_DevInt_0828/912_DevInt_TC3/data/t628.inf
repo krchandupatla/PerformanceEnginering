@@ -1,0 +1,11 @@
+[t628]
+FileName1=t628_templateHelper.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/commons/genericTemplate/js/templateHelper.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_628.xml
+RequestHeaderFile=t628_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t628_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

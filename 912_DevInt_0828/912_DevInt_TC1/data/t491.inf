@@ -1,0 +1,11 @@
+[t491]
+FileName1=t491_AAHELP.html
+URL1=https://aa-pt6245.dev.accela.com:5443/docs/AAHELP.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_491.xml
+RequestHeaderFile=t491_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t491_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

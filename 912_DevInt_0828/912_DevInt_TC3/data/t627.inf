@@ -1,0 +1,11 @@
+[t627]
+FileName1=t627_template.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/commons/genericTemplate/js/template.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_627.xml
+RequestHeaderFile=t627_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t627_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,56 @@
+/**
+ * highlight left/right side when other side is hovered -- dbalmer@accela.com
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.automation.globalsearch')
+    .directive('aaAltHilite', function() {
+      return {
+        restrict: 'A',
+        replace: false,
+        link: function (scope, element, attrs) {
+
+          // PRIVATE data
+
+          var isLeftSide = attrs.aaAltHilite === 'left';
+          var rowSelector = 'tbody tr:nth-child(%s)';
+          var leftSideSelector = '.table-left ' + rowSelector;
+          var rightSideSelector = '.table-right ' + rowSelector;
+
+          // PRIVATE methods
+
+          function mouseEnter() {
+            var index = scope.$index + 1;
+
+            if (isLeftSide) {
+              $(sprintf(rightSideSelector, index)).addClass('active');
+            } else {
+              $(sprintf(leftSideSelector, index)).addClass('active');
+            }
+          }
+
+          function mouseLeave() {
+            var index = scope.$index + 1;
+
+            if (isLeftSide) {
+              $(sprintf(rightSideSelector, index)).removeClass('active');
+            } else {
+              $(sprintf(leftSideSelector, index)).removeClass('active');
+            }
+          }
+
+          // INITIALIZE
+
+          element.on('mouseenter', mouseEnter);
+          element.on('mouseleave', mouseLeave);
+
+          scope.$on('$destroy', function() {
+            element.off('mouseenter', mouseEnter);
+            element.off('mouseleave', mouseLeave);
+          });
+        }
+      };
+    });
+})();

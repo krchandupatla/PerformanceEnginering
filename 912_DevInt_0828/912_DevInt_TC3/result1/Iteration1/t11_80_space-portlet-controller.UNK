@@ -1,0 +1,151 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .controller('SpacePortletController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($rootScope, $scope, $log, $position) {
+
+    var iframeClickHandler = _.debounce(function () {
+      $rootScope.$broadcast('iframe.clicked');
+    }, 250);
+
+    /**
+     * Recursive dump of portlet frames and iframes.
+     */
+    $scope.$on('portlet.iframe.dump.request', function () {
+      var results = {};
+
+      var all = function (obj, selector) {
+        return obj.contentDocument.querySelectorAll(selector);
+      };
+
+      var iterate = function (obj, data) {
+        for (var x in obj) {
+          if (obj.hasOwnProperty(x)) {
+            process(obj[x], data);
+          }
+        }
+      };
+
+      var process = function (obj, data) {
+        var id = obj.name || obj.id;
+        var nestedFrames = all(obj, 'frame');
+        var nestedIFrames = all(obj, 'iframe');
+
+        data[id] = {
+          src: obj.src || '',
+          height: obj.style ? obj.style.height : '',
+          cssText: obj.style ? obj.style.cssText : '',
+          position: $position.offset(angular.element(obj))
+        };
+
+        if (nestedFrames.length) {
+          data[id].frames = {
+            count: nestedFrames.length
+          };
+
+          iterate(nestedFrames, data[id].frames);
+        }
+
+        if (nestedIFrames.length) {
+          data[id].iframes = {
+            count: nestedIFrames.length
+          };
+
+          iterate(nestedIFrames, data[id].iframes);
+        }
+      };
+
+      process($el('#iframe-page-container'), results);
+
+      $rootScope.$broadcast('portlet.iframe.dump.response', results);
+    });
+
+    /**
+     * Bind a click handler to all iframes.
+     *
+     * Remove any previous handler before binding a new one
+     */
+    function bindClickOutsideHandlers(isDestroyed) {
+      angular.forEach($('#iframe-page-container'), function (iframe) {
+        var iframeDoc = angular.element(iframe.contentDocument);
+        if (iframeDoc) {
+          iframeDoc.off('click', iframeClickHandler);
+          if (!isDestroyed) {
+            iframeDoc.on('click', iframeClickHandler);
+          }
+          angular.forEach(iframeDoc.find('iframe'), function (innerIframe) {
+            var innerIframeDoc = angular.element(innerIframe.contentDocument);
+            if (innerIframeDoc) {
+              innerIframeDoc.off('click', iframeClickHandler);
+              if (!isDestroyed) {
+                innerIframeDoc.on('click', iframeClickHandler);
+              }
+            }
+          });
+        }
+      });
+    }
+
+    function unbindClickOutsideHandlers() {
+      bindClickOutsideHandlers(false);
+    }
+
+    function tabClicked(tabName) {
+      // not needed yet
+    }
+
+    function tabLoaded(tab) {
+      if (tab && tab.url) {
+        if (tab.url.indexOf('genericviewDailyAdminSetup') !== -1) { // AATHETA-1053
+          var spellCheckTable = Accela.DOM.portletQuerySelector('#capForm->#displayBody table[id^="spellCheckTable"]');
+          if (spellCheckTable) {
+            spellCheckTable.parentNode.setAttribute('valign', 'top');
+          }
+        }
+      }
+    }
+
+
+    $log = $log.getInstance('SPACE-PORTLET-CONTROLLER');
+
+    $scope.iframeLoaded = function () {
+      var iframe = document.querySelector('#iframe-page-container');
+
+      try {
+        bindClickOutsideHandlers();
+
+        // "fix" for AATHETA-800
+        iframe.contentDocument.body.style['font-size'] = '0px';
+
+        if ((/capTypePickerSelector/i).test(iframe.contentWindow.location.href)) {
+          setTimeout(function () {
+            iframe.style.width = '100%';
+            iframe.style.paddingLeft = '1em';
+          }, 1000);
+        }
+      } catch (e) {
+        // "fix" for AAKAPPA-864
+        console.log('Unable to bind click handlers to iframe');
+      }
+    };
+
+    Accela.PortletInterface.register('tabClicked', tabClicked);
+    Accela.PortletInterface.register('tabLoaded', tabLoaded);
+
+
+    $scope.$on('$destroy', function (event) {
+      unbindClickOutsideHandlers();
+      Accela.PortletInterface.unregister('tabClicked', tabClicked);
+      Accela.PortletInterface.unregister('tabLoaded', tabLoaded);
+      
+
+      $log.info('destroyed');
+    });
+  }
+})();

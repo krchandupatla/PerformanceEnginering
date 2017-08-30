@@ -1,0 +1,11 @@
+[t217]
+FileName1=t217_permitPlus.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/permitPlus.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_217.xml
+RequestHeaderFile=t217_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t217_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

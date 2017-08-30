@@ -1,0 +1,11 @@
+[t691]
+FileName1=t691_AAHELP.html
+URL1=https://aa-pt6245.dev.accela.com:5443/docs/AAHELP.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_691.xml
+RequestHeaderFile=t691_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t691_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

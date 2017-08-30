@@ -1,0 +1,6 @@
+"<?xml version=\"1.0\"?>\r\n"
+"<q:Envelope xmlns:q=\"http://schemas.xmlsoap.org/soap/envelope/\"><q:Body><ex12m:GetUserOofSet"
+"tingsRequest xmlns:ex12m=\"http://schemas.microsoft.com/exchange/services/2006/messages\"><ex1"
+"2t:Mailbox xmlns:ex12t=\"http://schemas.microsoft.com/exchange/services/2006/types\"><ex12t:Ad"
+"dress>hboyina@accela.com</ex12t:Address><ex12t:RoutingType>SMTP</ex12t:RoutingType></ex12t:Mai"
+"lbox></ex12m:GetUserOofSettingsRequest></q:Body></q:Envelope>"

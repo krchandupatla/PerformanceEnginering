@@ -1,0 +1,2115 @@
+//Accela Automation
+//File: ac360ui.js
+//Accela, Inc.
+//Copyright (C): 2011-2014
+//
+//Description: This javascript is a set for commone javascript util function.
+//
+//Notes:
+//
+//Revision History: 
+//12/6/2011, Ray Zhang,  Initial Version.
+
+var UI = UI ? UI : {}; // ac360ui.js may be involved twice, so use the old UI object if exists
+UI.positionMgr = {
+	displayObj : null,
+	
+	cache : new HashMap(),
+	
+	generatorCacheId : function(srcId, targetId)
+	{
+		return srcId + ":" + targetId;
+	},
+	
+	// get one element postion{x: ,y: , width: , height: , leftUp.....}
+	// have to cache(parentObj##obj)
+	getPosition : function(obj, parentObj) {
+		var targetW = obj.offsetWidth;
+		var targetH = obj.offsetHeight;
+		var position = this.getBound(obj, parentObj);
+		//container have horizontal scroll bar
+		if(obj!=null && obj == parentObj)
+		{
+			if(obj.offsetWidth < obj.scrollWidth)
+			{
+				targetW = obj.scrollWidth;
+				//container have vertical scroll bar
+				if(obj.offsetWidth > obj.clientWidth && obj.offsetWidth < (obj.scrollWidth - (obj.offsetWidth - obj.clientWidth)))
+				{
+					targetW -= (obj.offsetWidth - obj.clientWidth);
+				}
+			}
+		}
+		
+		var leftUp = {
+			'x' : position.left,
+			'y' : position.top
+		}
+		
+		var leftDown = {
+			'x' : position.left,
+			'y' : position.top + targetH
+		};
+		var rightUp = {
+			'x' : position.left + targetW,
+			'y' : position.top
+		};
+		var rightDown = {
+			'x' : position.left + targetW,
+			'y' : (position.top + targetH)
+		};
+
+		return {
+			'leftUp' : leftUp,
+			'leftDown' : leftDown,
+			'rightUp' : rightUp,
+			'rightDown' : rightDown,
+			'width' : targetW,
+			'height' : targetH,
+			'position' : position
+		};
+	},
+
+	// get left, right, top, bottom, reference parentId contain
+	//parentId: reference id
+	getBound : function(obj, parentObj)
+	{
+		var p = obj;
+		if (p == null) {
+			return {
+				"left" : 0,
+				"top" : 0,
+				"right" : 0,
+				"bottom" : 0
+			};
+		}
+		
+		//contain object
+		if (parentObj && obj == parentObj)
+		{
+			return {
+				"left" : 0,
+				"top" : 0,
+				"right" : p.offsetWidth,
+				"bottom" : p.offsetHeight
+			};
+		}
+		
+		var left = 0;
+		var top = 0;
+		var right = 0;
+		var bottom = 0;
+		var leftBorderWidth = 0;
+		var parentRightBorderWidth = 0;
+		var bodyWidth = document.body.offsetWidth;
+		
+		function getBorderRightWidth(obj){
+			if (obj.currentStyle)
+			{
+				return obj.currentStyle.borderRightWidth;
+			}
+			else
+			{
+				return getComputedStyle(obj, false).borderRightWidth;
+			}
+		}
+		
+		while (p) {
+			//p.offsetParent.offsetWidth != p.offsetWidth :     a taglib in IE, offsetLeft may be appear deviation
+			if(p.offsetLeft >= 0)
+			{
+				if(p.offsetParent.offsetWidth != p.offsetWidth)
+				{
+					left += p.offsetLeft + leftBorderWidth;
+				} else {
+					left += leftBorderWidth;
+				}
+			}
+			if (p.offsetTop > 0)
+			{	
+				top += p.offsetTop;
+			}
+			if(p.scrollTop > 0)
+			{
+				top -= p.scrollTop;
+			}
+			if (p.offsetParent && p.offsetWidth > 0)
+			{
+				//parentNode right border
+				if(parseInt(getBorderRightWidth(p.offsetParent)))
+				{
+					parentRightBorderWidth = parseInt(getBorderRightWidth(p.offsetParent));
+				} else {
+					parentRightBorderWidth = 0;
+				}
+				if(p.offsetLeft >= 0)
+				{
+					//p.offsetParent.offsetWidth = p.offsetWidth , but p.offsetLeft > 0
+					if(p.offsetParent.offsetWidth != p.offsetWidth)
+					{
+						right += (p.offsetParent.clientWidth + parentRightBorderWidth - p.offsetWidth - p.offsetLeft);
+					}
+				} else {
+					//childNode offsetWidth > parentNode offsetWidth
+					if(p.offsetWidth > p.offsetParent.offsetWidth)
+					{
+						var temp = p.offsetWidth - p.offsetParent.offsetWidth + p.offsetLeft;
+						if(temp < 0 )
+						{
+							temp = p.offsetWidth - p.offsetParent.clientWidth + p.offsetLeft;
+						}
+						right += temp;
+						//right += Math.abs(p.offsetWidth - p.offsetParent.clientWidth + p.offsetLeft);
+					}
+					else if (p.offsetWidth < p.offsetParent.offsetWidth)
+					{
+						//childNode offsetWidth > body offsetWidth, then childNode offsetLeft < 0
+						if(p.offsetWidth >= bodyWidth)
+						{
+							var temp = p.offsetParent.offsetWidth - bodyWidth + p.offsetLeft;
+							if(temp < 0 )
+							{
+								temp = p.offsetParent.offsetWidth - document.body.clientWidth + p.offsetLeft;
+							}
+							right += (p.offsetParent.clientWidth - p.offsetWidth - temp);
+						} else {
+							//childNode offsetWidth > parentNode width(e.g : width='25px').   parseInt(p.offsetParent.currentStyle.width) maybe NaN
+							var tmpW = $(p.offsetParent).css('width');
+							if(parseInt(tmpW))
+							{
+								var temp = p.offsetWidth - parseInt(tmpW) + p.offsetLeft;
+								right += (p.offsetParent.clientWidth - p.offsetWidth - temp);
+							}
+						} 
+					}
+				}
+			}
+			if (p.offsetParent && p.offsetTop > 0)
+				bottom += (p.offsetParent.offsetHeight - p.offsetHeight - p.offsetTop);
+			
+			p = p.offsetParent;
+			
+			if (p != null && p.tagName == "BODY")
+			{
+				break;
+			}
+			//reference object, usually, refer to div, whic position is absolute or relective relative 
+			if (typeof (parentObj) != "undefined" && p == parentObj)
+			{
+				break;
+			}
+			
+			//add border
+			if (p != null)
+			{
+				try{
+					var currentStyleObj = scrollBarIssue.getCurrentStyle(document, p);
+					if(parseInt(currentStyleObj.borderLeftWidth))
+					{
+						leftBorderWidth = currentStyleObj.borderLeftWidth ? parseInt(currentStyleObj.borderLeftWidth) : 0;
+					} else {
+						leftBorderWidth = 0;
+					}
+				} catch(e){
+					leftBorderWidth = 0;
+				}
+			}
+		}
+
+		return {
+			'left' : left,
+			'top' : top,
+			'right' : right,
+			'bottom' : bottom
+		};
+	},
+	
+	// ar x, set right
+	// right reference is body, not same with left reference parent contain
+	countXInAr : function()
+	{
+		//origin of coordinates is clientWidth left up point.
+		var x = this.srcPosition.rightDown.x - this.targetPosition.width - this.adjustWidth;
+		if (x < 0 && (this.srcPosition.leftDown.x + this.adjustWidth + this.targetPosition.width) <= this.containPosition.rightDown.x) 
+		{
+			x = this.srcPosition.leftDown.x + this.adjustWidth;
+		} 
+		
+		if(this.containObj.scrollWidth > this.containObj.clientWidth && !this.configObj.isShowChildMenu)
+		{
+			x = x - (this.containObj.scrollWidth - this.containObj.clientWidth);
+		}
+		return x;
+	},
+	
+	//normal
+	countXInNormal : function()
+	{
+		//contain scroll width
+		if(this.srcPosition.leftDown.x > this.containPosition.rightDown.x)
+		{
+			this.containPosition.rightDown.x = this.containObj.scrollWidth;
+		}
+
+		var x = this.srcPosition.leftDown.x + this.adjustWidth + this.targetPosition.width;
+		if (x > this.containPosition.rightDown.x) {
+			x = this.srcPosition.rightDown.x - this.adjustWidth - this.targetPosition.width;// left down
+			if (x < 0)
+				x = 0;
+		} else// left down
+		{
+			x = this.srcPosition.leftDown.x + this.adjustWidth;
+		}
+		return x;
+	},
+	
+	// count x cordination
+	countX : function()
+	{
+		var target = document.getElementById(this.targetId);
+		var x = 0;
+		if (UI.Base.checkAr())
+		{
+			x = this.countXInAr();
+		}
+		else
+		{
+			x = this.countXInNormal();
+		}
+		target.style.left = x + "px";
+		return x;
+	},
+
+	// count y cordination
+	countY : function()
+	{
+		var clientWidth = this.containObj.clientWidth;
+		
+		var y = this.srcPosition.leftDown.y - this.adjustHeight - this.containPosition.leftUp.y;
+		// 0-bottom, 1-top
+		if (this.judgeY() == 1) {
+			y = this.srcPosition.leftUp.y - this.containPosition.leftUp.y
+					- this.targetPosition.height;
+		}
+		var showDiv = document.getElementById(this.targetId);
+		showDiv.style.top = y + "px";
+		this.lockedKey = scrollBarIssue.autoResizePopUpContainer(document,this.targetId);
+		
+		//scroll bar affect x position in ar.
+		var tmpWidth = this.containObj.clientWidth;
+		if (UI.Base.checkAr() && clientWidth < this.containObj.clientWidth && !isNaN(parseInt(showDiv.style.left)))
+		{
+			showDiv.style.left = parseInt(showDiv.style.left) + (this.containObj.clientWidth - clientWidth) + "px";
+		}
+		return y;
+	},
+	
+	/**
+	 * find Reference contain, return contain object
+	 * DIV: if DIV's position is absolute/relative/fixed/exist scroll bar, then return the tag.
+	 * 
+	 * */
+	findContain : function(srcId, targetId)
+	{
+		var containObj = this.cache.get(this.generatorCacheId(srcId, targetId));
+		if (containObj != null)
+			return containObj;
+		
+		var src = document.getElementById(srcId);
+		var target = document.getElementById(targetId);
+
+		var p = src;
+		while (p) {
+			p = p.parentNode;
+			if (p.tagName != "DIV" && p.tagName != "BODY") {
+				continue;
+			}
+			
+			if (!p.contains(src) || !(!target || p.contains(target)))
+			{
+				continue;
+			}
+			//relative is relevance  parent contain's position(relative/absolute)
+			if (p.tagName == "DIV") 
+			{
+				//because p.currentStyle.position != "relative" away return ture, so do like this judge
+				var currentStyle = scrollBarIssue.getCurrentStyle(document, p);
+				
+				if(currentStyle.position == "relative" || currentStyle.overflow != "visible")
+				{
+					containObj = p;
+					break;
+				}
+				else
+				{
+					continue;
+				}
+			}
+			
+			//body
+			containObj = p;
+			break;
+		}
+		
+		this.cache.put(this.generatorCacheId(srcId, targetId), containObj);
+		
+		return containObj;
+	},
+
+	// judge program should plus height
+	// 0-bottom, 1-top
+	judgeY : function()
+	{
+		//get real contain height
+		var tempElement=document.createElement("div");
+		tempElement.id = "tempElement";
+		this.containObj.appendChild(tempElement);
+		var tempPostion = this.getPosition(tempElement, this.containObj);
+		scrollBarIssue.removeNode(tempElement);
+		scrollBarIssue.autoAdjustOuterContainer(document);		
+		//new div height maybe < contain height
+		if(tempPostion.leftDown.y < this.containObj.offsetHeight)
+		{
+			tempPostion.leftDown.y = this.containObj.offsetHeight;
+		}
+
+		// check bottom:
+		var tmpH = tempPostion.leftDown.y - this.srcPosition.leftDown.y;
+
+		var overflowX = scrollBarIssue.findSubNodesMaxValue(document.body).overflow_x;
+		if(overflowX || (tmpH > this.targetPosition.height)){
+			tmpH -= scrollBarIssue.SCROLL_BAR_SIZE;
+		}
+
+		if (tmpH > this.targetPosition.height) {
+			return 0;
+		} else if (tmpH < 0)
+		{
+			this.attachWindowUnLoadEvent();
+			return 0;
+		}
+
+		// check top, drop menu nerve show on top
+		if (!this.configObj.isMenu)
+		{
+			tmpH = this.srcPosition.leftUp.y - this.containPosition.leftUp.y;
+			if (tmpH > this.targetPosition.height) {
+				return 1;
+			}
+		}
+		
+		this.attachWindowUnLoadEvent();
+		return 0;
+	},
+	
+	//when iframe url will change, hide div
+	attachWindowUnLoadEvent : function()
+	{
+		Ac360.attachEvent(window,"onunload", function(){
+			UI.positionMgr.hidden();
+		});
+	},
+
+	// add event to body
+	//when pop-up div hidden, the method will remove
+	attachEven2Body : function()
+	{
+		if (this.bodyClickFn == null)
+		{
+			this.bodyClickFn = this.hidden.bind(this);
+			Ac360.attachEvent(document.body,"onclick", this.bodyClickFn);
+		}
+	},
+
+	// add onpropertychange event to show panel
+	attachEvent2Panel : function(id)
+	{
+		var panel = document.getElementById(id);
+		var fn = function() {
+			if(this.configObj && this.configObj.isShowChildMenu)
+			{
+				return;
+			}
+			
+			if (panel.style.display == 'none') {
+				this.destroy();
+			}
+		}.bind(this);
+
+		Ac360.attachEvent(panel,'onpropertychange', fn)
+	},
+
+	destroyEven2Body : function()
+	{
+		if (this.bodyClickFn){
+			Ac360.detachEvent(document.body,"onclick", this.bodyClickFn);
+			this.bodyClickFn = null;
+		}
+	},
+
+	/*	
+	 * id: should to show element, srcId: fire event id
+	 * drop menu never show on thop
+	 * configObj:{isAddHidenEvent: default add attachEven2Body(false: return;), isMenu: true/false/undefind, 
+	 * 	isShowChildMenu: true/false/undefind, showAfter:fn, destroyBefore:fn}
+	 * 
+	 * */
+	show : function(srcId, targetId, configObj)
+	{
+		this.configObj = configObj || {};
+		
+		var showDiv = document.getElementById(targetId);
+		//if have child menu,not hidden child menu.
+		if(!this.configObj.isShowChildMenu)
+		{
+			if (showDiv.style.display == "block") 
+			{
+				showDiv.style.display = "none";
+				return;
+			} 
+			else if (this.displayObj != null) 
+			{
+				this.destroy();
+			}
+			this.hidden();
+		}
+		showDiv.style.top = "";
+		showDiv.style.left = "0px";
+		showDiv.style.right = "";
+		
+		showDiv.style.display = "block";
+		showDiv.style.visibility = "";
+		
+		//User defined function, run special logic here.
+		if (this.configObj.showAfter)
+		{
+			this.configObj.showAfter(targetId);
+		}
+		
+	
+		this.srcId = srcId;
+		this.targetId = targetId;
+		
+		//show sub menu item position
+		this.adjustWidth = 0;
+		this.adjustHeight = 0;
+		if(this.configObj.isShowChildMenu)
+		{
+			this.adjustWidth = document.getElementById(srcId).offsetWidth + 2;
+			this.adjustHeight = document.getElementById(srcId).offsetHeight;
+		}
+		
+		this.containObj = this.findContain(srcId, targetId);
+		this.srcPosition = this.getPosition(document.getElementById(srcId), this.containObj);
+		this.targetPosition = this.getPosition(document.getElementById(targetId), this.containObj);
+		this.containPosition = this.getPosition(this.containObj, this.containObj);
+		
+		this.countX();
+		this.countY();
+		
+		// Current displayObj object only record a srcId. If display is the secondary menu, will overwrite menu srcId.
+		// There are no records a second level of menus srcId, when menu destroy, check secondary menu srcId, and hidden secondary menu.
+		// bug: 45034.  If refactor code, need change displayObj object to Array.
+		if(!this.configObj.isShowChildMenu)
+		{
+			this.displayObj = BaseJS.apply( {
+				"id" : targetId,
+				"srcId" : srcId
+			}, this.getPosition(document.getElementById(targetId)), this.containObj);
+			this.attachEvent2Panel(targetId);
+		}
+
+		//stop event
+		var event = Ac360.getEvent();
+		if(event)
+		{
+			this.stopEvent(event);
+		}
+		
+		var isAddHidenEvent = this.configObj.isAddHidenEvent;
+		if(isAddHidenEvent == undefined)
+		{
+			isAddHidenEvent = true;
+		}
+		if (!isAddHidenEvent)
+			return;
+		setTimeout("UI.positionMgr.attachEven2Body()", 500);
+	},
+	
+	//stop event propagation, body click event can hidden popup div
+	stopEvent : function(e) {
+		e = window.event?window.event:e;
+		if (e.stopPropagation) {
+			e.stopPropagation();//FF
+		} else {
+			e.cancelBubble = true;//ie
+		}
+	},
+
+	// check mouse position
+	judgeMouseArea : function(x, y)
+	{
+		var leftUp = this.displayObj.leftUp;
+		var leftDown = this.displayObj.leftDown;
+		var rightUp = this.displayObj.rightUp;
+		var rightDown = this.displayObj.rightDown;
+
+		if (leftUp.x < x && x < rightUp.x && leftUp.y < y && y < leftDown.y) {
+			return true;
+		}
+
+		return false;
+	},
+
+	validateHidden : function()
+	{
+		if (this.displayObj == null) {
+			return true;
+		}
+
+		// when onclick in panel area
+		var event = Ac360.getEvent();
+		if(event)
+		{
+			if (this.judgeMouseArea(event.clientX, event.clientY)) {
+				return true;
+			}
+			
+			var panel = document.getElementById(this.displayObj.id);
+
+			// panel contain click element
+			if (panel &&  panel.contains(event.srcElement)) {
+				return true;
+			}
+		}
+
+		return false;
+	},
+
+	// hidden show panel
+	destroy : function()
+	{
+		if (!this.displayObj || !this.displayObj.id)
+			return;
+		if(!document.getElementById(this.displayObj.id))
+		{
+			return;
+		}
+
+		//User defined function, run special logic here.
+		if (this.configObj.destroyBefore)
+		{
+			this.configObj.destroyBefore(this.displayObj.id);
+		}
+		document.getElementById(this.displayObj.id).style.display = 'none';
+		// hidden sub menu
+		if (this.configObj.isShowChildMenu && this.configObj.childMenuId && document.getElementById(this.configObj.childMenuId))
+		{
+			document.getElementById(this.configObj.childMenuId).style.display = 'none';
+		}
+		this.displayObj = null;
+		setTimeout("UI.positionMgr.destroyEven2Body()", 500);
+		//this.cache.clear();
+		var currentIframe = scrollBarIssue.getFrameElement(document);
+		scrollBarIssue.removeSimulateDialog(currentIframe);
+		scrollBarIssue.autoResizePopUpContainer(document,this.targetId, this.lockedKey);
+	},
+
+	// body event
+	hidden : function()
+	{
+		if (!this.validateHidden()) {
+			this.destroy();
+		}
+		return true;
+	},
+
+	getEmbedWindows : function()
+	{
+		var wins = new Array();
+		var win = window;
+		var tmpWin; 
+		while (win) {
+			tmpWin = win;
+			try{
+				if (!win.frameElement)
+					break;
+			}catch(e)
+			{
+				break;
+			}
+			wins.push(win);
+			win = win.parent;
+			if (tmpWin == win)
+				break;
+		}
+		return wins;
+	}
+
+};
+
+
+//go to menu judge height, it will be reconstruct change at 7.3
+UI.positionMgr.judgeHeight = {
+	judge : function(srcId)
+	{
+		var src = document.getElementById(srcId);
+		var contain = UI.positionMgr.findContain(srcId);
+		var top = UI.positionMgr.getBound(src, contain).top;
+		var tmpH = contain.offsetHeight;
+		if(tmpH < contain.scrollHeight)
+		{
+			tmpH = contain.scrollHeight;
+		}
+		
+		//judge window height
+		if(top + src.offsetHeight + scrollBarIssue.SCROLL_BAR_SIZE > tmpH)
+		{
+			this.setWindowHeight(top + src.offsetHeight + scrollBarIssue.SCROLL_BAR_SIZE - contain.offsetHeight);
+		}
+	},
+	
+	setWindowHeight : function(height)
+	{
+		var windows = UI.positionMgr.getEmbedWindows();
+		if (!windows)
+			return;
+		this.windows = windows;
+		for ( var i = 0; i < windows.length; i++) {
+			if(windows[i].frameElement)
+			{
+				//parent contain scrollHeight
+				var tempHeight = 0;
+				if(windows[i].parent)
+				{
+					tempHeight = windows[i].parent.document.body.scrollHeight;
+				}
+				
+				windows[i].frameElement.style.height = parseInt(windows[i].frameElement.offsetHeight)
+						+ height + "px";
+				
+				//parent contain scrollHeight whether change
+				if(windows[i].parent && tempHeight == windows[i].parent.document.body.scrollHeight)
+				{
+					break;
+				}
+			}
+		}
+	}
+};
+
+tableCorner = {
+
+	target_id : "",
+
+	events : {
+		before : "before",
+		after : "after"
+	},// define event
+	listeners : {},
+
+	// o:{before: fn, after: fn}
+	addListener : function(o) {
+
+		for ( var p in o) {
+			if (!this.listeners[p])
+				this.listeners[p] = [];
+			this.listeners[p].push(o[p]);
+		}
+
+	},
+
+	fireEvent : function(event, args) {
+		var listeners = this.listeners[event];
+		if (!listeners) {
+			return;
+		}
+		for ( var i = 0; i < listeners.length; i++) {
+			listeners[i](args);
+		}
+	},
+
+	addTableListen : function(currentTableId) {
+		Ac360.attachEvent(document,'onreadystatechange', function(currentTableId) {
+			return function() {
+				if (document.readyState == "complete") {
+					tableCorner.drawCorner(currentTableId);
+				}
+			}
+		}(currentTableId));
+	},
+
+	addTabListen : function(currentTableId) {
+		Ac360.attachEvent(document,
+						'onreadystatechange',
+						function(currentTableId) {
+							return function() {
+								if (document.readyState == "complete") {
+									tableCorner.tmpBeginTableCornerStr = tableCorner.beginTableCornerStr;
+									tableCorner.beginTableCornerStr = tableCorner.beginTabCornerStr;
+
+									tableCorner.tmpEndTabCornerStr = tableCorner.endTableCornerStr;
+									tableCorner.endTableCornerStr = tableCorner.endTabCornerStr;
+
+									tableCorner.drawCorner(currentTableId);
+
+									tableCorner.beginTableCornerStr = tableCorner.tmpBeginTableCornerStr;
+									tableCorner.endTableCornerStr = tableCorner.tmpEndTabCornerStr;
+								}
+							}
+						}(currentTableId));
+	},
+
+	// draw table corner
+	drawBeginTableCorner : function(width) {
+		document.write(this.beginTableCornerStr(width));
+	},
+
+	beginTableCornerStr : function(width, tableId) {
+		width = typeof (width) != 'undefined' ? width : '100%';
+		tableId = typeof (tableId) != 'undefined' ? tableId : 'table' + BaseJS
+				.increase();
+		var str = '';
+		str += '<table id="'
+				+ tableId
+				+ '" border="0"  cellpadding="0" cellspacing="0"  style="width:'
+				+ width + ';" targetId="' + this.target_id + '">';
+		str += '<tr>';
+		str += '<td class="header-left-top" style="border-bottom-width: 0px;"></td>';
+		str += '<td class="header-data" style="font-size:1px;border-bottom-width: 0px;" >&nbsp;</td>';
+		str += '<td class="header-right-top"  style="border-bottom-width: 0px;">';
+		str += '</td>';
+		str += '</tr>';
+		str += '</table>';
+		return str;
+	},
+
+	beginTabCornerStr : function(width, tableId) {
+		width = typeof (width) != 'undefined' ? width : '100%';
+		tableId = typeof (tableId) != 'undefined' ? tableId : 'table' + BaseJS
+				.increase();
+		var str = '';
+		str += '<table id="'
+				+ tableId
+				+ '" border="0"  cellpadding="0" cellspacing="0"  style="width:'
+				+ width + ';" targetId="' + this.target_id + '">';
+		str += '<tr>';
+		str += '<td class="header-left-top tab-header-left-top"></td>';
+		str += '<td class="header-data tab-header-data" style="font-size:1px;background:#FFFFFF;">&nbsp;</td>';
+		str += '<td class="header-right-top tab-header-right-top">';
+		str += '</td>';
+		str += '</tr>';
+		str += '</table>';
+		return str;
+	},
+
+	// draw table corner
+	drawEndTableCorner : function(width) {
+		document.write(this.endTableCornerStr(width));
+	},
+
+	endTableCornerStr : function(width, tableId) {
+		var width = typeof (width) != 'undefined' ? width : '100%';
+		tableId = typeof (tableId) != 'undefined' ? tableId : 'table' + BaseJS
+				.increase();
+		var str = '<table id="'
+				+ tableId
+				+ '" border="0"  cellpadding="0" cellspacing="0"  style="width:'
+				+ width + '" targetId="' + this.target_id + '">';
+		str += '<tr><td class="footer-left-bottom" style="border-bottom-width: 0px;" colspan="1"></td><td class="footer-data">&nbsp;</td>';
+		str += '<td class="footer-right-bottom" style="border-bottom-width: 0px;" ></td></tr></table>';
+		return str;
+	},
+
+	endTabCornerStr : function(width, tableId) {
+		var width = typeof (width) != 'undefined' ? width : '100%';
+		tableId = typeof (tableId) != 'undefined' ? tableId : 'table' + BaseJS
+				.increase();
+		var str = '<table id="'
+				+ tableId
+				+ '" border="0"  cellpadding="0" cellspacing="0"  style="width:'
+				+ width + '" targetId="' + this.target_id + '">';
+		str += '<tr><td class="footer-left-bottom tab-footer-left-bottom" colspan="1"></td><td class="footer-data tab-footer-data">&nbsp;</td>';
+		str += '<td class="footer-right-bottom tab-footer-right-bottom"></td></tr></table>';
+		return str;
+	},
+
+	endTreeCornerStr : function(width, tableId) {
+		var width = typeof (width) != 'undefined' ? width : '100%';
+		tableId = typeof (tableId) != 'undefined' ? tableId : 'table' + BaseJS
+				.increase();
+		var str = '<table id="'
+				+ tableId
+				+ '" border="0"  cellpadding="0" cellspacing="0"  style="width:'
+				+ width + '" targetId="' + this.target_id + '">';
+		str += '<tr><td class="footer-left-bottom tree-footer-left-bottom" colspan="1"></td><td class="footer-data tree-footer-data">&nbsp;</td>';
+		str += '<td class="footer-right-bottom tree-footer-right-bottom"></td></tr></table>';
+		return str;
+	},
+
+	/**
+	 * If you want to manual refresh corner,you can use this function.
+	 * But don't promote in normal.
+	 */
+	refleshCorner : function(containId){
+		var targetOBJ = document.getElementById(containId);
+		if (Ac360.validator.isEmpty(targetOBJ))
+        {
+            return;
+        }
+		var topCornerOBJ = document.getElementById(targetOBJ.topId);
+		var bottomCornerOBJ = document.getElementById(targetOBJ.bottomId);
+		
+		if (Ac360.validator.isEmpty(topCornerOBJ) || Ac360.validator.isEmpty(bottomCornerOBJ))
+		{
+		    return;
+		}
+		
+		if(containId == "_$mainContent")
+		{
+			if(targetOBJ.scrollWidth > document.body.clientWidth)
+			{
+				topCornerOBJ.style.width = (targetOBJ.scrollWidth + 12) + 'px';
+				bottomCornerOBJ.style.width = (targetOBJ.scrollWidth + 12) + 'px';
+				targetOBJ.style.width = (targetOBJ.scrollWidth + 12) + 'px';
+			}
+			else
+			{
+				topCornerOBJ.style.width = document.body.clientWidth + 'px';
+				bottomCornerOBJ.style.width = document.body.clientWidth + 'px';
+				targetOBJ.style.width = document.body.clientWidth + 'px';
+			}
+		}
+		else
+		{
+			topCornerOBJ.style.width = targetOBJ.offsetWidth + 'px';
+			bottomCornerOBJ.style.width = targetOBJ.offsetWidth + 'px';
+		}
+	}
+	,
+	drawCorner : function(containId, drawBottomCornerAble) {
+		this.target_id = containId;
+		var panel = document.getElementById(containId);
+		if (typeof (panel) == "undefined" || panel == null) {
+			return;
+		}
+		var width = panel.width ? panel.width : panel.offsetWidth;
+		width = typeof (width) != "undefined" ? width : '100%';
+		if (width > document.body.scrollWidth || width == 0) {
+			width = "100%";
+		} else {
+			width += 'px';
+		}
+		var topId = 'tableCorner-' + BaseJS.increase();
+		panel.insertAdjacentHTML('beforeBegin', this.beginTableCornerStr(width,
+				topId));
+		var bottomId = 'tableCorner-' + BaseJS.increase();
+		
+		if (!drawBottomCornerAble)
+		{
+			panel.insertAdjacentHTML('afterEnd', this.endTableCornerStr(width,
+					bottomId));
+		}
+		panel.topId = topId;
+		panel.bottomId = bottomId;
+		panel.counter = 0;
+		// func, execute time interval 
+		var debounce = function (func, threshold, execAsap) {  
+		    var timeout;  
+		    return function debounced () {  
+		        var obj = this, args = arguments;  
+		        function delayed () {  
+		            if (!execAsap)  
+		            func.apply(obj, args);  
+		            timeout = null;  
+		        };  
+		        if (timeout)  
+		            clearTimeout(timeout);  
+		        else if (execAsap)  
+		            func.apply(obj, args);  
+		        timeout = setTimeout(delayed, threshold || 100);  
+		    };  
+		}
+		
+		var panelResize = function(panel){
+			return function() {
+				document.getElementById(panel.topId).style.width = panel.offsetWidth + 'px';
+				if (document.getElementById(panel))
+					document.getElementById(panel.bottomId).style.width = panel.offsetWidth + 'px';
+				if (panel.counter < 5) {
+					tableCorner.fireEvent(tableCorner.events['after']);
+					panel.counter++;
+				}
+			}	
+		}(panel);
+		
+		panel.onresize = debounce( function(){  
+			panelResize();  
+		}, 100, true);  
+		
+		/**
+		panel.onresize = function() {
+			document.getElementById(this.topId).style.width = this.offsetWidth + 'px';
+			if (document.getElementById(this.bottomId))
+				document.getElementById(this.bottomId).style.width = this.offsetWidth + 'px';
+			if (this.counter < 5) {
+				tableCorner.fireEvent(tableCorner.events['after']);
+				panel.counter++;
+			}
+		};
+		**/
+
+		document.getElementById(topId).resize = function() {
+			var el = document.getElementById(this.targetId);
+			this.style.width = (el ? el.offsetWidth : 0) + 'px';
+		}
+
+		if (document.getElementById(bottomId))
+		{
+			document.getElementById(bottomId).resize = function() {
+				var el = document.getElementById(this.targetId);
+				this.style.width = (el ? el.offsetWidth : 0) + 'px';
+			}
+		}
+
+		if (panel.tagName == 'TABLE' && 'nopaging' != panel.getAttribute("nopaging")) 
+		{
+			this.addBottomPage(bottomId);
+		}
+		// call back
+		this.fireEvent(this.events['after']);
+		
+		
+        var refreshCorner0 = function(){
+            var acontainId = containId;
+            tableCorner.refleshCorner(acontainId);
+            clearInterval(timer);
+        };
+
+		var timer = setInterval(refreshCorner0, 100);
+		
+	},
+
+	// clone top page navigator to table bottom.
+	addBottomPage : function(bottomId) {
+		var pagingInfo = document.getElementById('pagingInfo');
+		var bottomtableObj = document.getElementById(bottomId);
+		var parentNode = bottomtableObj.parentNode;
+		if (pagingInfo) {
+			pagingInfo.style.marginTop = '5px';
+			this.insertAfter(pagingInfo, bottomtableObj);
+			pagingInfo.style.display="";
+		}
+	},
+	
+	//insert node after target node
+	insertAfter: function(newEl, targetEl)
+    {
+        var parentEl = targetEl.parentNode;
+        
+        if(parentEl.lastChild == targetEl)
+        {
+            parentEl.appendChild(newEl);
+        }else
+        {
+            parentEl.insertBefore(newEl,targetEl.nextSibling);
+        }            
+    },
+
+	addTreeCornerListener : function(treePanelId) {
+		var treePanel = document.getElementById(treePanelId);
+		if (typeof (treePanel) == 'undefined' || !treePanel)
+			return;
+		var p = treePanel;
+		var i = 0;
+		while (p) {
+			i++;
+			if (p.style.display.toUpperCase() == 'NONE')
+				return;
+			if (i >= 3)
+				break;
+			p = p.parentNode;
+		}
+
+		Ac360.attachEvent(document,'onreadystatechange', function() {
+			if (document.readyState == "complete") {
+				tableCorner.drawTreeCorner(treePanelId);
+			}
+		});
+	},
+
+	drawTreeCorner : function(treePanelId) {
+		var treeContainer = document.getElementById(treePanelId);
+
+		tableCorner.tmpEndTableCornerStr = tableCorner.endTableCornerStr;
+		tableCorner.endTableCornerStr = tableCorner.endTreeCornerStr;
+		treeContainer.className += ' left-right-border-style';
+		tableCorner.drawCorner(treePanelId);
+		tableCorner.endTableCornerStr = tableCorner.tmpEndTableCornerStr;
+	},
+
+	addTreeCorner : function(treePanelId) {
+		if (typeof (addCorner) != 'undefined' && addCorner) {
+			return;
+		}
+
+		var treePanel = document.getElementById('treePanel');
+
+		if (typeof (treePanelId) != 'undefined' && !treePanelId
+				&& treePanelId != null) {
+			tableCorner.addTreeCornerListener(treePanelId);
+		} else if (treePanel == 'undefined' || treePanel == null) {
+			tableCorner.addTreeCornerListener('treeContainer');
+		} else {
+			if (document.hasCorner != 'undefined' && document.hasCorner)
+				return;
+			if (treePanel.isShow == 'false')
+				return;
+			tableCorner.addTreeCornerListener('treePanel');
+			document.hasCorner = true;
+		}
+	},
+	//special handle tab, usually, draw corner in document order
+	specialHandleTab : function(){
+		tableCorner.tmpBeginTableCornerStr = tableCorner.beginTableCornerStr;
+		tableCorner.beginTableCornerStr = tableCorner.beginTabCornerStr;
+
+		tableCorner.tmpEndTabCornerStr = tableCorner.endTableCornerStr;
+		tableCorner.endTableCornerStr = tableCorner.endTabCornerStr;
+
+		if (tableCorner.isBrowser("ie7"))
+		{
+			Ac360.attachEvent(document,'onreadystatechange',	function(){
+				if (document.readyState == "complete") {
+					var panel = document.getElementById("_$mainContent");
+					var width = panel.width ? panel.width : panel.offsetWidth;
+					var bottomId = panel.bottomId;
+					panel.insertAdjacentHTML('afterEnd', tableCorner.endTableCornerStr(width,
+							bottomId));
+				}
+			});
+			tableCorner.drawCorner("_$mainContent", true);
+		}
+		else
+		{
+			tableCorner.drawCorner("_$mainContent");
+		}
+		tableCorner.beginTableCornerStr = tableCorner.tmpBeginTableCornerStr;
+		tableCorner.endTableCornerStr = tableCorner.tmpEndTabCornerStr;
+
+		tableCorner.drawCorner = function(){};
+	},
+	
+	isBrowser : function(vision) {
+        if (typeof vision == 'undefiend')
+            return false;
+        vision = vision.toUpperCase();
+        var isIE = !!window.ActiveXObject;
+        var isIE6 = isIE && !window.XMLHttpRequest;
+        var isIE8 = isIE && !!document.documentMode;
+        var isIE7 = isIE && !isIE6 && !isIE8;
+        if (isIE) {
+            if (isIE6) {
+                return vision === 'IE6';
+            } else if (isIE8) {
+                return vision === 'IE8';
+            } else if (isIE7) {
+                return vision === 'IE7';
+            }
+        }
+        else {
+            return vision === 'FF';
+        }
+    }
+
+};
+
+//======================================reset read only style
+//begin=============================================
+readOnlyObj = {
+
+	cls : 'readonlyBackColor',
+
+	// reset css
+	resetCSS : function(eles) {
+		if(!scrollBarIssue.judgeIsNull(eles)){
+			for ( var i = 0; i < eles.length; i++) {
+				if(scrollBarIssue.judgeIsObj(eles[i])){
+					if((eles[i].nodeName == "INPUT" && (eles[i].getAttribute("type") == "text" || eles[i].getAttribute("type")  == 'password')) || eles[i].nodeName == "TEXTAREA")
+					{
+						var ele = eles[i];
+						//ignore wastermask field
+						if (ele.ignoreTweak)
+						{
+							continue;
+						}
+						if (this.checkReadonly(ele)) 
+						{
+							if(ele.ignore){
+								continue;
+							}
+							if (!ele.className.match(new RegExp(
+									'(\\s|^)' + this.cls + '(\\s|$)'))) {
+								ele.className += " " + this.cls;
+							}
+							if(ele.className.indexOf(readOnlyObj.cls) < 0){
+								ele.className = ele.className + ' ' + readOnlyObj.cls;
+							}
+							ele.style.backgroundColor = "";
+						}
+						 else 
+						{
+							if(ele.className.indexOf(readOnlyObj.cls) > -1){
+								ele.className = ele.className.replace(/readonlyBackColor/ig,'');
+							}
+							if(ele.className.indexOf('portlet-form-input-field') < 0){
+								if (ele.cols > 20 && ele.rows > 2)
+								{
+									ele.className = ele.className + ' portlet-form-input-field-customized-width-height';	
+								}
+								else
+								{
+									ele.className = ele.className + ' portlet-form-input-field';
+								}
+							}
+						}
+						
+						if(eles[i].nodeName == "INPUT"){
+							this.setTextHeight(ele);
+						}
+					}
+					else if(eles[i].nodeName == "SELECT")
+					{
+						this.handleDisabled([eles[i]]);
+					}
+				}
+			}
+		}
+	},
+	
+	//this function will return true if element had been set readOnly or disabled attribute. Otherwise, return false.
+	checkReadonly : function(ele) {
+		if (scrollBarIssue.judgeIsObj(ele) && (ele.readOnly || ele.disabled)){
+			if (ele.type == "text" || ele.type == "textarea") {
+				return true;
+			}
+		}
+		return false;
+	},
+	
+	handleDisabled : function(eles) {
+		if(!scrollBarIssue.judgeIsNull(eles)){		
+			for ( var i = 0; i < eles.length; i++) {
+				if (eles[i].disabled) {
+					eles[i].style.backgroundColor = "";
+				}
+			}
+		}
+	},
+	
+	// reset read only style
+	resetReadOnly : function(eles) {
+		
+		if(scrollBarIssue.judgeIsNull(eles)){
+			// because of some elements' name were not specification Who
+			// developed.for example:<input name="length" />
+			// so we need to special handle these elements
+			eles = jQuery("input[type=text], input[type=password]");
+			if (eles != null) {
+				var array = new Array();
+				var index = 0;
+				for ( var ele in eles) {
+					var obj = eles[ele];
+					if (scrollBarIssue.judgeIsObj(obj) && !scrollBarIssue.judgeIsObj(obj['tagName']) && obj['tagName'] == "INPUT" && (!scrollBarIssue.judgeIsNull(obj.length)) && (!scrollBarIssue.judgeIsNull(obj.type)) && obj.type.toUpperCase()!= 'HIDDEN') {
+						for ( var i=0;i<obj.length;i++) {
+							if(obj[i]&&typeof(obj[i]) != "undefined")
+							{
+								var ele_type = obj[i].type;
+								if (ele_type == 'text' || ele_type == 'password') {
+									array[index] = obj[i];
+									array[index].style.backgroundColor = "";
+									index++;
+								}
+							}
+						}
+					} else {
+						if (typeof (obj) != "undefined" && (obj.type == 'text' || obj.type == 'password')) {
+							array[index] = obj;
+							array[index].style.backgroundColor = "";
+							index++;
+						}
+					}
+				}
+				eles = array;
+			}
+			this.resetCSS(eles);
+			this.resetCSS(document.getElementsByTagName("textarea"));
+			this.resetCSS(document.getElementsByTagName("select"));
+			return;
+		}
+		this.resetCSS(eles);
+	},
+	
+	setTextHeight : function(ele) {
+		ele.style.height = '19px';
+	},
+	
+	singleResetReadOnly : function(eleName) {
+		if (typeof (eleName) != "undefined") {
+			var eles = document.getElementsByName(eleName);
+			this.resetReadOnly(eles);
+		}
+	},
+	
+	getResetObjs : function(container){
+		if(scrollBarIssue.judgeIsObj(container)){
+			var inputs = container.getElementsByTagName("input");
+			var textAreas = container.getElementsByTagName("textArea");
+			var selects = container.getElementsByTagName("select");
+			var objs = new Array();
+			if(scrollBarIssue.judgeIsObj(inputs)){
+				for ( var input_index = 0; input_index < inputs.length; input_index++) {
+					objs.push(inputs[input_index]);
+				}
+			}
+			if(scrollBarIssue.judgeIsObj(textAreas)){
+				for ( var textAreas_index = 0; textAreas_index < textAreas.length; textAreas_index++) {
+					objs.push(textAreas[textAreas_index]);
+				}
+			}
+			if(scrollBarIssue.judgeIsObj(selects)){
+				for ( var  select_index = 0; select_index < selects.length; select_index++) {
+					objs.push(selects[select_index]);
+				}
+			}
+			return objs;
+		}
+		return null;
+	}
+};
+//======================================reset read only style
+//end=============================================
+
+UI.Base = {
+
+	//true - AR
+	checkAr : function() {
+		var p = self;
+		var i = 0;
+		if (typeof (p) == 'undefined') {
+			return false;
+		}
+
+		while (p) {
+			if (typeof (p.profile) != "undefined") {
+				if (p.profile.language.toLowerCase().indexOf("ar") >= 0) {
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			p = p.parent;
+			i++;
+			if (i >= 10)
+				break;
+			
+		}
+		return false;
+	}
+};
+
+
+//water mark begin...........................................
+UI.waterMark = {
+	
+	defaultLen : 4,
+	
+	waterMarkTargetIds : new Array(),
+	
+	waterMark : function(value){
+
+		this.id = AV360WatermarkAPI.instances++;
+		AV360WatermarkAPI.objects[this.id] = this;
+		
+		this.__watermark;
+		this.__watermark_div;
+		this.__target ;
+		this.__attached = false;
+		this.__value = value;
+		
+		this.__ref = "AV360WatermarkAPI.objects['" + this.id + "']";
+		
+		this.__alignment = ""; // For the input element's align attribute
+		
+		this.addDiv = function(parentNode){
+			this.__watermark_div = document.createElement("DIV");
+			this.__watermark_div.setAttribute("name",this.__target.name + "__watermark_div");
+			this.__watermark_div.style.position = "relative";
+			while (parentNode.firstChild)
+			{
+				this.__watermark_div.appendChild(parentNode.firstChild);
+			}
+			parentNode.appendChild(this.__watermark_div);
+			parentNode.insertAdjacentHTML("afterbegin","<SPAN style='height:12px;margin-top:-12px'>&nbsp;</SPAN>");
+			return this.__watermark_div; 
+		};
+		
+		this.addWaterMark = function(parentNode){
+			this.addDiv(parentNode);
+			this.__watermark = document.createElement("label");
+			this.__watermark_div.appendChild(this.__watermark);
+			
+			var name = Ac360.validator.isEmpty(this.__target.name) ? this.__target.id : this.__target.name;
+			this.__watermark.setAttribute("name", name + "__watermark");
+			this.__watermark.setAttribute("id", name + "__watermark");
+			this.__watermark.className = "portlet-watermark-input-field";
+			this.__watermark.ignoreTweak = true;
+			this.__watermark.style.display = "inline";
+			this.__watermark.style.position = "absolute";			
+			this.__watermark.innerHTML = this.__value;
+			this.__watermark.style.background = "#fffdd4";
+			this.__watermark.style.fontStyle = "italic";
+			this.__watermark.style.color = "#666666";
+			
+			this.__watermark.onclick = function(){
+				this.__watermark.style.visibility = "hidden";
+				this.__target.style.visibility = "visible";
+				if (!this.__target.disabled)//when the target is disable/read only
+					this.__target.focus();
+			}.bind(this);
+			
+			UI.waterMark.waterMarkTargetIds.push(name);
+			
+		};
+		
+		this.addTargetEvent = function(){
+			Ac360.attachEvent(this.__target,"onblur" , function(){
+				this.judgeValueEvent("onblur");	
+			}.bind(this));
+			
+			Ac360.attachEvent(this.__target,"onfocus",  function(){
+				this.__watermark.style.visibility = "visible";
+				this.__watermark.style.visibility = "hidden";
+			}.bind(this));
+			
+			Ac360.attachEvent(this.__target,"onpropertychange",  function(event){
+				if(event.propertyName == 'value' && !event.srcElement.value)
+					return;
+				this.judgeValueEvent("onpropertychange");	
+			}.bind(this));
+		};
+
+		this.judgeValueEvent = function(event){
+			if (this.__target.value == "")
+			{
+				if (this.__watermark.getAttribute("Hidden_By_Expression") && this.__watermark.getAttribute("Hidden_By_Expression") == "Yes")
+				{
+					return;
+				}
+				if("initialize" != event)
+				{	
+					this.setMarkInputBound();
+					this.__watermark.style.visibility = "visible";
+				}
+			}
+			else
+			{
+				this.__watermark.style.visibility = "hidden";
+			}
+		};
+		
+		this.__initialize = function()
+		{
+			var parentNode = this.__target.parentNode;
+			this.addWaterMark(parentNode);
+			this.judgeValueEvent("initialize");
+		};
+		
+		//water mark entry
+		this.attach = function(target_name)
+		{
+			if (this.__attached)
+			{
+				alert(getTextlable("error.js.watermark.AV360WatermarkAttach"));
+				return ;
+			}
+	
+			this.__target = document.getElementById(target_name);
+			if(typeof(this.__target)=='undefined')
+			{
+				this.__target = document.getElementsByName(target_name)[0];
+			}
+			
+			
+			if (!this.__target || this.__target.type == "hidden")
+			{
+				return ;
+			}
+			
+			this.__initialize();
+			this.timeInterval = setInterval(function(){
+				if (document.readyState == "complete") {
+					clearInterval(this.timeInterval);
+					this.addTargetEvent();
+					this.setMarkInputBound();
+					this.__attached = true;
+					this.__target.judge = this.setMarkInputBound.bind(this);
+				}
+			}.bind(this), 1000);
+			
+			
+			
+		};
+		
+		this.setMarkInputBound = function()
+		{
+			this.__watermark.style.width = this.getWidth() - UI.waterMark.defaultLen + 'px';//left border + right border + padding 
+			this.__watermark.style.height = this.getHeight() - UI.waterMark.defaultLen + 'px';
+			var offsetTop = this.__target.clientTop;
+			var offsetLeft = this.__target.offsetLeft;
+			this.__watermark.style.left = offsetLeft + 1 + 'px';
+			this.__watermark.style.top = offsetTop + 1 + 'px';
+		};
+		
+		this.getWidth = function()
+		{
+			var width = 0;
+			if (this.__target.offsetWidth)
+			{
+				width = this.__target.offsetWidth; 
+			}
+			else
+			{
+				if (this.__target.style.width)
+					width = parseInt(this.__target.style.width);
+				else
+					width = UI.waterMark.defaultLen;
+			}
+			return width;
+		};
+		
+		this.getHeight = function()
+		{
+			var height = 0;
+			if (this.__target.offsetHeight)
+			{
+				height = this.__target.offsetHeight; 
+			}
+			else
+			{
+				if (this.__target.style.height)
+					height = parseInt(this.__target.style.height);
+				else
+					height = UI.waterMark.defaultLen;
+			}
+			return height;
+		};
+		
+		this.setAlignment = function(){
+			
+		}
+	},
+
+	// Recalculated position when watermark element display in page.
+	refreshAllWatermarks : function(){
+		if (UI.waterMark.waterMarkTargetIds.length > 0)
+		{
+			for (var i = 0; i < UI.waterMark.waterMarkTargetIds.length; i++)
+			{
+				var targetObj = document.getElementById(UI.waterMark.waterMarkTargetIds[i]);
+				if (targetObj && targetObj.judge) {
+					if(targetObj.parentNode){
+						targetObj.parentNode.style.height = '';
+					}
+					targetObj.judge();
+				}
+			}
+		}
+	}
+}
+
+//water mark end...........................................
+
+
+/**The begining of highLight function for table rows******/
+
+//gets dom object
+function getObject(nameStr) 
+{
+	return document.getElementById(nameStr);
+}
+//gets parent's dom object
+function getParentObject(nameStr) {
+	 if(typeof parent == "object" && typeof parent.document == "object")
+	 { 
+	 	if (ie)
+	 		return Ac360.getElementByIdOrName(nameStr,parent);
+	  	else if (ns4)
+	  		return parent.document.layers[nameStr];
+	 }
+	return null;
+}
+
+
+function initRowEvent(rowObj)
+{
+	if(rowObj)
+	{
+		rowObj.onmouseout = function(){rowMouseout(this.id);};
+		rowObj.onmousemove = function(){rowMouseOver(this.id);};
+		rowObj.onclick = function(){highlight(this.id);};
+	}
+}
+
+function rowMouseOver(rowID)
+{
+	var rowObj = getObject(rowID);
+	if(rowObj)
+	{
+		var jqRow = $(rowObj);
+		if(jqRow.hasClass('rowClick') || jqRow.hasClass('rowOver'))
+		{
+			return;
+		}
+		jqRow.addClass('rowOver');
+	}	
+}
+
+function rowMouseout(rowID)
+{
+	var rowObj = getObject(rowID);
+	if(rowObj)
+	{
+		var jqRow = $(rowObj);
+		if(jqRow.hasClass('rowClick')) 
+		{
+			return;
+		}
+		jqRow.removeClass('rowOver');
+	}
+}
+
+function highlight(rowID) {
+	isClick=true;
+	if(rowID =='rowinit')
+	{
+		rowID="row1";
+		isClick=false;
+	}
+	else
+	{
+		// Yan Xiao - Support Netscape and Firefox (SAN# 06ACT-00000-00235): 
+		// Original code assumed that window.event is the current event.
+		// However, Firefox does not define window.event at all. As result, we need to use "this.even" instead of "even".
+		if(this.event !=null)
+		{	
+			//Updated by Andrew Chen 05/09/2006
+			//For those list portlets which don't have checkbox/radiobutton column
+			var srcEle = this.event.srcElement;
+			if(srcEle != null && (srcEle.type == "checkbox" || srcEle.type == "radio" 
+				|| srcEle.type == "text" || srcEle.tagName == "SELECT"))
+			{
+			 	return false;
+			}
+		}	 
+	}
+	if(primaryObjInd  == rowID)
+	{
+		return;
+	}
+
+	unHighlight();
+	rowObj = getObject(rowID);
+	linkObj = getObject('link' + rowID);
+	if(rowObj !=null)
+	{		
+		//highlight the row
+		var jqRow = $(rowObj);
+		if(!jqRow.hasClass('rowClick'))
+		{
+			jqRow.addClass('rowClick');
+		}
+		highlightedRow = rowID;
+		if(linkObj !=null && isClick)
+		{
+			if(linkObj.target != null && linkObj.target.length > 0 && linkObj.target != '_self' && linkObj.target != '_top')
+			{
+				
+				try{									
+					if(this.event.srcElement.nodeName=="A")
+					{
+						if(this.event.srcElement.onclick==null)
+						{
+							return ; 
+						}
+					}
+					else if(this.event.srcElement.parentElement.nodeName=="A")
+					{
+						if(this.event.srcElement.parentElement.onclick==null)
+						{
+							return ; 
+						}
+					}else if(this.event.srcElement.parentElement.parentElement.nodeName=="A")
+					{
+						if(this.event.srcElement.parentElement.parentElement.onclick==null)
+						{
+							return ; 
+						}
+					}					
+				}catch(error)
+				{
+					//donothing
+				}
+				if (linkObj.click)
+				{
+					var args = highlight.arguments;
+					
+					if(args.length == 2)
+					{
+						if(linkObj.tagName.toLowerCase() == "a")
+						{//
+							//fix bug #42483, the link text will initially display with a URL string if it includes the email format.  
+							var displayHTML = linkObj.innerHTML;
+							linkObj.setAttribute("href",linkObj.getAttribute("href") + "&autoFocus=false");
+							if(displayHTML.indexOf("@") > 1 )
+							{
+								linkObj.innerHTML = displayHTML;
+							}
+						}
+					}
+					try
+					{
+						//For feature 13ACC-00695, avoid showing confirm saving dialog twice when click 'a' link on record list.
+						var href = linkObj.href;
+						var target = linkObj.target;
+						try 
+						{
+							if(this.event.srcElement.href.length > 0 && this.event.srcElement.target == linkObj.target && linkObj.href.length > 0)
+							{
+								linkObj.href = "#";
+								linkObj.removeAttribute("target");
+							}
+						} catch (e) 
+						{
+							// do nothing
+						}
+						//Prevent the default click event on record list row for new UI
+						if(typeof(oldUI)=="undefiend" || oldUI==null || oldUI)
+						{
+							linkObj.click();
+						}
+						else
+						{
+							//Enable default click event on schedule inspections for new ui when open FID(8400) 
+							if(linkObj.getAttribute("highlightclick") == "true")
+							{
+								linkObj.click();
+							}
+						}
+					}
+					catch(e)
+					{
+						
+					}
+					finally
+					{
+						var objInnerHTML = linkObj.innerHTML;
+						linkObj.href = href;
+						linkObj.target = target;
+						linkObj.innerHTML = objInnerHTML;
+					}
+				}	
+				else
+				{
+					MozillaLinkClick(linkObj);
+				}	
+			}
+		}
+	}
+}
+
+function unHighlight() {
+	if (highlightedRow != '') {
+		rowObj = getObject(highlightedRow);
+		if (rowObj)
+		{
+			$(rowObj).removeClass('rowOver').removeClass('rowClick');
+		}
+	}
+}
+
+/**The end of highLight function for table rows******/
+
+function goFirstEntryURL(frameName)
+{
+	var frameObject = window.parent.opener.parent.document.getElementById(frameName);
+	if(!frameObject)
+	{
+		var es = window.parent.opener.parent.document.getElementsByName(frameName);
+		if(es)
+			frameObject = es[0]; 
+	}
+		
+	if (frameObject != null)
+	{	
+		var frameDocument = frameObject.contentWindow.document;
+		var modeValue = frameDocument.getElementById("modeName").value;
+		var documentLoc = frameDocument.location;
+		var firstEntryUrl = documentLoc.protocol + "//" + documentLoc.host;
+		var module = frameDocument.getElementById("module").value;
+		var refreshUrl = null;
+		
+		if(frameDocument.getElementById("refreshUrlForCapCondition"))
+		{
+			refreshUrl = frameDocument.getElementById("refreshUrlForCapCondition").value;			
+		}
+		
+		if(refreshUrl && refreshUrl != "")
+		{
+			firstEntryUrl = refreshUrl;
+		}
+		else if(modeValue && modeValue != "")
+		{
+			firstEntryUrl = firstEntryUrl + frameDocument.getElementById("value(CurrentEntryURL)").value;
+		}else
+		{
+			firstEntryUrl = firstEntryUrl + frameDocument.getElementById("value(FirstEntryURL)").value;
+		}
+
+		if(module != '')
+		{
+			firstEntryUrl = appendUrlParam(firstEntryUrl, 'module', module);
+		}
+		frameDocument.location.href = firstEntryUrl;	
+	}
+}
+
+function appendUrlParam(url,paramName, paramValue)
+{
+	if(url.indexOf(paramName + "=")<0)
+	{
+		if(url.indexOf("?")<0)
+		{
+			url = url + "?";
+		}
+		else
+		{
+			url = url + "&";
+		}
+		url = url + paramName + "=" + paramValue;
+	}
+	return url;
+}
+
+/*
+ * open a child window which can pass SSO authenticate even it open from a model window
+ */
+function openSubWindow(settings , targetURL,name,acAuth)
+{
+	targetURL=encodeURIComponent(targetURL);	
+	var jseesionID = encodeURIComponent(getJSessionID());
+	var newwin = window.open("/portlets/datapicker/popupWindow.jsp?"+(acAuth? "ACAuth="+acAuth+"&":"")+"targetURL="+targetURL+"&jsessionid="+jseesionID,name,settings);		
+ 	if( newwin !=null)
+ 	{
+ 		newwin.opener=window;
+ 	 	newwin.focus();
+ 	}
+	
+ 	return false; 
+}
+
+
+
+
+
+
+/**start deal with token*/
+
+var token = {
+		
+	//token element name
+	tokenHideName : 'CSRF_REQ_PARAM',
+
+	url : "/portlets/i18n/ajax.do?mode=getCSRFToken",
+	
+	//filter suffix
+	pattern : new RegExp('(js|css|jpg|gif|empty.jsp|blank.jsp)$', 'i'),
+	
+	appendToken : function(newToken)
+	{
+		if (!this.checkIsConfigToken())
+		{
+			return;
+		}
+
+		var tokenObj = new Ac360.query(token.tokenHideName);
+		 if(Ac360.validator.isEmpty(tokenObj) || Ac360.validator.isEmpty(newToken))
+			 return;
+		if (Ac360.indexOfArray(tokenObj.value.split(","), newToken) > -1)
+			return;
+		if (Ac360.validator.isEmpty(tokenObj.value))
+		{
+			tokenObj.value = newToken;
+			tokenObj.defaultValue = newToken;
+		}
+		else
+		{
+			tokenObj.value = tokenObj.value + "," + newToken;
+			tokenObj.defaultValue = tokenObj.value;
+		}
+	},
+	
+	dealWithUrl : function(url, method)
+	{
+    	if (!this.checkIsConfigToken())
+    	{
+    		return;
+    	}
+
+		if (!Ac360.validator.isEmpty(method) && method.toLowerCase() != "post")
+		{
+			return url;
+		}
+		
+		if (Ac360.validator.isObject(url))
+		{
+			url = url.toString();
+		}
+		if (this.pattern.test(url))
+		{
+			return url;
+		}
+				
+		var tokenValue = this.getTokenFromDocument();
+		
+		if (!Ac360.validator.isEmpty(tokenValue))
+		{
+			if(url.indexOf('?') != -1) {
+				url = url + '&' + 'CSRF_REQ_PARAM=' + tokenValue;
+			} else {
+				url = url + '?' + 'CSRF_REQ_PARAM=' + tokenValue;
+			}
+		 }
+		 return url;
+	},
+	
+	getTokenFromDocument : function(isTokenRequest)
+	{
+    	if (!this.checkIsConfigToken())
+    	{
+    		return;
+    	}
+
+		var tokenObj = Ac360.query(this.tokenHideName);
+		if(Ac360.validator.isEmpty(tokenObj))
+			return "";
+		
+		var tokenValue;
+		if (Ac360.validator.isEmpty(tokenObj.value))
+		{
+			tokenValue = tokenObj.defaultValue;
+			tokenObj.value = tokenValue; 
+		}
+		else
+		{
+			tokenValue = tokenObj.value;
+		}
+		
+		var values =  tokenValue.split(',');
+		
+		var token = "";
+		if (!Ac360.validator.isEmpty(isTokenRequest))
+		{
+			token = values.pop();			
+		}
+		else
+		{
+			token = values.shift();
+		}
+		var tmpValue = values.join(',');
+		tokenObj.value = tmpValue;
+		tokenObj.defaultValue = tmpValue;
+		return token;
+	},
+	
+	callback : function(responseTxt)
+	{
+		var tokenObj = new Ac360.query(token.tokenHideName);
+		if (Ac360.validator.isEmpty(responseTxt) || Ac360.validator.isEmpty(tokenObj))
+			return;
+		
+		var tokenJSON = BaseJS.strToJson(responseTxt);
+		tokenObj.value = tokenJSON.CSRF_Token;	
+	},
+	
+	obtainToken : function(callback)
+	{
+    	if (!this.checkIsConfigToken())
+    	{
+    		return;
+    	}
+
+		var tokenValue = this.getTokenFromDocument(true);
+		if (Ac360.validator.isEmpty(tokenValue))
+			return;
+			
+	    var ajax = new Ac360.ajax();
+	    var url = this.url + '&' + 'CSRF_REQ_PARAM=' + tokenValue;
+	    ajax.send(url, null, callback || this.callback);
+	},
+	
+	writeToken : function(req)
+	{
+    	if (!this.checkIsConfigToken())
+    	{
+    		return;
+    	}
+
+		try {
+          var readyState = req.readyState;
+          if (readyState != 4) {
+            return;
+          }
+        }
+        catch (ex) {
+          return;
+        }
+        var status = req.status; // causes Mozilla to except on page moves
+        
+        if (status != 200) 
+        	return;
+        	
+        var newToken = req.getResponseHeader("token");
+       
+       if (!Ac360.validator.isEmpty(newToken))
+       {
+    	   this.appendToken(newToken);
+       }
+       },
+	
+	setTokenInForm : function(newToken)
+	{
+    	if (!this.checkIsConfigToken())
+    	{
+    		return;
+    	}
+    	 
+		var tokenObj = document.forms[0].CSRF_REQ_PARAM;
+		if (Ac360.validator.isEmpty(tokenObj))
+			return;
+		
+		
+		if (Ac360.validator.isEmpty(newToken))
+		{
+			newToken = this.getTokenFromDocument();
+		}
+		
+		var oldTokenValue = tokenObj.value;
+		if (Ac360.validator.isEmpty(oldTokenValue))
+		{
+			document.forms[0].CSRF_REQ_PARAM.value = newToken;
+		}
+		else
+		{
+			document.forms[0].CSRF_REQ_PARAM.value = oldTokenValue+","+newToken;
+		}
+	},
+	
+	checkIsConfigToken : function()
+	{
+		if (!Ac360.validator.isEmpty(profile) && profile.enableSecurityDefense)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+}
+/** end deal with token*/
+
+/** Start deal with encode mask's value for ssn, fein with base64 **/
+var encodeMask = {
+		
+		/** add the encode mask function for document **/
+		addEncodeMaskFun : function()
+		{
+			if(typeof($) != 'undefined' && $(document) != null)
+			{
+				$(document).ready(function(){encodeMask.encodeMaskValue4Submit();});
+			}
+		},
+		
+		/** use the base64 encode the mask field like SSN, FEIN **/
+		encodeMaskValue4Submit : function()
+		{
+			if(typeof(hasExecuteEncodeMask) != 'undefined' && hasExecuteEncodeMask)
+			{
+				return;
+			}
+			
+			var needEncodeMaskElems = $("[needEncodeMask='true']");
+			if(needEncodeMaskElems == null || needEncodeMaskElems.length == 0)
+			{
+				return;
+			}
+			
+			if(typeof(Base64) == 'undefined' || Base64 == null)
+			{
+				encodeMask.addJavaScriptFile('/portlets/framework/includes/javascript/base64.js',
+						encodeMask.replaceIntercepterFunction);
+			}
+			else
+			{
+				encodeMask.replaceIntercepterFunction();
+			}
+		},
+		
+		/** replace the intercepterSubmit function for encode SSN, FEIN **/
+		replaceIntercepterFunction : function()
+		{
+			hasExecuteEncodeMask = true;
+			var oldIntercepterSubmit = window.intercepterSubmit;
+			window.intercepterSubmit = function(a)
+			{
+				var intercepterResult = oldIntercepterSubmit(a);
+				
+				if(intercepterResult)
+				{
+					var needEncodeMasks = $("[needEncodeMask='true']");
+					for (var i = 0; i < needEncodeMasks.length; i++)
+					{
+						if(needEncodeMasks[i].value != null && needEncodeMasks[i].value != ""
+								&& needEncodeMasks[i].value.indexOf("_b_a_s_e_64___") < 0)
+						{
+							needEncodeMasks[i].value = Base64.encode(needEncodeMasks[i].value);
+						}
+					}
+				}
+				
+				return intercepterResult;
+			}
+		},
+		
+		addJavaScriptFile : function(src, callback)
+		{
+			var jsElem = document.createElement('script'); 
+			jsElem.type = 'text/javascript'; 
+			jsElem.src = src;
+			if(jsElem.readyState)
+			{
+				jsElem.onreadystatechange = function()
+				{
+					if (jsElem.readyState == "loaded" || jsElem.readyState == "complete")
+					{
+						callback();
+					}
+				};
+			}
+			document.getElementsByTagName('head')[0].appendChild(jsElem);
+		}
+}
+/** End deal with encode mask's value for ssn, fein with base64 **/

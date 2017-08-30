@@ -1,0 +1,124 @@
+iframe[name="listFrame"],
+iframe[name="newMeetingCalenderFrame"],
+iframe[name="mergeContact"],
+iframe[name$="Detail"],
+iframe[name$="Form"],
+iframe[name$="List"],
+iframe[name="realtree"] {
+  height: 100% !important;
+  /* override inline height set by jsp  */
+  width: 100% !important;
+  min-height: auto;
+}
+iframe[name="listFrame"] body,
+iframe[name="newMeetingCalenderFrame"] body,
+iframe[name="mergeContact"] body,
+iframe[name$="Detail"] body,
+iframe[name$="Form"] body,
+iframe[name$="List"] body,
+iframe[name="realtree"] body {
+  overflow: hidden;
+}
+/* IFRAME USED TO LOAD PORTLETS - /views/portlet/portlet-iframe.html
+============================================================================= */
+html,
+body {
+  height: 100% !important;
+}
+body {
+  margin: 0 !important;
+  width: 100%;
+}
+.tabbed-portlet-name {
+  width: 240px;
+  color: #6dafdd;
+  background-color: #293139;
+  padding: 0.5em 1em;
+}
+.tabbed-portlet-tab-name {
+  width: auto;
+  margin-left: 20px;
+  padding: 0.5em 1em 0.5em 0;
+}
+iframe {
+  content: "portlet-iframe-content.less";
+  width: 100%;
+  height: 100%;
+  /* override inline height set by jsp */
+  /* AAETA-641 dbalmer@accela.com */
+  /* http://stackoverflow.com/questions/6735022/remove-the-extra-whitespace-surrounding-iframes */
+  margin: 0;
+  padding: 0;
+  border-style: none;
+  display: block;
+}
+iframe#inspectionList,
+iframe#InspectionDetail {
+  min-height: 372px;
+}
+iframe#capConditionList,
+iframe#capConditionForm,
+iframe#inspectionConditionList,
+iframe#inspectionConditionForm,
+iframe#snapshotListFrame {
+  min-height: 570px;
+  min-width: 770px;
+}
+iframe#dataform {
+  height: 100% !important;
+  /* override inline height set by jsp  */
+  width: 100% !important;
+  min-height: auto;
+}
+iframe#dataform body {
+  overflow: hidden;
+}
+#iframe-page-container body {
+  margin: 0;
+}
+#inspRouteSheetGISForm {
+  display: none;
+}
+#capForm,
+#ppCapList,
+#ppPOSFrame {
+  width: 100% !important;
+}
+.portlet-loading {
+  opacity: .6;
+}
+.portlet-loading:after {
+  content: '';
+  background: url(../images/reskin/ajax-loader.gif) center center no-repeat;
+  display: block;
+  height: 30px;
+  width: 30px;
+  position: fixed;
+  bottom: 50%;
+  left: 50%;
+}
+.header.payment-portlet {
+  border-bottom: 1px solid #eee;
+  padding: 10px 20px;
+}
+.header.payment-portlet h1 {
+  margin: 0;
+  color: #888;
+  font-size: 20px;
+  font-weight: 400 !important;
+  font-family: 'proxima-nova-soft', sans-serif !important;
+}
+iframe[name="myTaskSearchForm"] {
+  position: absolute;
+  top: 0;
+}
+iframe[name="myTaskListForm"] {
+  position: absolute;
+  top: 35px;
+}
+iframe[name="myTaskListForm"].new-ui-expanded {
+  position: static !important;
+}
+iframe[name="userCostGroupList"] {
+  height: 350px !important;
+}

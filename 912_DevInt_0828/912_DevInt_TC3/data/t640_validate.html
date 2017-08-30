@@ -1,0 +1,395 @@
+//Accela Automation
+//File: validate.js
+//Accela, Inc.
+//Copyright (C): 2010-2013
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: validate.js 125874 2010-10-13 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+var Validate = {
+	validateText : function(field)
+	{
+		if (!validateRequire(field))
+		{
+			return;
+		}
+		
+	},
+	
+	validateCheck : function()
+	{
+		if (!validateRequire(field))
+		{
+			return;
+		}
+		
+	},
+	
+	validateRadio : function()
+	{
+		if (!validateRequire(field))
+		{
+			return;
+		}
+		
+	},
+	
+	validateSelect : function()
+	{
+		if (!validateRequire(field))
+		{
+			return;
+		}
+		
+	},
+	
+	isNumber : function(oNum)
+	{
+		if(!oNum) return false;
+		var strP=/^([\-]?)([0-9]+)(\.[0-9]{1,10})?$/;
+		if(!strP.test(oNum)) return false;
+		try{
+			if(parseFloat(oNum) != oNum) return false;
+		}
+		catch(ex)
+		{
+			return false;
+		}
+		return true;
+	},
+
+	//valify input data is time
+	valifyTime : function()
+	{
+		if ((event.keyCode > 95 && event.keyCode < 106) || (event.keyCode > 47 && event.keyCode < 58)
+			|| event.keyCode == 8 || (event.keyCode == 186 && event.shiftKey))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	},
+
+	
+	//valify input data is number
+	valifyNumber : function()
+	{
+		var functionKey = new Array(
+			8, //BackSpace
+			9, //Tab
+			13, //Enter
+			33, //PageUp
+			34, //PageDown
+			35, //End
+			36, //Home
+			37, //Left
+			39, //Rigth
+			46  //Delete
+		);
+		var charKey = new Array(
+			67, //char c
+			86, //char v
+			37, //Left
+			39, //Rigth
+			88  //char x
+		);
+		var result = false;
+		//user can use the keys 'Ctrl+c', 'Ctrl+v', 'Ctrl+x', 'Ctrl+Left/Right' and 'Ctrl+Shift+Left/Right'.
+		if(event.ctrlKey)
+		{
+			for(var i in charKey)
+			{
+				if(charKey[i] == event.keyCode)
+				{
+					result = true;
+				}
+			}
+		}
+		else
+		{
+			//user can use the function keys such as 'Home/Shift+Home', 'End/Shift+End', 'Left/Shift+Left' and so on.
+			for(var i in functionKey)
+			{
+				if(functionKey[i] == event.keyCode)
+				{
+					result = true;
+				}
+			}
+			//user only can input number such as '123456', '-123456', '12.3456' and '-12.3456'.
+			if(!result)
+			{
+				var obj = TemplateHelper.getTarget(event);
+				if (!obj)
+				{
+					return;	
+				}
+				var value = obj.value;
+				if (event.keyCode == 109 || event.keyCode == 189)//negative
+				{
+					if (value.indexOf('-') < 0 || Ext.isEmpty(value.trim()))
+					{
+						result = true;
+					}
+					else
+					{
+						result = false;
+					}
+				}
+				
+				if (event.keyCode == 110 || event.keyCode == 190)//point
+				{
+					if (value.indexOf('.') >= 0 || Ext.isEmpty(value.trim()))
+					{
+						result = false;
+					}
+					else
+					{
+						result = true;
+					}
+				}
+				if(!event.shiftKey&&((event.keyCode > 95 && event.keyCode < 106) || (event.keyCode > 47 && event.keyCode < 58)))
+				{
+					result = true;
+				}
+			}
+		}
+		return result;
+	},
+	
+	isDate : function(dateStr)
+	{
+		var mask = getDateFormat();
+		var checkDateMethod = "IsDate('"+mask+"')";
+		if(eval("\""+dateStr+"\"."+checkDateMethod))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}		
+		
+	},
+	
+	validateEmpty : function(value)
+	{
+		return Ext.isEmpty(value, true);
+	},
+	
+	validateInputNum : function()
+	{
+		if (!validateRequire(field))
+		{
+			return;
+		}
+		
+	},
+	
+	validateTime : function(time)
+	{
+		if (Ext.isEmpty(time))
+		{
+			return false;
+		}
+		var array = time.split(":");
+		if (array.length != 2 || Ext.isEmpty(array[0].trim()) || Ext.isEmpty(array[1].trim()))
+		{
+			return false;
+		}
+		return true;
+	},
+	
+	isMoney : function(str)
+	{
+		var patrn=/^-?\d+(\.\d{1,2})?$/; 
+		if (!patrn.exec(str)) 
+		{
+			return false 
+		}
+		else
+		{
+			return true 
+		}
+	},
+	
+	validateRequire : function(field)
+	{
+		if (field.requireFlag == 'Y')
+		{
+			return true;
+		}
+	}
+	
+};
+
+/*
+ * validate all submit content
+ */
+TemplateValidate = {
+	/*
+	 *<group###subgrou, {fields:<group###subgroup###fieldName, {file config}>, 
+	 * values:<group###subgroup###rowIndex, {group###subgroup###rowIndex###fieldName: {seq:.. , value:.., fieldName:..},..}>,
+	 * displayOrder:.., templateType:..}>
+	 */
+	verifyPass : true,
+	validateMap : function(map,isNeedValidateRequired)
+	{
+		this.verifyPass = true;
+		this.validateSubgroups(map,isNeedValidateRequired);
+		if (!this.verifyPass)
+		{
+			var  err_msg = document.getElementById('err_msg');
+			err_msg.innerHTML = '';
+			prepareVirtualBuffer();			
+			scrollBarIssue.autoAdjustForErrorMsgDisplay();
+		}
+		return this.verifyPass;
+	},
+	
+	validateSubgroups : function (map,isNeedValidateRequired)
+	{
+		var entry, key, widget, subgroupObj, rows, fields;
+		for (var it = map.iterator(); it.hasNext();)
+		{
+			entry = it.next();
+			key = entry.key;
+			widget = entry.value;
+			subgroupObj = widget.subgroupObj;
+			rows = subgroupObj.rows;//array
+			if (!rows || rows.length <= 0)
+				continue;
+			fields = subgroupObj.fields;
+			this.validateTable(fields, rows, isNeedValidateRequired);
+		}
+	},
+	
+	/*
+	 * fields is array[field1, field2..]
+	 * values: map<trid, {{field1:{value...}, field2:{}...},{field1:{value...}, field2:{}...}.....}>
+	 */
+	validateTable : function(fields, rows, isValidateRequired)
+	{
+		for (var i = 0; i < rows.length; i++)
+		{
+			this.validateByField(fields, rows[i], isValidateRequired);
+		}
+	},
+		
+	/*
+	 * validate one row
+	 * 
+	 * field: [field1, field2...]
+	 * value: {fieldName1:{seq: .., value: .., fieldName: .., id: ..}, fieldName2:{..}}
+	 */
+	validateByField : function(fields, row, isValidateRequired)
+	{
+		var field, fieldName, columnValue;
+		for (var i = 0; i < fields.length; i++)
+		{
+			field = fields[i];
+			fieldName = field.fieldName;
+			columnValue = row[fieldName];
+			if (!columnValue)
+				continue;
+			this.validateValue(field, columnValue, isValidateRequired);
+		}
+	},
+		
+	//validate input value
+	validateValue : function(field, valueObj, isValidateRequired)
+	{
+		if(isValidateRequired==null)
+		{
+			isValidateRequired = true;
+		}
+		var value = valueObj.value; 
+		var id =  valueObj.id;
+		var fieldType = field.fieldTypeValue;//, obj = document.getElementById(id);
+		if (isValidateRequired && (field.requireFlag == 'Y'||valueObj['required'] == 'Y') && !field.readOnly)//doesn't empty
+		{
+			if (fieldType == 9)//validate required check box
+			{
+				if(Ext.isEmpty(value, false) || 'UNCHECKED' == value)
+				{
+					Input.alertMsg(id, required, true);
+					this.verifyPass = false;
+				}
+				return;
+			}
+			else if(fieldType == 7)//validate required time
+			{
+				if (!Validate.validateTime(value) || ':' == value.trim())//the default value of time contains ':'
+				{
+					Input.alertMsg(id, required, true);
+					this.verifyPass = false;
+				}
+				return;
+			}
+
+			if (Ext.isEmpty(value, false))// Other field Type
+			{
+				Input.alertMsg(id, required, true);
+				this.verifyPass = false;
+			}
+			else
+			{
+				Input.alertMsg(id, '');
+				this.validateIllegalValue(fieldType,value,id);
+			}
+		}	
+		else
+		{
+			if (Ext.isEmpty(value))
+			{
+				return ;
+			}
+			this.validateIllegalValue(fieldType,value,id);
+		}
+		
+	},
+	
+	validateIllegalValue: function (fieldType,value,id)
+	{
+		switch(fieldType)
+		{
+			case 2://validate date
+				if (!Validate.isDate(value))
+				{
+					Input.alertMsg(id, dateMsg, true);
+					this.verifyPass = false;
+				}
+				break;
+			case 4://number
+				if (!Validate.isNumber(value))
+				{
+					Input.alertMsg(id, numberMsg, true);
+					this.verifyPass = false;
+				}
+				break;
+			case 7://time
+				if (':' == value.trim())//default ' : '
+				{
+					return;
+				}
+				if (!Validate.validateTime(value))
+				{
+					Input.alertMsg(id, required, true);
+					this.verifyPass = false;
+				}
+				break;
+			case 8://currency
+				if (!Validate.isMoney(value))
+				{
+					Input.alertMsg(id, currencyMsg, true);
+					this.verifyPass = false;
+				}					
+				break;
+		};
+	}
+};

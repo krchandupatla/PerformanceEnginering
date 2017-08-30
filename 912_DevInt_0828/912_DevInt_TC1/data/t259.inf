@@ -1,0 +1,11 @@
+[t259]
+FileName1=t259_regexp.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo1.4.3/dojo/regexp.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_259.xml
+RequestHeaderFile=t259_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t259_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

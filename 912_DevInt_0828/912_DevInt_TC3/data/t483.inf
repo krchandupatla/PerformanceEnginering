@@ -1,0 +1,11 @@
+[t483]
+FileName1=t483.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/regional/regionalSyncMask.do?mode=syncMask&maskType=postalCode&getMsg=Y
+Total=1
+RequestHeaderFile=t483_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t483_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_483.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

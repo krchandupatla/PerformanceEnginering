@@ -1,0 +1,31 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .factory('DashboardModel', service);
+
+  /**
+   * @description
+   * Provides Angularized data model for dependency injection.
+   * Entities are defined in /js/core/entities
+   *
+   * @ngInject
+   */
+  function service($filter, i18nService) {
+
+    // PRIVATE data
+
+    var launchpadPageFactory = Accela.Entity.LaunchpadPage();
+    var taskFactory = Accela.Entity.Task($filter, i18nService);
+    var workSpaceFactory = Accela.Entity.WorkSpace();
+
+    // PUBLIC interface
+
+    return {
+      LaunchpadPage: launchpadPageFactory,
+      Task: taskFactory,
+      WorkSpace: workSpaceFactory
+    };
+  }
+})();

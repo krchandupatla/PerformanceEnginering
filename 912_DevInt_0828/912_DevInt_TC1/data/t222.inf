@@ -1,0 +1,11 @@
+[t222]
+FileName1=t222_ac360ui.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/ac360ui.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_222.xml
+RequestHeaderFile=t222_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t222_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

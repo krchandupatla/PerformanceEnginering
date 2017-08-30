@@ -1,0 +1,491 @@
+//Accela Automation
+//File: menubar.js
+//Accela, Inc.
+//Copyright (C): 2011-2014
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id:menubar.js 198240 2011-06-28 02:13:37Z ACHIEVO\edwin.lin $
+//
+	var showMenuFlag = true;
+	var spacerObj;
+	var add_location_right=21;//div location's additional px value
+	var add_location_left=10;//div location's additional px value
+	var str_PX_length=2;// 'px' of string's length
+	
+	
+	//It is used for Report Manager in list portlet pagination.
+	//It gets the first row ID from List portlet in current page. 
+	//"value" means get the row ID value from check/radio value.
+	//Otherwise it will get the row ID from check/radio name.
+	function getListPortletFirstRowID(flag)
+	{
+		var rowID=0;
+		var allInput = document.getElementsByTagName('input');
+		var inputNbr = 0;
+		while(allInput[inputNbr] != null)
+		{
+			var firstInput = allInput[inputNbr];
+			if(firstInput.type=="radio")
+			{
+				if(flag=="value")
+				{
+					var value = firstInput.value;
+					rowID = value;
+				}
+				else
+				{
+					var propertyVal = scrollBarIssue.getAttribute(firstInput, "property");
+					if(scrollBarIssue.judgeIsNull(propertyVal))
+					{
+						propertyVal = firstInput.name; 
+					}
+					var value = propertyVal.split(",");
+					value = value[1].split(")");	
+					rowID = value[0];
+				}
+				break;
+			}
+			else if(firstInput.type=="checkbox")
+			{
+				if(firstInput.name != "value(ac360_list_id)" && firstInput.name != "ac360_list_id")
+				{
+					if(flag=="value")
+					{
+						var value = firstInput.value;
+						rowID = value;						
+					}
+					else
+					{
+						var propertyVal = scrollBarIssue.getAttribute(firstInput, "property");
+						if(scrollBarIssue.judgeIsNull(propertyVal))
+						{
+							propertyVal = firstInput.name; 
+						}
+						var value = propertyVal.split(",");
+						value = value[1].split(")");	
+						rowID = value[0];
+					}
+					break;
+				}
+			}
+			inputNbr++;
+		}		
+		return rowID;
+	}
+
+
+
+	function getConditionList(url)
+	{	
+		if(getDirection()){
+			window.open(url,"conditionWin","width=770,height=570,scrollbars=yes,resizable=yes,toolbar=no,top=10,status=no,menubar=no,left="+getScreenLeft(10,770));
+		}else{
+			window.open(url,"conditionWin","width=770,height=570,scrollbars=yes,resizable=yes,toolbar=no,top=10,left=10,status=no,menubar=no");
+		}
+		return false;
+	}
+
+	// must add onclick/onblur event to menu link whatever 508 is enable or not
+	function addOnClickOnBlurEvent4MenuLink(menuLinkObj, menuObj)
+	{
+		if (menuObj)
+		{
+			// when onclick, show the memu items
+			menuLinkObj.onclick = menuObj.onmouseover;
+			// when onblur, hide the menu items
+			menuLinkObj.onblur = menuObj.onmouseout;			
+		}
+		else
+		{
+			// when onclick, show the memu items
+			menuLinkObj.onclick = menuLinkObj.firstChild.onmouseover;
+			// when onblur, hide the menu items
+			menuLinkObj.onblur = menuLinkObj.firstChild.onmouseout;
+		}
+	}
+
+	
+	var currentItemIdx = -1;
+	var currentFocusMenuButton;
+	function enterControlMenu(linkObj) 
+	{
+		currentFocusMenuButton = linkObj;
+		currentItemIdx = -1;
+	}
+
+	function switchMenuItem(menuBarObj){
+		var links = menuBarObj.getElementsByTagName('a'); 
+		if(event.keyCode == 27 || event.keyCode == 9)
+		{
+			if(links[currentItemIdx])
+			{
+				links[currentItemIdx].parentElement.className='menu';
+			}
+			quitMenu(menuBarObj);
+			return;
+		}	
+		if(links.length>0){	
+			if(event.keyCode==38){
+				if(links[currentItemIdx])
+				{
+					links[currentItemIdx].parentElement.className='menu';
+				}
+				if(currentItemIdx>0)
+				{
+					currentItemIdx--;
+				}else{
+					currentItemIdx =links.length-1;
+				}
+				links[currentItemIdx].focus();
+				links[currentItemIdx].parentElement.className='menuSelected';
+			}	
+			if(event.keyCode==40){
+				if(links[currentItemIdx])
+				{
+					links[currentItemIdx].parentElement.className='menu';
+				}
+				if(currentItemIdx < links.length-1)
+				{
+					currentItemIdx++;
+				}else{
+					currentItemIdx = 0;
+				}
+				links[currentItemIdx].focus();
+				links[currentItemIdx].parentElement.className='menuSelected';
+			}
+		}	 
+	}
+	function regListener(id){		
+		var obj=MM_findObj(id);
+		if(!obj) return;
+		Ac360.attachEvent(obj,'onkeydown',function(){switchMenuItem(obj);});
+		Ac360.attachEvent(document,"onmousedown",function(){quitMenu(obj);});
+	}
+
+	var showTimerID;
+	var starttime = 0;
+	function delaymenu2(divID, buttonID)
+	{
+		showTimerID = setInterval("showMenu2('"+divID+"','"+buttonID+"')", 10);
+	}
+	
+	function showMenu2(divID, buttonID) {
+		document.getElementById(divID).style.visibility = "";
+		document.getElementById(divID).style.display = "";
+		
+		UI.positionMgr.show(buttonID, divID);
+	}
+
+	function renderOneTD(dispIconText)
+	{
+		if(dispIconText) {
+			document.write("<td width=12 nowrap>&nbsp;&nbsp;&nbsp;&nbsp;</td>");
+		}
+		else {
+			document.write("<td width=10 nowrap>&nbsp;</td>");
+		}
+	}
+
+	function quitMenu(menuBarObj){
+		if(!menuBarObj)
+		{
+			return;
+		}
+		cancelmenu();
+		hidemenu(menuBarObj.id);
+		currentItemIdx = -1;
+		if(currentFocusMenuButton)
+		{
+			focusElement(currentFocusMenuButton);
+			currentFocusMenuButton = null;
+		}
+	}
+
+	function openReport(reportInfo)
+	{					
+		var reportOrginalInfo = reportInfo;
+		var viewID = document.getElementsByName("CurrentViewID")[0];
+		var reportInfo=reportInfo+",null";
+		var reportInfos=reportInfo.split(",");
+		if(viewID.value == "30025")
+		{
+			return SimulateClick('1', 'accelasubmitbuttonname','','action','/portlets/batch/invoiceDetail.do?mode=print&reportID='+reportInfos[0]+'&reportInfo='+reportOrginalInfo);
+		}
+		if(viewID.value == "30021" )
+		{
+			return SimulateClick('1', 'accelasubmitbuttonname','','action','/portlets/batch/invoice.do?mode=listPrint&reportID='+reportInfos[0]+'&reportInfo='+reportOrginalInfo);
+		}			
+		var lengthR=reportInfos.length;
+		if(lengthR==4)
+		{
+			openFormReport(reportInfos[0],reportInfos[1]);
+		}	
+		else if(lengthR==3)
+		{
+			openFormReport(reportInfos[0]);
+		}
+		else
+		{
+			var reportId=reportInfos[0];
+			var singleWindow=reportInfos[2];
+			var ids=getIDs();			
+			if(ids.length == 0)
+			{
+				popMessage508(messageNoLess);
+			}		
+			else if(ids == "pmScheduleLogListReports")
+			{
+				popMessage508(messageOnlyOne);
+				return false;
+			}
+			openListReport(reportId,singleWindow,ids,reportInfos[1],reportInfos[3],reportInfos[4]);
+		}			
+		return false;
+	}
+
+	function popwindows(url)
+	{
+		idx = url.indexOf("?module=");
+		if(idx == -1)
+		{
+			idx = url.indexOf("&module=");
+			if(idx == -1)
+			{
+				url += "&module=" + currModule;
+			}
+		}
+		if (isGeneralCAP)
+		{
+			if (url.indexOf('isGeneralCAP') == -1)
+			{
+				url += (url.indexOf("?") == -1) ? "?" : "&";
+				url += "isGeneralCAP=Y";
+			}
+		}
+		if(getDirection()){
+			windowOpen(url, "popwindow1", "height=600, width=800, top=75, toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=no,left="+getScreenLeft(100,800))
+		}else{
+			windowOpen(url, "popwindow1", "height=600, width=800, top=75, left=100,toolbar=no, menubar=no, scrollbars=yes, resizable=yes, location=no, status=yes")
+		}
+		
+		return false;
+	}
+	
+	 function actionMenuDropDownButtonHover(idKey) {
+         var left = document.getElementById('menuleft'+idKey);
+         var middle = document.getElementById('menumiddle'+idKey);
+         var right = document.getElementById('menuright'+idKey);
+
+         left.className = "menu-left-hover";
+         middle.className = "menu-middle-hover";
+         right.className = "menu-right-hover";
+         middle.firstChild.className= "portlet-menu-item portlet-menu-item-hover";
+     }
+
+     function actionMenuDropDownButtonOut(idKey) {
+         var left = document.getElementById('menuleft'+idKey);
+         var middle = document.getElementById('menumiddle'+idKey);
+         var right = document.getElementById('menuright'+idKey);
+
+         left.className = "menu-left-normal";
+         middle.className = "menu-middle-normal";
+         right.className = "menu-right-normal";
+         middle.firstChild.className= "portlet-menu-item";
+     }
+     
+     function actionMenuButtonHover(idKey) {
+         var left = document.getElementById('menuleft'+idKey);
+         var middle = document.getElementById('menumiddle'+idKey);
+         var right = document.getElementById('menuright'+idKey);
+         
+         left.className += " menu-left-hover-button";
+         middle.className += " menu-middle-hover-button";
+         right.className += " menu-right-hover-button";
+         middle.firstChild.className = "portlet-menu-item portlet-menu-item-hover";
+     }
+
+     function actionMenuButtonOut(idKey) {
+         var left = document.getElementById('menuleft'+idKey);
+         var middle = document.getElementById('menumiddle'+idKey);
+         var right = document.getElementById('menuright'+idKey);
+
+         left.className = "menu-left-normal-button";
+         middle.className = "menu-middle-normal-button";
+         right.className = "menu-right-normal-button";
+         middle.firstChild.className= "portlet-menu-item";
+     }
+	
+     function actionMenuButtonDisable(idKey) {
+       
+         var middle = document.getElementById('menumiddle'+idKey);
+         middle.className = "menu-middle-disable-button";
+         middle.firstChild.className= "portlet-menu-item";
+     }
+
+	 function actionMenuItemHover(obj) {
+		 obj.className="menuSelected";
+		 obj.firstChild.firstChild.className= "portlet-menu-item-hover";
+		 actionMenuDropDownButtonHover(obj.parentNode.parentNode.parentNode.parentNode.id);
+     }
+
+     function actionMenuItemOut(obj) {
+    	 obj.className="menu";
+    	 obj.firstChild.firstChild.className= "portlet-menu-item";
+    	 actionMenuDropDownButtonOut(obj.parentNode.parentNode.parentNode.parentNode.id);
+     }
+     
+     function actionDisabledMenuItemHover(obj) {
+		 actionMenuDropDownButtonHover(obj.parentNode.parentNode.parentNode.parentNode.id);
+     }
+     
+	function genDropDownMenu(menuValue, dropDownKey, session508Id)
+	{
+		
+		menuValue = decodeURI(menuValue);
+		document.write("<div class=\"menu-left-normal\" onkeydown=\"enterControlMenu(this);\" onMouseOut=\"cancelmenu();actionMenuDropDownButtonOut('"+dropDownKey+"');showMenuFlag=true;\""+
+								" onMouseMove=\"updatetime()\" " +
+								 "onMouseOver=\"delaymenu('"+dropDownKey+"', 'menuleft"+dropDownKey+"'); actionMenuDropDownButtonHover('" + dropDownKey + "');\" name=\"menuleft" +dropDownKey+"\" id=\"menuleft"+dropDownKey+"\"" +
+								 "title =\"" + menuValue + "\" alt =\"" + menuValue + "\">"+
+						        "<div id=\"menuright" + dropDownKey + "\" class=\"menu-right-normal\">" + 
+						            " <div id=\"menumiddle" + dropDownKey + "\" class=\"menu-middle-normal\">" +
+										"<font class=\"portlet-menu-item\">" + menuValue + "</font>" +
+						            " </div> </div> </div>");
+		addOnClickOnBlurEvent4MenuLink(document.getElementById(session508Id), document.getElementById("menuleft"+dropDownKey));
+	}
+	
+	
+	function genDropDownMenu2(menuValue, dropDownKey, buttonID, session508Id)
+	{
+		menuValue = decodeURI(menuValue);
+		document.write("<div class=\"menu-left-normal\" onkeydown=\"enterControlMenu(this);\" onMouseOut=\"cancelmenu();actionMenuDropDownButtonOut('"+dropDownKey+"');showMenuFlag=true;\""+
+								"onMouseMove=\"updatetime()\" " +
+								 "onMouseOver=\"delaymenu2('" + dropDownKey + "','"+buttonID+"'); actionMenuDropDownButtonHover('" + dropDownKey + "');\" name=\"menuleft" +dropDownKey+"\" id=\"menuleft"+dropDownKey+"\"" +
+								 "title =\"" + menuValue + "\" alt =\"" + menuValue + "\" >"+
+						        "<div id=\"menuright" + dropDownKey + "\" class=\"menu-right-normal\">" + 
+						            " <div id=\"menumiddle" + dropDownKey + "\" class=\"menu-middle-normal\">" +
+										"<font class=\"portlet-menu-item\">" + menuValue + "</font>" +
+						            " </div> </div> </div>");
+		addOnClickOnBlurEvent4MenuLink(document.getElementById(session508Id), document.getElementById("menuleft"+dropDownKey));
+	}
+	
+	
+	/*
+	 * menuValue: menu label
+	 * btnID: buttom id
+	 * imgBtn: true-is image button(ex:<input type='image' src=...), false:otherwise
+	 * */
+	function genMenuButton(menuValue, btnID, imgBtn)
+	{
+		if (typeof(btnID) != 'undefined' && btnID)
+		{
+			document.write("<div id='"+btnID+"'>")
+		}
+		var buttonID = BaseJS.increase();
+		menuValue = decodeURI(menuValue);
+		addDefaultSubmit(imgBtn);
+		var html = createMenuButton(menuValue,buttonID).outerHTML.replace(/(^\s*)|(\s*$)/g, "");//must be remove blank.
+		document.write(html);
+		var menuButton = document.getElementById("menuleft"+buttonID);
+		addEventToMenu(buttonID,"onmouseout",function(){actionMenuButtonOut(buttonID);});
+		addEventToMenu(buttonID,"onmouseover",function(){actionMenuButtonHover(buttonID);});
+		if (typeof(btnID) != 'undefined' && btnID){
+				document.write("</div>");
+				return document.getElementById(btnID);
+		}
+		return menuButton;
+	}
+	
+	/*
+	 * When using JS draw the dom structure instead of .jsp, we don't need to write out html in the whole document.
+	 * menuValue: menu label
+	 * */
+	function genMenuButton4JS(menuValue)
+	{
+		var buttonID = BaseJS.increase();
+		menuValue = decodeURI(menuValue);
+		var menuButton = createMenuButtonWithEvent(menuValue,buttonID);
+		return menuButton;
+	}
+	
+	function createMenuButtonWithEvent(menuValue, buttonID){
+		var menu_left = createMenuButton(menuValue, buttonID);
+			menu_left.onmouseover = function(){actionMenuButtonHover(buttonID);};
+			menu_left.onmouseout = function(){actionMenuButtonOut(buttonID);};
+		return menu_left;
+	}
+	
+	function addEventToMenu(buttonID,eventType,fn){
+		var menuButton = document.getElementById("menuleft"+buttonID);
+		Ac360.attachEvent(menuButton,eventType,fn);
+		return menuButton;
+	}
+	
+	
+	function createMenuButton(menuValue, buttonID){
+		var menu_left = document.createElement("DIV");
+		var menu_middle = document.createElement("DIV");
+		var menu_right = document.createElement("DIV");
+		var menu_font = document.createElement("FONT");
+			menu_font.className = "portlet-menu-item";
+		var font_text = document.createTextNode(menuValue);		
+			menu_left.className="menu-left-normal-button";
+			menu_middle.className = "menu-middle-normal-button";
+			menu_right.className="menu-right-normal-button";
+			menu_left.name="menuleft" +buttonID;
+			menu_left.id="menuleft"+buttonID;
+			menu_left.alt=menuValue;
+			menu_left.title=menuValue;
+			menu_left.style.width="auto";
+			menu_middle.id = "menumiddle"+buttonID;
+			menu_right.id="menuright"+buttonID;
+			menu_font.appendChild(font_text);	
+			menu_middle.appendChild(menu_font);
+			menu_right.appendChild(menu_middle);
+			menu_left.appendChild(menu_right);
+		return menu_left;
+	}
+	
+
+
+	function addDefaultSubmit(imgBtn)
+	{
+		if (typeof(imgBtn) != 'undefined' && imgBtn)
+			document.write('<input type="image" src="" alt="" style="width:0px; height:0px; border:none" tabindex="-1"/>');
+		
+	}
+	
+	//{id: id, value:value, img:.., eventJsonObj:{onclick:fn1, onchange:fn2}}
+	function addButton(menuObj)
+	{
+		var btnID = menuObj.id;
+		var encodeMenuValue =encodeURI(menuObj.value);
+		var menuButton = null;
+		
+		if(!btnID || typeof(btnID) == 'undefined')
+		{
+			btnID = BaseJS.increase();
+		}
+
+		menuButton = genMenuButton(encodeMenuValue, btnID, menuObj.img);
+
+		if(menuObj.eventJsonObj && typeof(menuObj.eventJsonObj) != 'undefined')
+		{
+			for(var even in menuObj.eventJsonObj)
+			{
+		    			   Ac360.attachEvent(menuButton,even, menuObj.eventJsonObj[even]);
+			} 
+		}
+	}
+	
+	function hidenAsContactFloatMenu(menuDiv)
+	{
+		if(typeof(menuDiv) != 'string')
+		{
+			return false;
+		}
+		var func = "hidenAsContactFloatMenu("+menuDiv+")";
+		setTimeout(func, 10);
+		return false;
+	}

@@ -1,0 +1,11 @@
+[t581]
+FileName1=t581_Parse.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/dojo/src/xml/Parse.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_581.xml
+RequestHeaderFile=t581_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t581_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

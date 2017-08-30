@@ -1,0 +1,6 @@
+"<?xml version="1.0"?>\r\n"
+"<q:Envelope xmlns:q="http://schemas.xmlsoap.org/soap/envelope/"><q:Body><ex12m:GetUserOofSetti"
+"ngsRequest xmlns:ex12m="http://schemas.microsoft.com/exchange/services/2006/messages"><ex12t:M"
+"ailbox xmlns:ex12t="http://schemas.microsoft.com/exchange/services/2006/types"><ex12t:Address>"
+"hboyina@accela.com</ex12t:Address><ex12t:RoutingType>SMTP</ex12t:RoutingType></ex12t:Mailbox><"
+"/ex12m:GetUserOofSettingsRequest></q:Body></q:Envelope>"

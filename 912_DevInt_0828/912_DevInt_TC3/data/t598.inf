@@ -1,0 +1,11 @@
+[t598]
+FileName1=t598.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/professional/ref/refProfessionalDetail.do?mode=viewCondition&module=Building&licSeqNbr=2200860521
+Total=1
+RequestHeaderFile=t598_RequestHeader.txt
+RequestBodyFile=t598_RequestBody.txt
+ResponseHeaderFile=t598_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_598.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,11 @@
+[t196]
+FileName1=t196_Ac360ToolManager.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/Ac360ToolManager.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_196.xml
+RequestHeaderFile=t196_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t196_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,9 @@
+-+
+-DCCI
+-D_IDA_XL
+-DWINNT
+-IC:\Users\hboyina\Desktop\Desktop_08102017_Created\912_PT_08102017\Scripts\New Folde\08162017\912_DevInt_TC3
+-IC:\Program Files (x86)\HP\LoadRunner\include
+-ec:\users\hboyina\desktop\desktop_08102017_created\912_pt_08102017\scripts\new folde\08162017\912_devint_tc3\\logfile.log
+c:\users\hboyina\desktop\desktop_08102017_created\912_pt_08102017\scripts\new folde\08162017\912_devint_tc3\\combined_912_DevInt_TC3.c
+c:\users\hboyina\desktop\desktop_08102017_created\912_pt_08102017\scripts\new folde\08162017\912_devint_tc3\\pre_cci.c

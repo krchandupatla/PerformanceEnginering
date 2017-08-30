@@ -1,0 +1,11 @@
+[t313]
+FileName1=t313_table-footer-left-bottom-200-12.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/menu/table-footer-left-bottom-200-12.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_313.xml
+RequestHeaderFile=t313_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t313_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

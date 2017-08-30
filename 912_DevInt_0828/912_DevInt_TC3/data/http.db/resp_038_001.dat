@@ -1,0 +1,40 @@
+(function () {
+  'use strict';
+
+  function setupFrame(frameName) {
+    addMarkup(frameName);
+    setupProxy(frameName);
+  }
+
+  function addMarkup(frameName) {
+    /* jshint ignore:start */
+
+    document.write('<iframe name="' + frameName + '" id="' + frameName + '" style="display: none!important;"></iframe>');
+
+    /* jshint ignore:end */
+  }
+
+  function setupProxy(frameName) {
+    var proxyFrame = document.getElementById(frameName);
+
+    proxyFrame.onload = function (e) {
+      var activeContainer = document.querySelector('.spaces-container.active iframe');
+      var actualTargetFrame = activeContainer.contentDocument.getElementById(frameName);
+        if(actualTargetFrame !== null)
+        {
+            actualTargetFrame.contentDocument.location.href = proxyFrame.contentDocument.location.href;
+        }
+        else{
+            activeContainer.contentDocument.location.href = proxyFrame.contentDocument.location.href;
+        }
+    };
+
+  }
+
+  var frames = ['capForm'];
+
+  var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+  if (isChrome) {
+    frames.forEach(setupFrame);
+  }
+})();

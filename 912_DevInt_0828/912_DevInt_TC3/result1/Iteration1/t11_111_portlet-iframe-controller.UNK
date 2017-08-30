@@ -1,0 +1,118 @@
+/**
+ * Load legacy Portlet into an IFRAME -- dbalmer@accela.com
+ */
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .controller('PortletIFrameController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($rootScope, $scope, $log, $sce, $stateParams, ModalDialog, $state) {
+
+    // PRIVATE data
+
+    var i18n = $rootScope.i18n;
+
+    var modalOptions = {
+      className: 'error'
+    };
+
+    // PUBLIC data
+
+    $scope.portlet = {
+      tabName: '',
+      url: 'views/placeholder.html'
+    };
+
+    // PUBLIC methods
+
+    $scope.iframeLoaded = function () {
+      var iframeDocument = $('#iframe-page-container').contentDocument;
+
+      if (iframeDocument) {
+        // remove any previous handler before binding a new one
+        iframeDocument.$off('click', iframeClickHandler).$on('click', iframeClickHandler);
+      }
+
+      //comment this code when fixing bug AATHETA-247, in the future, judge error maybe by the back-end standard result
+      //var msgTemplate;
+      //var textContent = $('#iframe-page-container').contents().find('body').text().trim();
+      //
+      //if (textContent.length > 0) {
+      //  if ((/404/).test(textContent)) {
+      //    msgTemplate = '%s<br><br>404 Not Found.';
+      //  } else if ((/50./).test(textContent)) {
+      //    msgTemplate = '%s<br><br>500 System Error.';
+      //  }
+      //}
+      //
+      //if (msgTemplate) {
+      //  modalOptions.title = 'Error loading portlet';
+      //  modalOptions.msg = sprintf(msgTemplate, $scope.portlet.url);
+      //  ModalDialog.message(modalOptions);
+      //}
+    };
+
+    // PRIVATE methods
+
+    function iframeClickHandler() {
+      $rootScope.$broadcast('iframe.clicked');
+    }
+
+    function tabClicked(tabName) {
+      $log.debug(sprintf('tabClicked(%s)', tabName));
+    }
+
+    function tabLoaded(tabName) {
+      $log.debug(sprintf('tabLoaded(%s)', tabName));
+
+      $scope.$apply(function () {
+        $scope.portlet.tabName = tabName;
+      });
+    }
+
+    function eventPropagation(event) {
+      if(event && event.name && event.params) {
+        $rootScope.$broadcast(event.name, event.params);
+      }
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('PORTLET-IFRAME-CONTROLLER');
+
+    $scope.portlet.name = $stateParams.name || '';
+
+    if ($stateParams.url) {
+      $scope.portlet.url = $sce.trustAsResourceUrl($stateParams.url);
+
+      Accela.PortletInterface.register('tabClicked', tabClicked);
+      Accela.PortletInterface.register('tabLoaded', tabLoaded);
+      Accela.PortletInterface.register('events', eventPropagation);
+
+      $scope.$on('$destroy', function () {
+        var iframeDocument = $('#iframe-page-container').contentDocument;
+
+        if (iframeDocument) {
+          iframeDocument.$off('click', iframeClickHandler);
+        }
+
+        Accela.PortletInterface.unregister('tabClicked', tabClicked);
+        Accela.PortletInterface.unregister('tabLoaded', tabLoaded);
+        Accela.PortletInterface.unregister('events', eventPropagation);
+
+        $log.info('destroyed');
+      });
+    } else {
+      modalOptions.msg = i18n.Dialog.URLRequired;
+      modalOptions.title = sprintf(i18n.Dialog.PortletErrorTitle, $scope.portlet.name);
+      ModalDialog.message(modalOptions);
+    }
+
+    var openSpace = $scope.openSpace; // defined in AutomationController
+  }
+})();

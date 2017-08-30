@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+X-XSS-Protection: 0
+Pragma: No-cache
+Cache-Control: no-cache
+Expires: Wed, 31 Dec 1969 23:59:59 GMT
+X-FRAME-OPTIONS: SAMEORIGIN
+Content-Type: text/html;charset=UTF-8
+Content-Length: 386
+Date: Mon, 28 Aug 2017 18:35:57 GMT
+Connection: close
+

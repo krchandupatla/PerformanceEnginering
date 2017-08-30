@@ -1,0 +1,11 @@
+[t393]
+FileName1=t393_base64.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/base64.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_393.xml
+RequestHeaderFile=t393_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t393_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,151 @@
+ //Accela, Inc.
+//Copyright (C): 2010-2012
+//=============================js map like java HashMap================================
+function Map()
+{
+   this.elements = new Array();
+
+   /**
+   * Get map size
+   */
+this.size = function() {
+   return this.elements.length;
+}
+
+/**
+   * Is empty
+   */
+this.isEmpty = function() {
+   return (this.elements.length < 1);
+}
+
+   /**
+   * Clear map items
+   */
+this.clear = function() {
+   this.elements = new Array();
+}
+
+   /**
+   * Add item（key, value) 
+   * @param {Object} _key 
+   * @param {Object} _value
+   */
+   this.put = function(_key, _value) {
+this.remove(_key);
+this.elements.push({key:_key, value:_value});
+   }
+
+   /**
+   * delete value object by key
+   * @param {Object} _key
+   */
+this.remove = function(_key) {
+   var bln = false;
+   try {   
+    for (i = 0; i < this.elements.length; i++) { 
+     if (this.equals(this.elements[i].key ,_key)){
+      this.elements.splice(i, 1);
+      return true;
+     }
+    }
+   }catch(e){
+    bln = false;    
+   }
+   return bln;
+}
+
+/**
+* Get value object by key
+* @param {Object} _key
+*/
+this.get = function(_key) {
+   try{   
+    for (i = 0; i < this.elements.length; i++) {
+     if (this.equals(this.elements[i].key, _key) ) {
+      return this.elements[i].value;
+     }
+    }
+   }catch(e) {
+    return null;   
+   }
+}
+
+/**
+* Get value object by index
+* @param {Object} _index
+*/
+this.element = function(_index) {
+   if (_index < 0 || _index >= this.elements.length)
+   {
+    return null;
+   }
+   return this.elements[_index];
+}
+
+/**
+* Cantains key
+* @param {Object} _key
+*/
+this.containsKey = function(_key) {
+   var bln = false;
+   try {
+    for (i = 0; i < this.elements.length; i++) { 
+     if (this.equals(this.elements[i].key, _key) ){
+      bln = true;
+     }
+    }
+   }catch(e) {
+    bln = false;    
+   }
+   return bln;
+}
+    
+/**
+* cantains value
+* @param {Object} _value
+*/
+this.containsValue = function(_value) {
+   var bln = false;
+   try {
+    for (i = 0; i < this.elements.length; i++) { 
+     if (this.equals(this.elements[i].value, _value) ){
+      bln = true;
+     }
+    }
+   }catch(e) {
+    bln = false;    
+   }
+   return bln;
+}
+
+/**
+* Get values array（ARRAY）
+*/
+this.values = function() {
+   var arr = new Array();
+   for (i = 0; i < this.elements.length; i++) { 
+    arr.push(this.elements[i].value);
+   }
+   return arr;
+}
+
+/**
+* Get keys array（ARRAY）
+*/
+this.keys = function() {
+   var arr = new Array();
+   for (i = 0; i < this.elements.length; i++) { 
+    arr.push(this.elements[i].key);
+   }
+   return arr;
+}
+
+this.equals = function(/*map object*/obj1,/*compare object*/obj2){
+	if(obj1.equals)
+	{
+		return obj1.equals(obj2);
+	}
+	return obj1 == obj2;
+}
+}

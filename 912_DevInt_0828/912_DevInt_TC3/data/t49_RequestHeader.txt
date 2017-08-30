@@ -1,0 +1,10 @@
+GET https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/core/module.js HTTP/1.1
+Accept: application/javascript, */*;q=0.8
+Referer: https://aa-pt6245.dev.accela.com:5443/portlets/spa/dashboard.do
+Accept-Language: en-US
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko
+Accept-Encoding: gzip, deflate
+Cookie: JSESSIONID=OI+x0hdJ0Pv1Z+Kh5Fl1bVvX; __cfduid=db60d5e784dbde7ca59ddec6e3acdc9621502430773; _pendo_accountId.567a146e-65ac-46a5-7a13-b32474a4f67b=FLAGSTAFF; _pendo_visitorId.567a146e-65ac-46a5-7a13-b32474a4f67b=e9af1fa5171aed0adbee00284a455086465aa31fc36563edabf646e11d55a6088095a23efeee0ca56703d10969d3ac54e979ab211892ee56defc91c468476a08; _pendo_meta.567a146e-65ac-46a5-7a13-b32474a4f67b=3399996617; JSESSIONID=***************************; 01-Jan-1970 00:00:10 GMT; LASTEST_REQUEST_TIME=1503944013063; hostSignOn=true; g_current_language_ext=en_US; LATEST_WEB_SERVER=10.1.0.6; LATEST_SESSION_ID=OI+x0hdJ0Pv1Z+Kh5Fl1bVvX; ACAuth=99184470150788564649569354293894619409763314860796333132212601205338165609528781979051410518896169022793778847619657958837696322; ACSignOnModule=SSOStandard; AAPersistLoginServProvCode=FLAGSTAFF; LoginServProvCode4MultiAgency=FLAGSTAFF; LoginUsername4MultiAgency=179DD13A186028F4; ACSignoff="https://aa-pt6245.dev.accela.com:5443/portlets/security/signout.do"; ACSwitchAgency="https://aa-pt6245.dev.accela.com:5443/portlets/commons/sso/blank.jsp"
+Host: aa-pt6245.dev.accela.com:5443
+Connection: Close
+

@@ -1,0 +1,11 @@
+[t876]
+FileName1=t876.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/regional/regionalSyncMask.do?mode=syncMask&maskType=phoneNumber&referValue=
+Total=1
+RequestHeaderFile=t876_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t876_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_876.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

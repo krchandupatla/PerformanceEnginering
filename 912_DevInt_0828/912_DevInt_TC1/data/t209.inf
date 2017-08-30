@@ -1,0 +1,11 @@
+[t209]
+FileName1=t209_menubar.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/javascript/menubar.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_209.xml
+RequestHeaderFile=t209_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t209_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

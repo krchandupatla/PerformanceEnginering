@@ -1,0 +1,48 @@
+var i18nKeysConfig = {
+    WorkFlow : [
+        'Assigned',
+        'Started',
+        'Save',
+        'Cancel',
+        'ShowAll',
+        'By',
+        'Due',
+        'Subtask',
+        'NewAdhocTask',
+        'AdditionalAdhocTask',
+        'WorkflowTask',
+        'BucketCompleted',
+        'BucketInprogress',
+        'BucketUpNext',
+        'TaskInactive',
+        'TaskInprogress',
+        'TaskComplete',
+        'ViewHistory',
+        'ViewWorkflowDesign',
+        'IncludeAddPage',
+        'PageOf',
+        'PageCompleted',
+        'WorkflowDesign'
+    ],
+    Designer : [
+        'NewDesigner',
+        'OldDesigner',
+        'Preview',
+        'Text',
+        'Controls',
+        'NoCtlAvailable',
+        'Drag',
+        'Select',
+        'Properties',
+        'Ok',
+        'Label',
+        'Url',
+        'Save',
+        'Cancel',
+        'DynamicLabelText'
+    ],
+    CheckList: [
+        'SaveAll'
+    ]
+}
+

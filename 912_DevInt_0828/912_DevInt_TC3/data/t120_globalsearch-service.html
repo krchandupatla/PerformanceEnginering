@@ -1,0 +1,105 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.globalsearch')
+    .factory('GlobalSearchService', service);
+
+  /**
+   * @ngInject
+   */
+  function service($log, DataService) {
+
+    // PRIVATE data
+
+    var dataService = DataService.getInstance('GLOBAL_SEARCH');
+
+    // PRIVATE methods
+
+    function searchAddress(searchText, start) {
+      return sendQuery({
+        queryString: searchText,
+        action: 'RefAddress',
+        start: start
+      });
+    }
+
+    function searchAll(searchText, start) {
+      return sendQuery({
+        queryString: searchText,
+        action: 'ALL',
+        start: start
+      });
+    }
+
+    function searchAsset(searchText, start) {
+      return sendQuery({
+        queryString: searchText,
+        action: 'RefAssetMaster',
+        start: start
+      });
+    }
+
+    function searchContact(searchText, start) {
+      return sendQuery({
+        queryString: searchText,
+        action: 'RefContact',
+        start: start
+      });
+    }
+
+    function searchDocument(searchText, start) {
+      return sendQuery({
+        queryString: searchText,
+        action: 'Document',
+        start: start
+      });
+    }
+
+    function searchProfessional(searchText, start) {
+      return sendQuery({
+        queryString: searchText,
+        action: 'RefLicenseProfessional',
+        start: start
+      });
+    }
+
+    function searchRecord(searchText, start) {
+      return sendQuery({
+        queryString: searchText,
+        action: 'Cap',
+        start: start
+      });
+    }
+    
+    function searchParcel(searchText, start) {
+        return sendQuery({
+          queryString: searchText,
+          action: 'RefParcel',
+          start: start
+        });
+      }
+
+    function sendQuery(params) {
+      return dataService.send('QUERY', {}, params);
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('GLOBAL-SEARCH-SERVICE');
+
+    // PUBLIC interface
+
+    return {
+      searchAddress: searchAddress,
+      searchAll: searchAll,
+      searchAsset: searchAsset,
+      searchContact: searchContact,
+      searchDocument: searchDocument,
+      searchProfessional: searchProfessional,
+      searchRecord: searchRecord,
+      searchParcel: searchParcel
+    };
+  }
+})();
+

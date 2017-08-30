@@ -1,0 +1,10 @@
+GET /security/hostSignon.do?successUrl=https://aa-pt6245.dev.accela.com:5443/portlets/spa/dashboard.do HTTP/1.1
+Referer: https://aa-pt6245.dev.accela.com:5443/ssoAdapter/loginAction.do?successURL=https%3A%2F%2Faa-pt6245.dev.accela.com%3A5443%2Fjetspeed%2Findex.jsp&SignOnModule=
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US
+Accept: */*
+Connection: Keep-Alive
+Host: aa-pt6245.dev.accela.com:5443
+Cookie: JSESSIONID=5KWHT8F1L9CtptzQ4WAQoWlG
+

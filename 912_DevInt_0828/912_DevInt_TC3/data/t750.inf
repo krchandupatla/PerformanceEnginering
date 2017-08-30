@@ -1,0 +1,11 @@
+[t750]
+FileName1=t750_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=spaces.14045
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_750.xml
+RequestHeaderFile=t750_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t750_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

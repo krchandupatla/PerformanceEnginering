@@ -1,0 +1,11 @@
+[t884]
+FileName1=t884_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=spaces.14045
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_884.xml
+RequestHeaderFile=t884_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t884_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

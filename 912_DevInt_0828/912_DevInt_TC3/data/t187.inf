@@ -1,0 +1,11 @@
+[t187]
+FileName1=t187.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/address/refAddressList.do?mode=Search
+Total=1
+RequestHeaderFile=t187_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t187_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_187.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,1147 @@
+//Accela Automation
+//File: input.js
+//Accela, Inc.
+//Copyright (C): 2010-2014
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: input.js 125874 2010-10-13 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+var Input = {
+	validate : function(currentObj, field, value)
+	{
+		var id = currentObj.id;
+		var tmpValue = currentObj.value;
+		
+		if ((field.requireFlag == "Y" || value.required == "Y") && Ext.isEmpty(tmpValue, false) && isNeed2ValidateRequired != "N")
+		{
+			Input.alertMsg(id, required);
+			value.value = '';
+			return false;
+		}
+		Input.alertMsg(id, '');
+		scrollBarIssue.autoAdjustForErrorMsgDisplay();
+		return true;
+	},
+	
+	/*
+	 * id : element id
+	 * msg : error msg
+	 * shouldRenderErrMsg : default is null, when verify all field, only ouput error msg, don't 
+	 */
+	alertMsg : function(id, msg, shouldRenderErrMsg)
+	{
+		if(Template.templates)
+		{
+			var uiUID = Template.elementIDs.get(id);
+			var template = Template.templates.get(uiUID);
+			if(template.noValidate)//search page or Spear form LP template,the information not print
+			{
+				return;
+			}
+		}
+		var erroMsgId = TemplateHelper.errorMsgId(id);
+		var msgErrorContain = document.getElementById(erroMsgId);
+		if (!msgErrorContain && msg && msg != '')
+		{
+			var wedget = document.getElementById(id);
+			if (!wedget)
+				return;
+			var td = wedget.parentNode;
+			msgErrorContain = TemplateHelper.createErrorPanel(id);
+			var br = document.createElement('br');
+			br.id = id + '_br';
+			td.appendChild(br);
+			td.appendChild(msgErrorContain);
+		}
+		if (msgErrorContain)
+			msgErrorContain.innerHTML = msg;
+			
+		if (!msg || msg == '')
+		{
+			var wedget = document.getElementById(id);
+			if (!wedget || !msgErrorContain)
+				return;
+			var td = wedget.parentNode;
+			td.removeChild(msgErrorContain);
+			var brNode = document.getElementById(id + '_br');
+			if (brNode)
+				td.removeChild(brNode);
+		}
+		if (!shouldRenderErrMsg)
+		{
+			var  err_msg = document.getElementById('err_msg');
+			err_msg.innerHTML = '';
+			prepareVirtualBuffer();
+		}
+		scrollBarIssue.autoAdjustForErrorMsgDisplay();
+	},
+	
+	setFocus : function(field, id)
+	{
+		try
+		{
+			if (field.fieldTypeValue == '3')//radio
+			{
+				var tmpId = id + TemplateHelper.separation+'Yes'
+				if (document.getElementById(tmpId) && !document.getElementById(tmpId).disabled)
+					document.getElementById(tmpId).focus();
+			}
+			else if (field.fieldTypeValue == '7')//date time
+			{
+				var tmpId = id + TemplateHelper.separation+'Hour';
+				if (document.getElementById(tmpId) && !document.getElementById(tmpId).disabled)
+					document.getElementById(tmpId).focus();
+			}
+			else
+			{
+				if (document.getElementById(id) && !document.getElementById(id).disabled)
+					document.getElementById(id).focus();
+			}
+		}
+		catch(error)
+		{
+			//this element maybe invisable.
+			//do nothing.
+		}
+	}
+	
+};
+
+Input.baseText = function(){
+};
+
+Ext.apply(Input.baseText.prototype, {
+	'blur' : function()
+	{
+		var currentObj = arguments[0];
+		var field = arguments[1];
+		var value = arguments[2];
+		if (Input.validate(currentObj, field, value))	
+		{
+			value.value = currentObj.value;
+		}
+	},
+	
+	'change' : function() 
+	{
+		var currentObj = arguments[0];
+		var value = arguments[2];
+		value.value = currentObj.value;
+	}
+	
+});
+
+//extend in template text
+Template.text = function()
+{
+	
+};
+
+Ext.extend(Template.text, Input.baseText);
+
+//extend in template text
+Template.textArea = function()
+{
+};
+
+Ext.extend(Template.textArea, Input.baseText, {
+	
+});
+
+//extend in template text
+Template.moneyText = function()
+{
+	
+};
+
+Ext.extend(Template.moneyText, Input.baseText, {
+	'keydown' : function()
+	{
+		if (Validate.valifyNumber())
+		{
+			event.returnValue = true;
+		}
+		else
+		{
+			event.returnValue = false;
+		}
+	},
+	
+	'blur' : function()
+	{
+		var currentObj = arguments[0];
+		var field = arguments[1];
+		var value = arguments[2];
+		var id = currentObj.id;
+		if (Input.validate(currentObj, field, value))
+		{
+			if (!Ext.isEmpty(currentObj.value) && !Validate.isMoney(currentObj.value))
+			{
+				Input.alertMsg(id, currencyMsg);
+				return false;
+			}
+			else
+			{
+				Input.alertMsg(id, '');
+			}
+			value.value = currentObj.value;
+			return true;		
+		}
+		return false;
+	}
+	
+});
+
+//extend in template text
+Template.timeText = function()
+{
+
+};
+
+Ext.extend(Template.timeText, Input.baseText, 
+	{
+		'keydown' : function() {
+			if (Validate.valifyTime())
+			{
+				event.returnValue = true;
+			}
+			else
+			{
+				event.returnValue = false;
+			}
+		}
+});
+
+//extend in template text
+Template.dateText = function()
+{
+
+};
+Ext.extend(Template.dateText, Input.baseText, 
+{
+	'change' : function()
+	{
+		var currentObj = arguments[0];
+		var field = arguments[1];
+		var value = arguments[2];
+		var id = currentObj.id;
+		if (Input.validate(currentObj, field, value))
+		{
+			
+			if (!Ext.isEmpty(currentObj.value) && !Validate.isDate(currentObj.value))
+			{
+				checkDate(currentObj, 1, millisecond);
+			}
+			
+			value.value = currentObj.value;
+			Input.alertMsg(id, '');
+			return true;		
+		}
+		return false;
+	}
+});
+	
+//extend in template text
+Template.numberText = function()
+{
+
+};
+
+Ext.extend(Template.numberText, Input.baseText, 
+	{
+	 'keydown' : function() {
+		if (Validate.valifyNumber())
+		{
+			event.returnValue = true;
+		}
+		else
+		{
+			event.returnValue = false;
+		}
+	},
+	
+	'blur' : function()
+	{
+		var currentObj = arguments[0];
+		var field = arguments[1];
+		var value = arguments[2];
+		var id = currentObj.id;
+
+		if (Input.validate(currentObj, field, value))
+		{
+			if (!Ext.isEmpty(currentObj.value) && !Validate.isNumber(currentObj.value))
+			{
+				Input.alertMsg(id, numberMsg);
+				return false;
+			}
+			value.value = currentObj.value;		
+			return true;
+		}
+		return false;
+	}
+});
+	
+Input.baseSelect = function() {
+};
+
+//extend in template select
+Template.select = function()
+{
+};
+Ext.extend(Template.select, Input.baseSelect, 
+{
+	'blur' : function() {
+		var currentObj = arguments[0];
+		var field = arguments[1];
+		var value = arguments[2];
+		if (Input.validate(currentObj, field, value))
+		{
+			value.value = currentObj.value;
+			return true;
+		}
+		return false;
+	},
+	'change' : function() 
+	{
+		var currentObj = arguments[0];
+		var value = arguments[2];
+		value.value = currentObj.value;
+	},
+	'focus' : function()
+	{
+		this.loadOptions(arguments);
+	},
+	
+	'mouseover' :function()
+	{
+		this.loadOptions(arguments);
+	},
+	
+	loadOptions : function(ars)
+	{
+		var currentObj = ars[0];
+		var field = ars[1];
+		var value = ars[2];
+		var td = currentObj.parentNode;
+		Field.constructOption(Field, field, currentObj, td, value);
+		scrollBarIssue.autoAdjustForTableAddOrRemoveRows();
+	}
+});
+
+
+
+Input.baseCheckbox = function() {
+
+};
+
+//extend in template select
+Template.checkbox = function()
+{
+	
+};
+
+Ext.extend(Template.checkbox, Input.baseCheckbox, 
+{
+	'click' : function() {
+		var currentObj = arguments[0];
+		var field = arguments[1];
+		var value = arguments[2];
+		var id = currentObj.id;
+		if (currentObj.checked)
+		{
+			value.value = 'CHECKED';
+			Input.alertMsg(id, '')
+		}
+		else
+		{
+			value.value = 'UNCHECKED';
+			if (field.requireFlag == "Y"||value.required == "Y")
+			{
+				Input.alertMsg(id, required)
+			}
+			return false;
+		}
+	}
+});
+
+Input.baseRadio = function() {
+
+};
+
+//extend in template select
+Template.radio = function()
+{
+	
+};
+
+Ext.extend(Template.radio, Input.baseRadio, 
+	{
+		'click' : function() {
+			var currentObj = arguments[0];
+			var value = arguments[2];
+			var id = value.id;
+			var hiddenObj = document.getElementById(id);
+			value.value = currentObj.value;
+			Input.alertMsg(id, '')
+}});
+
+Field = {
+
+	getRadioId : function(id)//radio label id
+	{
+		return [id + TemplateHelper.separation+'Yes', id + TemplateHelper.separation+'No'];
+	}, 
+
+	getDateTimeId : function(id)//datetime drop down id(one is hour, other is minuter)
+	{
+		return [id + TemplateHelper.separation+'Hour', id + TemplateHelper.separation+'Minuter'];
+	}, 
+	
+	cloneText : function()
+	{
+		if (Field.text)
+		{
+			return Field.text.cloneNode(true);
+		}
+		var original = document.createElement('input');		
+		original.type = 'text';
+		original.className = 'portlet-msg-info';
+		Field.text = original;
+		return original.cloneNode(true);
+	},
+
+	cloneRadio : function()
+	{
+		if (Field.radio)
+		{
+			return Field.radio.cloneNode(true);
+		}		
+		var original = document.createElement('input');		
+		original.type = 'radio';
+		Field.radio = original;
+		return original.cloneNode(true);
+	},
+
+	cloneSelect : function()
+	{
+		if (Field.select)
+		{
+			return Field.select.cloneNode(true);
+		}		
+		var original = document.createElement('select');		
+		original.className = 'portlet-form-field';
+		Field.select = original;
+		return original.cloneNode(true);
+	},
+
+	cloneTextarea : function()
+	{
+		if (Field.textarea)
+		{
+			return Field.textarea.cloneNode(true);
+		}
+		var original = document.createElement('textarea');		
+		//original.className = 'textAreaField';
+		Field.textarea = original;
+		return original.cloneNode(true);
+	},
+
+	cloneCheckbox : function()
+	{
+		if (Field.checkbox)
+		{
+			return Field.checkbox.cloneNode(true);
+		}
+		var original = document.createElement('input');
+		original.type = 'checkbox';
+		Field.checkbox = original;
+		return original.cloneNode(true);
+	},
+
+	cloneOption : function()
+	{
+		if (Field.Option)
+		{
+			return Field.Option.cloneNode(true);
+		}
+		var original = document.createElement('OPTION');
+		Field.Option = original;
+		return original.cloneNode(true);
+	},
+	
+	cloneLabel : function()
+	{
+		if (Field.label)
+		{
+			return Field.label.cloneNode(true);
+		}
+		var original = document.createElement('label');
+		Field.label = original;
+		return original.cloneNode(true);
+	},
+	
+	cloneSpan : function()
+	{
+		if (Field.span)
+		{
+			return Field.span.cloneNode(false);
+		}
+		var span = document.createElement("span");
+		Field.span = span;
+		return span.cloneNode(false);
+	},
+	
+	createField : function(field, td, value, id, templateIsReadOnly, templateIsDisabled)
+	{	
+		if (!field)
+		{
+			return;
+		}
+		var fieldType = field.fieldTypeValue;
+		if (!fieldType)
+		{
+			return;
+		}
+		var defaultValue = !value.value ? '' : value.value;
+		
+		if (templateIsReadOnly)
+		{
+			Field.createFieldReadOnly(field, td, defaultValue);
+			return;
+		}
+				
+
+		var element;
+		switch(fieldType)
+		{
+			case 1:
+				element = Field.createText0(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			case 2:
+				element = Field.createDate(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			case 3:
+				element = Field.createRadio(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			case 4:
+				element = Field.createNumber(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			case 5:
+				element = Field.createDropdown(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			case 6:
+				element = Field.createTextarea(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			case 7:
+				element = Field.createTime(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			case 8:
+				element = Field.createMoney(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			case 9:
+				element = Field.createChecbox(field, id, td, value, defaultValue, templateIsDisabled);
+				break;
+			default:
+				element = Field.createText0(field, id, td, value, defaultValue, templateIsDisabled);
+		};
+		return element;
+	//	if (fieldType != 6)
+		//	Template.createErrorPanel(td, id);
+	},
+	
+	createFieldReadOnly : function (field, td, defaultValue)
+	{
+		var fieldType = field.fieldTypeValue;
+		if (!fieldType)
+		{
+			return;
+		}
+		var tmpDefaultValue = defaultValue;
+		var trimFlag = tmpDefaultValue ? ((tmpDefaultValue.unicodeAndUtf8Trim() == "") ? false
+				: true)
+				: false;
+		if (field.fieldTypeEnum.toUpperCase() == "DATE" && trimFlag) {
+			defaultValue = transformGlobalDateToLocal(defaultValue);
+			if(window.currentFromPage == 'tabSummary' && window.convertToIslamicDate && window.systemCalendarDateFmt)
+			{
+				defaultValue = window.convertToIslamicDate(defaultValue,window.systemCalendarDateFmt,window.systemCalendarDateFmt);
+			}
+		}
+		td.height = 17;	
+		if(defaultValue){
+			var valueHtml = [];
+			var link = null;
+			if(field.options && field.options.link){
+				link = field.options.link;
+				valueHtml.push('<a href="');
+				valueHtml.push(link);
+				valueHtml.push('"')
+				if(field.options && field.options.target)
+				{
+					valueHtml.push(' target="');
+					valueHtml.push(field.options.target);
+					valueHtml.push('"');
+				}
+				valueHtml.push('>')
+			}
+			
+        	valueHtml.push("<pre style='font-family:Arial, Tahoma, helvetica, arial;'>");
+        	valueHtml.push(defaultValue);
+            valueHtml.push("</pre>");
+            
+			if(link){
+				valueHtml.push('</a>')
+			}
+			
+			td.innerHTML = valueHtml.join('');
+		}
+	},
+		
+	createText0 : function(field, inputId, td, value, defaultValue, templateIsDisabled)
+	{
+		var input = Field.createText(field, inputId, value, defaultValue);
+		if (templateIsDisabled)
+			input.disabled = true;
+		td.appendChild(input);
+		return input;
+		//td.appendChild(Field.createLabel('Text'));
+	},
+	
+	createText : function(field, inputId, value, defaultValue)
+	{
+		var input = this.cloneText();
+		input.id = inputId;
+		input.maxLength = field.maxLen && field.maxLen != 0 ? field.maxLen : TemplateHelper.maxLength;
+		if (field.displayLen && field.displayLen != 0)
+		{
+			input.style.width = field.displayLen+'px'; 			
+		}
+		input.value = defaultValue;		
+		input.defaultValue = defaultValue;
+		input.title = TemplateHelper.getDisplayFieldName(field);
+		input.className = "portlet-form-input-field";
+		TemplateHelper.setReadOnly(field, input);
+		//add mask
+		//Template.layout.waterMask(field, input);
+		
+		this.addEvent(input, field, value);
+		
+		return input;
+	},
+
+	createDate : function(field, inputId, td, value, defaultValue, templateIsDisabled)
+	{
+		defaultValue = transformGlobalDateToLocal(defaultValue);
+		value.value = defaultValue; 
+		var input = Field.createText(field, inputId, value, defaultValue);
+		input.name = inputId;
+		
+		var dateSelect = document.createElement('a');
+		dateSelect.id = inputId+'_img_id';
+		dateSelect.href = '#';
+		dateSelect.title = 'Select Date';
+		if (field.readOnly)
+		{
+			dateSelect.onclick = function(){return false;};		
+		}
+		else if (templateIsDisabled)
+		{
+			input.disabled = true;
+			dateSelect.onclick = function(){return false;};
+		}
+		else
+		{
+			dateSelect.onclick = BaseJS.createDelegate(window, selectDate, [inputId]);
+		}
+		dateSelect.innerHTML = '<img src="/portlets/images/selectDate.gif" border=0 title="dateSelect" alt="dateSelect">';
+		
+		var blackSpan = document.createElement('span');
+		blackSpan.innerHTML = '&nbsp;';
+		
+		//var msgErrorContain = TemplateHelper.createErrorPanel(inputId);
+		//td.appendChild(msgErrorContain);
+		td.appendChild(input);
+		td.appendChild(blackSpan);
+		td.appendChild(dateSelect);
+		return input;
+	},
+
+	createRadio : function(field, inputId, td, value, defaultValue, templateIsDisabled)
+	{
+		var input0 = null;
+		try
+		{
+		    input0 = $("<input type='radio' name='"+inputId + TemplateHelper.separation+"'>")[0];  
+		}
+		catch(e)
+		{  
+		    input0 = Field.cloneRadio();  
+		    input0.setAttribute("name", inputId + TemplateHelper.separation);  
+		} 
+
+		var tmpIdArray = this.getRadioId(inputId);
+		
+		input0.id = tmpIdArray[0];
+		input0.value = 'Y';
+		input0.defaultChecked = false;
+		input0.title = TemplateHelper.getDisplayFieldName(field)+' ? '+'Yes';
+		TemplateHelper.setReadOnly(field, input0);
+		
+		this.addEvent(input0, field, value);
+		
+		var label0 = Field.cloneLabel();
+		label0.htmlFor = tmpIdArray[0];
+		label0.innerHTML = 'Yes';
+		label0.id = TemplateHelper.getLableId(tmpIdArray[0]);
+		
+		td.appendChild(input0);
+		td.appendChild(label0);
+		if (defaultValue == 'Y')
+		{
+			input0.checked = true;
+			input0.defaultChecked = true;
+		}
+		
+		var input1 = null;
+		try
+		{
+		    input1 = $("<input type='radio' name='"+inputId + TemplateHelper.separation+"'>")[0];  
+		}
+		catch(e)
+		{  
+		    input1 = Field.cloneRadio();  
+		    input1.setAttribute("name", inputId + TemplateHelper.separation);  
+		} 
+		
+		input1.id = tmpIdArray[1];
+		input1.value = 'N';
+		input1.defaultChecked = false;
+		input1.title = TemplateHelper.getDisplayFieldName(field)+' ? '+'No';
+		TemplateHelper.setReadOnly(field, input1);
+		
+		this.addEvent(input1, field, value);		
+
+		var label1 = Field.cloneLabel();
+		label1.htmlFor = tmpIdArray[1];
+		label1.innerHTML = 'No';
+		label1.id = TemplateHelper.getLableId(tmpIdArray[1]);
+		
+		var inputHidden = Field.cloneText();
+		inputHidden.type = 'hidden';
+		inputHidden.id = inputId;
+		inputHidden.value = defaultValue;
+		$(inputHidden).data('field', field);
+		$(inputHidden).data('valueObj', value);
+		
+		td.appendChild(input1);
+		td.appendChild(label1);
+		if (defaultValue == 'N')
+		{
+			input1.checked = true;
+			input1.defaultChecked = true;
+			
+		}		
+		td.appendChild(inputHidden);
+		if (templateIsDisabled)
+		{
+			input0.disabled = true;
+			input1.disabled = true;
+		}
+		return [input0, input1];
+	},
+
+	createNumber : function(field, inputId, td, value, defaultValue, templateIsDisabled)
+	{
+		var input = Field.createText(field, inputId, value, defaultValue);
+		
+		//this.addEvent(input, field, value);
+		td.appendChild(input);
+		var blankSpan = document.createElement('span');
+		blankSpan.innerHTML = '&nbsp;';
+		td.appendChild(blankSpan);
+		if (templateIsDisabled)
+			input.disabled = true;
+		return input;
+	},
+	
+	createDropdown : function(field, inputId, td, value, defaultValue, templateIsDisabled)
+	{
+		var select = Field.cloneSelect();
+		td.appendChild(select);
+		select.id = inputId;
+		select.title = TemplateHelper.getDisplayFieldName(field);
+		TemplateHelper.setReadOnly(field, select);
+		if (field.displayLen && field.displayLen != 0)
+		{
+			select.style.width = field.displayLen+'px';
+		}
+		var options = select.options;
+		var option = this.cloneOption();
+		option.text = selectLabel;
+		option.value = '';
+		options.add(option);
+		var optionObj = field.options;
+		
+		if (defaultValue && optionObj && optionObj[defaultValue])
+		{
+			var option = this.cloneOption();
+			option.text = optionObj[defaultValue];
+			option.value = defaultValue;
+			options.add(option);
+			select.value = defaultValue;
+		}
+		//this.constructOption(this, field, select, td, value);
+		//field.addListener('afferRender', Field.constructOption);
+		this.addEvent(select, field, value);
+		if (templateIsDisabled)
+			select.disabled = true;
+		return select;
+	},
+	
+	constructOption : function(scope, field, select, td, value)
+	{
+		var options = field.options;
+		var defaultValue = !value.value ? '' : value.value;
+		var selectOptions = select.options;
+		var orignalListener = select.listener;
+		
+		if (selectOptions && selectOptions.length > 0)
+		{
+			for (var i = selectOptions.length; i >=0 ; i--)
+			{
+				select.remove(selectOptions[i]);
+			}
+		}
+		var outerHTML = select.outerHTML;
+		var optionStr = '';
+		optionStr += '<option value="" title="Select">'+selectLabel+'</option>';
+		var encodeV;
+		for (var v in options)
+		{
+			encodeV = BaseJS.htmlEncode(v);
+			optionStr += '<option value="'+encodeV+'"';
+			if (defaultValue == v)
+			{
+				optionStr += 'selected="selected"';
+			}
+			optionStr += ' title = "'+options[v]+'">';
+			optionStr += options[v] ? options[v] : encodeV;
+			optionStr += '</option>';
+		}
+		outerHTML = outerHTML.replace('</SELECT>', '').replace('</select>', '');
+		outerHTML += optionStr;
+		outerHTML += '</SELECT>';
+		select.outerHTML = outerHTML;
+		
+		var child = td.firstChild, fnArray;
+		$(child).data('field', field);
+		$(child).data('valueObj', value);
+		// add original events
+		for ( var eventType in orignalListener) 
+		{
+			fnArray = orignalListener[eventType];
+			for ( var i = 0; i < fnArray.length; i++)
+			{
+				if (eventType == 'focus' || eventType == 'mouseover')
+				{
+					if (fnArray[i] == Field.getListenerFn())
+					{
+						continue;
+					}
+				}
+				BaseJS.addEventHandler(child, eventType, fnArray[i]);
+			}
+		}
+	},
+	
+	createTextarea : function(field, inputId, td0, value, defaultValue, templateIsDisabled)
+	{
+		var table = document.createElement('table');
+		table.border = '0';
+		table.cellSpacing = '0';
+		table.cellPadding = '0';
+		table.width = '100%';
+		
+		var tr = TemplateHelper.insertRow(table);
+		var td = TemplateHelper.insertCell(tr);
+		var textarea = Field.cloneTextarea();
+		
+		textarea.className = "portlet-form-input-field";
+		textarea.id = inputId;
+		textarea.name = inputId;
+		textarea.value = defaultValue;
+		textarea.defaultValue = defaultValue;
+		textarea.title = TemplateHelper.getDisplayFieldName(field);;
+		textarea.maxlength = field.maxLen && field.maxLen != 0 ? field.maxLen : TemplateHelper.textAreaMaxLength;
+		if (field.displayLen && field.displayLen != 0)
+		{
+			textarea.style.width = field.displayLen + "px"; 			
+		}
+		if(field.styleHeight && field.styleHeight != 0)
+		{
+			textarea.style.height = field.styleHeight + "px"; 
+		}
+		else
+		{
+			textarea.row = '5';
+		}
+		
+		addLimitedEventForTextArea(textarea);
+		
+		//add mask
+		//Template.layout.waterMask(field, textarea);
+		
+		TemplateHelper.setReadOnly(field, textarea);
+		
+		this.addEvent(textarea, field, value);
+
+		td.appendChild(textarea);
+		tr = TemplateHelper.insertRow(table);
+		td = TemplateHelper.insertCell(tr);
+		td.align = 'left';
+		td.className = 'inputfieldlabel';
+		if (!field.readOnly && isSpellingCheckerEnabled==true)
+		{
+			var spellLink = document.createElement('a');
+			spellLink.id = inputId+'_spellLink';
+			if (templateIsDisabled)
+				spellLink.href = 'javascript:void(0);';
+			else
+			    spellLink.href = 'javascript:doSpellCheck("/portlets/commons/spellchecker/", "'+inputId+'" );';
+			spellLink.innerHTML = spellcheckerMsg;
+			td.appendChild(spellLink);
+		}
+		
+		
+		td0.appendChild(table);
+		if (templateIsDisabled)
+			textarea.disabled = true;
+		return textarea;
+	},
+
+	createTime : function(field, inputId, td, value, defaultValue, templateIsDisabled)
+	{
+		defaultValue = value.value && value.value.indexOf(':') > 0 ? value.value :  ' : ';
+		// Hidden one Input to store the Time value.
+		var timeInput = Field.createText(field, inputId, value);
+		timeInput.type = 'hidden';
+		timeInput.value = defaultValue;
+		td.appendChild(timeInput);
+		var array = defaultValue.split(':');
+		
+		var dateTimeDropdownIdArray = this.getDateTimeId(inputId);
+		
+		var hour = Field.cloneSelect();
+		hour.id = dateTimeDropdownIdArray[0];
+		hour.title = TemplateHelper.getDisplayFieldName(field);
+		hour.className = 'portlet-form-field';
+		TemplateHelper.setReadOnly(field, hour);
+		
+		var optionObj = hour.options;
+		var option;
+		var optionInit = Field.cloneOption();
+		optionInit.innerText = '--Select--';
+		optionInit.value = ' ';
+		hour.appendChild(optionInit);
+		var index;
+		for (var i = 0; i < 24; i++)
+		{
+			option = Field.cloneOption();
+			if (i < 10)
+			{
+				index = '0'+i;
+			}
+			else
+			{
+				index = i;
+			}
+			option.innerText = index;
+			option.title = index;
+			option.value = index;
+			
+			if (array[0] == option.value)
+			{
+				option.selected = true;
+				option.defaultSelected = true;
+			}
+			
+			hour.appendChild(option);
+		}
+		//set time value
+		hour.onchange = function()
+		{
+			var hourValue = this.value;
+			var inputValue = timeInput.value;
+			timeInput.value = hourValue + inputValue.substr(inputValue.indexOf(':'));
+			value.value = timeInput.value;
+			Field.validateTime(inputId, timeInput, field);
+		}
+
+		var minuter = Field.cloneSelect();
+		minuter.id = dateTimeDropdownIdArray[1];
+		minuter.title = TemplateHelper.getDisplayFieldName(field);
+		minuter.className = 'portlet-form-field';
+		TemplateHelper.setReadOnly(field, minuter);
+		
+		
+		optionObj = minuter.options;
+		optionInit = Field.cloneOption();
+		optionInit.innerText = '--Select--';
+		optionInit.value = ' ';
+		minuter.appendChild(optionInit);
+		
+		for (var i = 0; i < 60; i++)
+		{
+			option = Field.cloneOption();			
+			if (i < 10)
+			{
+				index = '0'+i;
+			}
+			else
+			{
+				index = i;
+			}
+			option.innerText = index;
+			option.title = index;
+			option.value = index;
+			
+			if (array[1] == option.value)
+			{
+				option.selected = true;
+				option.defaultSelected = true;
+			}
+			minuter.appendChild(option);
+		}
+		//set time value
+		minuter.onchange = function()
+		{
+			var minuteValue = this.value;
+			var inputValue = timeInput.value;
+			timeInput.value = inputValue.substr(0, inputValue.indexOf(':')) + ':' + minuteValue;
+			value.value = timeInput.value;
+			Field.validateTime(inputId, timeInput, field);
+		}
+		if (isRTL)
+		{
+			td.appendChild(minuter);			
+			td.appendChild(hour);
+		}
+		else
+		{
+			td.appendChild(hour);
+			td.appendChild(minuter);
+		}
+		
+		if (templateIsDisabled)
+		{
+			hour.disabled = true;
+			minuter.disabled = true;
+		}
+	},
+	
+	validateTime : function (inputId, input, field)
+	{
+		if (Validate.validateTime(input.value))
+		{
+			Input.alertMsg(inputId, '');
+		}
+		else
+		{
+			if (':' == input.value.trim())//doesn't empty
+			{
+				if (field.requireFlag == 'Y'|| $(input).data('valueObj').required == "Y")
+				{
+					Input.alertMsg(inputId, required);		
+				}
+				else
+				{
+					Input.alertMsg(inputId, '');
+				}
+				return;
+			}
+			Input.alertMsg(inputId, required);
+		}
+	},
+	
+	createMoney : function(field, inputId, td, value, defaultValue, templateIsDisabled)
+	{
+		var input = Field.createText(field, inputId, value, defaultValue? defaultValue : '');
+		input.id = inputId;
+		input.value = defaultValue;
+		
+		td.appendChild(input);
+		var blankSpan = document.createElement('span');
+		blankSpan.innerHTML = '&nbsp;';
+		td.appendChild(blankSpan);
+		if (templateIsDisabled)
+			input.disabled = true;
+		return input;
+	},
+
+	createChecbox : function(field, inputId, td, value, defaultValue, templateIsDisabled)
+	{
+		var input = Field.cloneCheckbox();
+		input.id = inputId;
+		input.value = 'CHECKED';
+		var tmp = TemplateHelper.getDisplayFieldName(field);
+		tmp = BaseJS.htmlEncode(tmp);
+		input.title = tmp;
+		
+		TemplateHelper.setReadOnly(field, input);
+		this.addEvent(input, field, value);
+
+		td.appendChild(input);
+		if (defaultValue && defaultValue.toLowerCase() == 'checked')
+		{
+			input.checked = true;
+			input.defaultChecked = true;
+		}
+		if (templateIsDisabled)
+			input.disabled = true;
+		return input;
+	},
+	
+	createLabel : function(context, id)
+	{
+		var label0 = Field.cloneLabel();
+		label0.id = id+'_msgLabel_id';
+		label0.innerHTML = '<font class="inputField">'+context+'</font>';
+		return label0;		
+	},
+	
+	addEvent : function (obj, field, valueObj)
+	{
+		$(obj).data("field", field);
+		$(obj).data("valueObj", valueObj);
+		
+		for (var type in TemplateHelper.events)
+		{
+			if (!field[type])
+			{
+				continue;
+			}
+			BaseJS.addEventHandler(obj, type,  this.getListenerFn());
+		}
+	},
+	
+	getListenerFn : function ()
+	{
+		if (this._listener)
+			return this._listener;
+		this._listener = function(e){
+			var type = e.type;
+			var target = TemplateHelper.getTarget(e);
+			var field = $(target).data('field');
+			var valueObj = $(target).data('valueObj');
+			if (field[type])
+			{
+				field[type].apply(field, [target, field, valueObj]);
+			}
+		};
+		return this._listener;
+	}
+};

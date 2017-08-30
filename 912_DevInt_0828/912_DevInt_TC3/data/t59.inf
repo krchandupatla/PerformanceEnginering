@@ -1,0 +1,11 @@
+[t59]
+FileName1=t59_select-on-focus.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/core/directives/select-on-focus.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_59.xml
+RequestHeaderFile=t59_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t59_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

@@ -1,0 +1,11 @@
+[t888]
+FileName1=t888.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/contact/ref/refContactList.do?module=Building
+Total=1
+RequestHeaderFile=t888_RequestHeader.txt
+RequestBodyFile=t888_RequestBody.txt
+ResponseHeaderFile=t888_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_888.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

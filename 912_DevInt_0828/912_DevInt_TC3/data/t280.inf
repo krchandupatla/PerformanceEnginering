@@ -1,0 +1,11 @@
+[t280]
+FileName1=t280_commonConditionUtil.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/commons/condition/commonConditionUtil.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_280.xml
+RequestHeaderFile=t280_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t280_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

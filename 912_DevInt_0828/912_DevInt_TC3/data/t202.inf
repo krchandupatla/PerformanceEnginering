@@ -1,0 +1,11 @@
+[t202]
+FileName1=t202_print-styles.css
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/print-styles.css
+Total=1
+ContentType=text/css
+SnapshotXmlFile=snapshot_202.xml
+RequestHeaderFile=t202_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t202_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

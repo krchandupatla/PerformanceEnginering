@@ -1,0 +1,125 @@
+.login_form_spacer,
+#login_form_spacer,
+#login_bar td img {
+	display: none;
+}
+
+body {
+	margin: 0;
+	font-family: "proxima-nova";
+	color: #999;
+}
+
+.form-label,
+.login_messaging,
+.login_form_remember_me,
+.form-input select,
+.form-input input[type="password"],
+.form-input input[type="text"] {
+	font-size: 13px;
+}
+
+.form-label {
+	font-weight: 400;
+	margin-left: 10px;
+	line-height: 2em;
+}
+
+.form-input select,
+.form-input input[type="password"],
+.form-input input[type="text"] {
+	height: 30px;
+	border: 1px solid #ccc;
+	width: 200px;
+	padding: 3px 6px;
+	color: #777;
+}
+
+#login_form td {
+	background-color: #fff;
+	border: none;
+}
+
+.login_messaging p {
+	width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+  margin-top: 10px;
+}
+
+.login_messaging p {
+	display: inline-block;
+	padding: 10px;
+	margin: 0;
+	text-align: left;
+}
+
+.login_messaging img {
+	display: none;
+}
+
+.login_messaging.success p {
+	border: 1px solid #d6e9c6;
+	color: #3c763d;
+  background-color: #dff0d8;
+}
+
+.login_messaging, 
+.login_messaging tbody, 
+.login_messaging td, 
+.login_messaging tr {
+	display: inline-block;	
+}
+
+input[type="submit"] {
+	border-radius: 4px;
+	background-color: #c5c5c5;
+	border: 1px solid #c5c5c5;	
+  color: #fff;
+	float: right;
+  padding: 8px 30px;
+}
+
+.logo {
+	text-align: center;
+	padding-top: 30px;
+}
+
+.support_login,
+.login_form_add_to_favorites a {
+	font-size: 12px;
+}
+
+.support_login {
+	color: #C6C7C8;
+}
+
+.login_form_add_to_favorites a,
+a {
+	color: #65CCFF;
+}
+
+.login_messaging td:nth-child(1) {
+	display: none;	
+}
+
+.login_messaging td:nth-child(2) {
+	padding-top: 10px;
+}
+
+.login_messaging td:nth-child(3) {
+	display: none;
+}
+
+.login_form_add_to_favorites td a {
+	display: inline-block;
+	margin: 10px 0;
+}
+
+.readonly
+{
+	background-color:#F0F0F0;
+}

@@ -1,0 +1,167 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation')
+    .service('SpaceManager', function ($q, $state, SpaceRepository, SpaceConfiguration, $stickyState, SpaceIconFactory, $rootScope) {
+      var _loaded = false;
+      var _spaces = [];
+      var _containers = [];
+
+      for (var i = 1; i < SpaceConfiguration.numberOfSpaces + 1; i++) {
+        _containers.push({
+          id: i,
+          containerName: 'container' + i + '@spaces',
+          routeName: 'spaces.' + SpaceConfiguration.spaceExtension + i,
+          used: false
+        });
+      }
+
+      function getNextAvailableContainer() {
+        return _.chain(_containers)
+          .where({used: false})
+          .sortBy('id')
+          .first()
+          .value();
+      }
+
+      function addSpace(space, sortOrder) {
+        var spaceResult = { ok: false };
+        var container = getNextAvailableContainer();
+
+        if (container) {
+          container.used = true;
+          space.viewName = container.containerName;
+          space.routeName = container.routeName;
+          space.sortOrder = sortOrder;
+
+          SpaceIconFactory.updateSpaceIcon(space);
+
+          _spaces.push(space);
+        }
+
+        if (container) {
+          spaceResult.ok = true;
+        } else {
+          spaceResult.msg = 'No more spaces available.';
+        }
+
+        return spaceResult;
+      }
+
+      function unUseContainer(name) {
+        var container = _.chain(_containers)
+          .where({containerName: name})
+          .first()
+          .value();
+
+        container.used = false;
+      }
+
+      function removeSpace(space) {
+        $stickyState.reset(space.routeName);
+        unUseContainer(space.viewName);
+
+        var index = _spaces.indexOf(space);
+        _spaces.splice(index, 1);
+      }
+
+      var load = function () {
+        var deferred = $q.defer();
+
+        if (_loaded) {
+          deferred.resolve(_spaces);
+          return deferred.promise;
+        }
+
+        SpaceRepository.getPinnedSpaces().then(function (spaces) {
+          angular.forEach(spaces, function (space, index) {
+            addSpace(space, index);
+          });
+
+          _loaded = true;
+          return deferred.resolve(_spaces);
+        });
+
+        return deferred.promise;
+      };
+
+      var create = function (newSpace) {
+        var existingSpace;
+
+        if (newSpace.spaceState) {
+          existingSpace = getExistingSpaceByState(newSpace);
+        } else {
+          existingSpace = _.chain(_spaces)
+            .where({spaceUrl: newSpace.spaceUrl})
+            .first()
+            .value();
+        }
+
+        if (existingSpace) {
+          return {
+            ok: true,
+            space: existingSpace
+          };
+        }
+
+        var space = SpaceRepository.createSpace(newSpace);
+        var spaceResult = addSpace(space, _spaces.length);
+
+        if (spaceResult.ok) {
+          spaceResult.space = space;
+        }
+
+        return spaceResult;
+      };
+
+      var close = function (space) {
+        removeSpace(space);
+        SpaceRepository.updateSpaces(_spaces);
+        $rootScope.$broadcast('spaces:space-closed', space);
+      };
+
+      var getActiveSpace = function() {
+        return _.chain(_spaces)
+          .where({routeName: $state.current.name})
+          .first()
+          .value();
+      };
+
+      var getExistingSpaceByState = function (existingSpaceState) {
+        var existingSpace = _.chain(_spaces)
+          .where({spaceState: existingSpaceState})
+          .first()
+          .value();
+
+        return existingSpace;
+      };
+
+      var pinSpace = function (space) {
+        space.pinStatus = true;
+        SpaceRepository.updateSpaces(_spaces);
+      };
+
+      var unpinSpace = function (space) {
+        space.pinStatus = false;
+        SpaceRepository.updateSpaces(_spaces);
+      };
+
+      var updateSpaces = function () {
+        SpaceRepository.updateSpaces(_spaces);
+      };
+
+      return {
+        load: load,
+        create: create,
+        close: close,
+        spaces: _spaces,
+        pinSpace: pinSpace,
+        unpinSpace: unpinSpace,
+        updateSpaces: updateSpaces,
+        getExistingSpaceByState: getExistingSpaceByState,
+        getActiveSpace: getActiveSpace
+      };
+    });
+
+})();

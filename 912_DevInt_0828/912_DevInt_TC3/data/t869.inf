@@ -1,0 +1,11 @@
+[t869]
+FileName1=t869.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/regional/regionalSyncMask.do?mode=syncMask&maskType=phoneNumber&getMsg=Y
+Total=1
+RequestHeaderFile=t869_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t869_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_869.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

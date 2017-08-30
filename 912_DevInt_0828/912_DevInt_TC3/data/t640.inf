@@ -1,0 +1,11 @@
+[t640]
+FileName1=t640_validate.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/commons/genericTemplate/js/validate.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_640.xml
+RequestHeaderFile=t640_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t640_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

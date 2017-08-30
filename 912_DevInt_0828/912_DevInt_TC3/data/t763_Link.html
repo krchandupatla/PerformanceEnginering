@@ -1,0 +1,186 @@
+/**
+ * 
+ * V360 File: Link.js
+ * 
+ * Accela, Inc. Copyright (C): 2012-2013
+ * 
+ * Description: <<General description of the class>>
+ * 
+ * Notes: <<Specific programming notes>>
+ * 
+ */
+
+UI.Link = new UI.Component();
+
+UI.Link.extend( {
+
+	idPrevious : "link-",
+
+	init : function(config) {
+		this.id = config.id || this.getId();
+		this.name = config.name || this.getId();
+		this.text = config.text || "";
+		this.accessKey = config.accessKey || "";
+		this.disabled = config.disabled || false;
+		this.href = config.href || "";
+		this.style = config.style || "";
+		this.target = config.target || "";
+		this.tabIndex = config.tabIndex;
+		this.title = config.title || "";
+		this.containId = config.containId;
+		this.width = this.parseWidth(this.style);
+		
+        if (!Ac360.validator.isEmpty(config.lengthRestricted) && config.lengthRestricted  == "false")
+        {
+            this.lengthRestricted = false;
+        }
+        else
+        {
+            this.lengthRestricted = true;
+        }
+
+		this.eventMap = config.eventMap || {};
+		this.supportEvents = config.supportEvents || [ "change", "click" ];
+		this.className = config.className;
+	},
+
+	render : function() {
+		var link = document.createElement('a');
+		link.id = this.id;
+		link.name = this.name;
+		if (this.href) {
+			link.href = this.href;
+		}
+		if (this.text) {
+			link.innerHTML = this.text;
+			if(this.lengthRestricted && this.width)
+			link.innerHTML = Ac360.formatToMaxLength(link.innerHTML,this.width,true);
+		}
+		if (this.title) {
+			link.title = this.title;
+		}
+		if (this.accessKey) {
+			link.accessKey = this.accessKey;
+		}
+		if (this.disabled) {
+			link.disabled = this.disabled;
+		}
+		if (this.style) {
+			link.style = this.style;
+		}
+		if (this.target) {
+			link.target = this.target;
+		}
+		if (this.tabIndex) {
+			link.tabIndex = this.tabIndex;
+		}
+		if (this.className) {
+			link.className = this.className;
+		}
+		this.bindEvents(input, this.eventMap, this.supportEvents);
+		var contain = document.getElementById(this.containId);
+		contain.appendChild(link);
+	},
+
+	getOuterHTML : function(data) {
+		var initData = data || {};
+		var text = initData.text || this.text;
+		if (Ac360.validator.isEmpty(text))
+		{
+		    return "";
+		}
+		
+		var id = initData.id || this.id;
+		var name = initData.name || id;
+		var title = initData.title || this.title;
+		var href = initData.href || this.href;
+		var accessKey = initData.accessKey || this.accessKey;
+		var tabIndex = initData.tabIndex || this.tabIndex;
+		var disabled = initData.disabled || this.disabled;
+		var target = initData.target || this.target;
+		var style = initData.style || this.style;
+		var eventMap = initData.eventMap || this.eventMap;
+		var supportEvents = initData.supportEvents || this.supportEvents;
+		var width = this.parseWidth(style);
+		
+        var lengthRestricted = true;
+        if (!Ac360.validator.isEmpty(initData.lengthRestricted) && initData.lengthRestricted  == "false")
+        {
+            lengthRestricted = false;
+        }
+
+		var className = initData.className || this.className;
+		var content = new Array();
+		// clear link width, avoid blank area link 
+		if (width)
+		{
+			var spanWidthPtn = /width\s*:\s*(\d+)[; ]*/gi;
+			style = style.replace(spanWidthPtn, "");
+			content.push("<span style='width:");
+			content.push(width);
+			content.push("' id='");
+			content.push(this.idPrevious + Util.increase());
+			content.push("'>");	
+		}
+		
+		content.push("<a id='");
+		content.push(id);
+		content.push("' name='");
+		content.push(name);
+		if (href) {
+			content.push("' href='");
+			content.push(href);
+		}
+		if (title) {
+			content.push("' title='");
+			content.push(title);
+		}
+		if (accessKey) {
+			content.push("' accessKey='");
+			content.push(accessKey);
+		}
+		if (tabIndex) {
+			content.push("' tabIndex='");
+			content.push(tabIndex);
+		}
+		if (target) {
+			content.push("' target='");
+			content.push(target);
+		}
+		if (style) {
+			content.push("' style='");
+			content.push(style);
+		}
+		content.push("'");
+		if (disabled) {
+			content.push(" disabled='disabled'");
+		}
+		if(lengthRestricted && width)
+		{
+			content.push(UI.Tip.appendTip(text));
+			text = Ac360.formatToMaxLength(text,width,true);
+		}
+		if(className){
+			content.push(" class='");
+			content.push(className);
+			content.push("'");
+		}
+		content.push(this.eventsToHTML(eventMap,supportEvents));
+		content.push(">");
+		
+		content.push(text);
+		
+		content.push("</a>");
+		if (width)
+		{
+			content.push("</span>");
+		}
+		return content.join("");
+	},
+
+	addDefaultEvent : function() {
+
+	}
+
+});
+WidgetManager.registerWidget("link",UI.Link);

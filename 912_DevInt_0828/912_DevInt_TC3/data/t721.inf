@@ -1,0 +1,11 @@
+[t721]
+FileName1=t721.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp
+Total=1
+ContentType=text/html
+SnapshotXmlFile=snapshot_721.xml
+RequestHeaderFile=t721_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t721_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

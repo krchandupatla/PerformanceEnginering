@@ -1,0 +1,487 @@
+/**
+ * Created by frederick.zhang on 11/19/2014.
+ *
+ * Refactored into separate controller by dbalmer@accela.com
+ *
+ * Added saved search results for AAETA-495 by dbalmer@accela.com
+ */
+(function () {
+  'use strict';
+
+  angular
+    .module('accela.automation.globalsearch')
+    .controller('GlobalSearchController', controller);
+
+  /**
+   * @ngInject
+   */
+  function controller($rootScope, $scope, $stateParams, $location, $log, $timeout, GlobalSearchService, ServerSessionService, TaskManager) {
+
+    var i18n = $rootScope.i18n;
+
+    // PUBLIC data
+
+    $scope.contentLoaded = false;
+    $scope.loadingShow = false;
+
+    // judge if need show slider bar
+    $scope.showSliderBar = false;
+
+    $scope.search = {
+      text: ''
+    };
+
+    $scope.searchResult = {
+      text: '',
+      totalCount: 0,
+
+      record: { // Record display fields and search result
+        totalCount: 0,
+        items: [],
+        fields: [
+          i18n.GlobalSearch.Agency,
+          i18n.GlobalSearch.RecordType,
+          i18n.GlobalSearch.ShortNotes,
+          i18n.GlobalSearch.Location,
+          i18n.GlobalSearch.Contact,
+          i18n.GlobalSearch.ProjectName,
+          i18n.GlobalSearch.CreatedDate,
+          i18n.GlobalSearch.ReportedType
+        ],
+        offset: 1,
+        limit: 5,
+        to: 0,
+        sort: '',
+        currentPage: 1
+      },
+
+      asset: { //Asset display fields and search result;
+        totalCount: 0,
+        items: [],
+        fields: [
+          i18n.GlobalSearch.Location,
+          i18n.GlobalSearch.Status
+        ],
+        offset: 1,
+        limit: 5,
+        to: 0,
+        sort: '',
+        currentPage: 1,
+        agency: i18n.GlobalSearch.Agency,
+        lockedField: i18n.GlobalSearch.AssetInfo
+      },
+
+      contact: { //Contact display fields and search result
+        totalCount: 0,
+        items: [],
+        fields: [
+          i18n.GlobalSearch.ContactType,
+          i18n.GlobalSearch.Type,
+          i18n.GlobalSearch.ContactBusinessName,
+          i18n.GlobalSearch.FullName,
+          i18n.GlobalSearch.TradeName,
+          i18n.GlobalSearch.Email,
+          i18n.GlobalSearch.PhoneNumber
+        ],
+        offset: 1,
+        limit: 5,
+        to: 0,
+        sort: '',
+        currentPage: 1,
+        agency: i18n.GlobalSearch.Agency,
+        lockedField: i18n.GlobalSearch.ContactNumber
+      },
+
+      location: { //Address display fields and search result
+        totalCount: 0,
+        items: [],
+        fields: [
+          i18n.GlobalSearch.Parcel,
+          i18n.GlobalSearch.Owner
+        ],
+        offset: 1,
+        limit: 5,
+        to: 0,
+        sort: '',
+        currentPage: 1,
+        lockedField: i18n.GlobalSearch.Address
+      },
+
+      document: { //Document display fields and search result
+        totalCount: 0,
+        items: [],
+        offset: 1,
+        limit: 5,
+        to: 0,
+        sort: '',
+        currentPage: 1
+      },
+
+      parcel: { //Parcel display fields and search result
+        totalCount: 0,
+        items: [],
+        fields: [
+          i18n.GlobalSearch.Address,
+          i18n.GlobalSearch.Owner
+        ],
+        offset: 1,
+        limit: 5,
+        to: 0,
+        sort: '',
+        currentPage: 1,
+        lockedField: i18n.GlobalSearch.Parcel
+      },
+
+      professional: {  //Professional display fields and search result
+        totalCount: 0,
+        items: [],
+        fields: [
+          i18n.GlobalSearch.LicenseType,
+          i18n.GlobalSearch.BusinessName,
+          i18n.GlobalSearch.Address,
+          i18n.GlobalSearch.LicenseIssuedOn,
+          i18n.GlobalSearch.LicenseExpiresOn
+        ],
+        offset: 1,
+        limit: 5,
+        to: 0,
+        sort: '',
+        currentPage: 1,
+        agency: i18n.GlobalSearch.Agency,
+        lockedField: i18n.GlobalSearch.StateLicenseNo
+      },
+
+      groupButtons: [
+        {label: i18n.GlobalSearch.RecordsTab, count: 0, click: false, isFocus: false},
+        {label: i18n.GlobalSearch.LocationsTab, count: 0, click: false, isFocus: false},
+        {label: i18n.GlobalSearch.LicenceProfessionalsTab, count: 0, click: false, isFocus: false},
+        {label: i18n.GlobalSearch.DocumentsTab, count: 0, click: false, isFocus: false},
+        {label: i18n.GlobalSearch.AssetsTab, count: 0, click: false, isFocus: false},
+        {label: i18n.GlobalSearch.ContactsTab, count: 0, click: false, isFocus: false},
+        {label: i18n.GlobalSearch.ParcelsTab, count: 0, click: false, isFocus: false}
+      ]
+    };
+
+    // EVENT handlers and watches
+
+    // called by ng-include onload
+    $scope.onContentLoaded = function(groupType) {
+      $scope.contentLoaded = true;
+      //$log.debug(sprintf('onContentLoaded(%s)', groupType));
+    };
+
+    // wait until the view and a group template is available
+    $scope.$on('$viewContentLoaded', function(event) {
+      var unbindWatcher = $scope.$watch('contentLoaded', function() {
+        unbindWatcher();
+        ready();
+      });
+    });
+
+    $scope.$on('ngRepeatFinished', function(ngRepeatFinishedEvent, targetObj) {
+      // update slider bar if needed
+      if (targetObj && targetObj.scrollWidth - targetObj.offsetWidth > 0) {
+        $scope.showSliderBar = true;
+      } else {
+        $scope.showSliderBar = false;
+      }
+    });
+
+    $scope.$watch('searchResult.groupButtons', function (buttons) {
+      angular.forEach(buttons, function (button, index) {
+        var isFocus = button.isFocus;
+        var focusChevron = $('#chevron-' + index);
+        if (isFocus) {
+          if (!focusChevron.hasClass('chevron-focus')) {
+            focusChevron.addClass('chevron-focus');
+          }
+        } else {
+          if (button.click) {
+            if (focusChevron.hasClass('chevron-focus')) {
+              focusChevron.removeClass('chevron-focus');
+              focusChevron.addClass('chevron');
+            }
+          }
+        }
+      });
+    }, true);
+
+    // PUBLIC methods
+
+    $scope.btnMouseOver = function (index) {
+      var currentBtn = $('#btn-show-' + index);
+      var currentChevron = $('#chevron-' + index);
+      if (currentBtn.hasClass('btn-group-active') && currentChevron.hasClass('chevron')) {
+        currentChevron.removeClass('chevron').addClass('chevron-focus');
+      }
+    };
+
+    $scope.btnMouseLeave = function (index) {
+      var currentBtn = $('#btn-show-' + index);
+      var currentChevron = $('#chevron-' + index);
+      if (currentBtn.hasClass('btn-group-active') && currentChevron.hasClass('chevron-focus')) {
+        currentBtn[0].blur();
+        currentChevron.removeClass('chevron-focus').addClass('chevron');
+      }
+    };
+
+    $scope.globalSearch = function () {
+      var start = 0;
+      var searchText = $scope.search.text || '';
+
+      if (searchText.length >= 3) {
+        // update $stateParams
+        $stateParams.searchText = searchText;
+        $location.search($stateParams); // ok because we have reloadOnSearch: true
+
+        $scope.searchText = '';
+        $scope.loadingShow = true;
+
+        GlobalSearchService.searchAll(searchText, start).then(function (response) {
+          parseSearchResult(searchText, response.data.result[0]);
+        });
+      }
+    };
+
+    $scope.removeFocus = function (index) {
+      $scope.searchResult.groupButtons[index].isFocus = false;
+    };
+
+    $scope.setFocus = function (index) {
+      angular.forEach($scope.searchResult.groupButtons, function(button) {
+        button.isFocus = false;
+      });
+
+      $scope.searchResult.groupButtons[index].isFocus = true;
+    };
+
+    $scope.showGroup = function (index) {
+      var groupText = '';
+
+      switch (index) {
+        case 0:
+          groupText = 'RECORD';
+          break;
+        case 1:
+          groupText = 'LOCATION';
+          break;
+        case 2:
+          groupText = 'PROFESSIONAL';
+          break;
+        case 3:
+          groupText = 'DOCUMENT';
+          break;
+        case 4:
+          groupText = 'ASSET';
+          break;
+        case 5:
+          groupText = 'CONTACT';
+          break;
+        case 6:
+          groupText = 'PARCEL';
+          break;
+      }
+
+      activeButtonGroup(index, groupText);
+
+      $scope.searchResult.groupButtons[index].isFocus = true;
+
+      $('#chevron-' + index).removeClass('chevron').addClass('chevron-focus');
+    };
+
+    $scope.openSpace = function(entity, from) {
+      var info = TaskManager.getGlobalSearchSpaceInfo(entity, from, entity.crossAgency === null ? $scope.currentUser.serviceProviderCode : entity.crossAgency);
+
+      entity.isActive = true;
+
+      $scope.$emit('dashboard.openSpace', { // handled in aa-space-list directive
+        spaceName: info.spaceName,
+        spaceIconType: info.spaceIconType,
+        spaceUrl: info.spaceUrl
+      });
+    };
+
+    // PRIVATE methods
+
+    function activeButtonGroup(index, groupText) {
+      var btn;
+
+      angular.forEach($scope.searchResult.groupButtons, function(groupButton, idx) {
+        btn = $('#btn-show-' + idx);
+        if (btn) {
+          btn.removeClass('btn-group-active');
+          groupButton.click = false;
+        }
+      });
+
+      btn = $('#btn-show-' + index);
+
+      if (btn) {
+        btn.addClass('btn-group-active');
+      }
+
+      $scope.searchResult.groupButtons[index].click = true;
+      $scope.groupType = groupText;
+    }
+
+    function comparable(source, target) {
+      if (source < target) {
+        return source;
+      }
+      return target;
+    }
+
+    function initActiveButton() {
+      var groupText = '';
+      var index = 0;
+
+      if ($scope.searchResult.record.totalCount > 0) {
+        index = 0;
+        groupText = 'RECORD';
+      } else if ($scope.searchResult.location.totalCount > 0) {
+        index = 1;
+        groupText = 'LOCATION';
+      } else if ($scope.searchResult.professional.totalCount > 0) {
+        index = 2;
+        groupText = 'PROFESSIONAL';
+      } else if ($scope.searchResult.document.totalCount > 0) {
+        index = 3;
+        groupText = 'DOCUMENT';
+      } else if ($scope.searchResult.asset.totalCount > 0) {
+        index = 4;
+        groupText = 'ASSET';
+      } else if ($scope.searchResult.contact.totalCount > 0) {
+        index = 5;
+        groupText = 'CONTACT';
+      } else if ($scope.searchResult.parcel.totalCount > 0) {
+        index = 6;
+        groupText = 'PARCEL';
+      }
+
+      activeButtonGroup(index, groupText);
+
+      $el('#btn-show-' + index).blur();
+    }
+
+    function parseSearchResult(searchText, result) {
+      var totalCount = 0;
+
+      totalCount += parseTabResults('asset', result);
+      totalCount += parseTabResults('contact', result);
+      totalCount += parseTabResults('document', result);
+      totalCount += parseTabResults('location', result);
+      totalCount += parseTabResults('parcel', result);
+      totalCount += parseTabResults('professional', result);
+      totalCount += parseTabResults('record', result);
+
+      $scope.searchResult.totalCount = totalCount;
+
+      $scope.searchResult.groupButtons[0].count = $scope.searchResult.record.totalCount;
+      $scope.searchResult.groupButtons[1].count = $scope.searchResult.location.totalCount;
+      $scope.searchResult.groupButtons[2].count = $scope.searchResult.professional.totalCount;
+      $scope.searchResult.groupButtons[3].count = $scope.searchResult.document.totalCount;
+      $scope.searchResult.groupButtons[4].count = $scope.searchResult.asset.totalCount;
+      $scope.searchResult.groupButtons[5].count = $scope.searchResult.contact.totalCount;
+      $scope.searchResult.groupButtons[6].count = $scope.searchResult.parcel.totalCount;
+
+      $timeout(initActiveButton); // wait until rendered
+
+      $scope.searchResult.text = searchText;
+      $scope.loadingShow = false;
+    }
+
+    function parseTabResults(tab, result) {
+      var items;
+      var tabindex = 100;
+      var totalCountStr;
+      var totalCount = 0;
+      var showAgencyColumn = false;
+      var tabSearchResult =  $scope.searchResult[tab];
+
+      switch (tab) {
+        case 'asset' :
+          items = result.assetRecords;
+          totalCountStr = result.assetTotalCount;
+          showAgencyColumn = result.enableAssetAgencyColumn;
+          break;
+        case 'contact' :
+          items = result.contactRecords;
+          totalCountStr = result.contactTotalCount;
+          showAgencyColumn = result.enableContactAgencyColumn;
+          break;
+        case 'document' :
+          items = result.documentRecords;
+          totalCountStr = result.documentTotalCount;
+          showAgencyColumn = result.enableDocumentAgencyColumn;
+          break;
+        case 'location' :
+          items = result.addressRecords || [];
+          totalCountStr = result.addressTotalCount;
+          break;
+        case 'parcel' :
+          items = result.parcelRecords || [];
+          totalCountStr = result.parcelTotalCount;
+          break;
+        case 'professional' :
+          items = result.professionalRecords;
+          totalCountStr = result.professionalTotalCount;
+          showAgencyColumn = result.enableProfessionalAgencyColumn;
+          break;
+        case 'record' :
+          items = result.capRecords;
+          totalCountStr = result.capTotalCount;
+          showAgencyColumn = result.enableCapAgencyColumn;
+          break;
+      }
+
+      if (totalCountStr && null !== totalCountStr) {
+        totalCount = parseInt(totalCountStr, 10);
+      }
+
+      tabSearchResult.items = items;
+      tabSearchResult.limit = result.limit;
+      tabSearchResult.showAgencyColumn = showAgencyColumn;
+
+      angular.forEach(tabSearchResult.items, function(item) { // so we can tab across tables
+        item.tabindex = tabindex++;
+      });
+
+      tabSearchResult.currentPage = 1;
+      tabSearchResult.offset = 1;
+
+      tabSearchResult.totalCount = totalCount;
+      tabSearchResult.to = comparable(tabSearchResult.totalCount, tabSearchResult.limit);
+      tabSearchResult.pageCount = totalCount < tabSearchResult.limit ? 1 : Math.round(totalCount / tabSearchResult.limit);
+
+      tabSearchResult.isLastPage = (tabSearchResult.to === totalCount);
+
+      $timeout(function() { // focus on first tab
+        if ($('#btn-show-0')) {
+          $el('#btn-show-0').focus();
+        }
+      }, 500, false);
+
+      return totalCount;
+    }
+
+    function ready() {
+      if ($stateParams.searchText) { // we have search text
+        $scope.search.text = $stateParams.searchText;
+        $scope.globalSearch();
+      }
+
+      if ($('form.div-pagination')) {
+        // set tabindex on pagination controls
+        $('form.div-pagination').$('a, input').attr('tabindex', 100);
+      }
+    }
+
+    // INITIALIZE
+
+    $log = $log.getInstance('GLOBAL-SEARCH-CONTROLLER');
+
+    $scope.$on('$destroy', function() {
+      $log.info('destroyed');
+    });
+  }
+})();

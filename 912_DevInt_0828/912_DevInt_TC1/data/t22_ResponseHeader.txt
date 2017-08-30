@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+X-XSS-Protection: 0
+Pragma: No-cache
+Cache-Control: no-cache
+Expires: Wed, 31 Dec 1969 23:59:59 GMT
+Set-Cookie: LASTEST_REQUEST_TIME=1503945061139; Domain=dev.accela.com; Path=/; Secure,hostSignOn=""; Domain=dev.accela.com; Path=/; Secure,hostSignOn=true; Domain=dev.accela.com; Path=/; Secure,ACAuth=88511893206235660908563880847696567914291405768657683367840521073983632823109011016409533845214252044639299144772450752623316798;path=/;Domain=dev.accela.com;Secure;HttpOnly,ACSignOnModule=SSOStandard; Domain=dev.accela.com; Path=/; Secure,AALoginUsername=D3746432CF8CEC7D; Domain=dev.accela.com; Expires=Thu, 01-Jan-1970 00:00:10 GMT; Path=/; Secure,AALoginServProvCode=FLAGSTAFF; Domain=dev.accela.com; Expires=Thu, 01-Jan-1970 00:00:10 GMT; Path=/; Secure,AAIsRemember=N; Domain=dev.accela.com; Expires=Thu, 01-Jan-1970 00:00:10 GMT; Path=/; Secure,g_current_language_ext=en_US; Domain=dev.accela.com; Path=/; Secure,AAPersistLoginServProvCode=FLAGSTAFF; Domain=dev.accela.com; Path=/; Secure,LoginServProvCode4MultiAgency=FLAGSTAFF; Domain=dev.accela.com; Path=/; Secure,LoginUsername4MultiAgency=179DD13A186028F4; Domain=dev.accela.com; Path=/; Secure
+Content-Type: text/html;charset=UTF-8
+Content-Length: 103
+Date: Mon, 28 Aug 2017 18:31:01 GMT
+Connection: close
+

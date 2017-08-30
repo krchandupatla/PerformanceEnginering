@@ -1,0 +1,717 @@
+//Accela Automation
+//File: dojo412.js
+//Accela, Inc.
+//Copyright (C): 2010-2012
+//
+//Description: This javascript is to implement functions of dojo tree 412
+//
+//Notes:
+//
+//Revision History:
+
+AccelaDojo.provide('accela.dojo');
+AccelaDojo.require('dijit.Tree');
+AccelaDojo.require('dojox.data.QueryReadStore');
+AccelaDojo.require('dojox.collections.ArrayList');
+
+AccelaDojo.addOnLoad(function(){
+	
+	
+	AccelaDojo.declare('accela.data.QueryReadStore', AccelaDojox.data.QueryReadStore, {
+		
+		_filterResponse: function(data){
+			var idlist=new AccelaDojox.collections.ArrayList();
+			if(data==null)
+			{				
+				var data={
+				items: [],
+				identifier: 'widgetId',
+				label: 'title'
+				};
+				return data;
+			}
+			var items= data.items;
+			var itemsList =new AccelaDojox.collections.ArrayList();
+			AccelaDojo.forEach(data.items,function(e){ 
+				//this._items.push({i:e, r:this}); 
+				var id = e.widgetId;
+				if(!idlist.contains(id))
+				{				
+					idlist.add(id);
+					itemsList.add(e);
+				}
+			},this); 			
+			data.items= itemsList.toArray();			
+			return data;
+		}
+		
+		}),
+	
+    AccelaDojo.declare('accela.dojo.QueryStoreModel', AccelaDijit.tree.ForestStoreModel, {
+    
+    
+    
+        constructor: function(args){
+            // alert(args.widgetId);
+            widgetId = args.widgetId;
+            objectId = args.objectId;
+            isFolder = args.isFolder;
+            div = AccelaDojo.doc.createElement('div');
+        },
+        
+        getChildren: function(parentItem, complete_cb, error_cb){
+        
+            if (!parentItem.root) {
+                widgetId = this.store.getValue(parentItem, 'widgetId');
+                objectId = this.store.getValue(parentItem, 'objectId');
+                isFolder = this.store.getValue(parentItem, 'isFolder');
+                try {
+                    if (isFolder.toString() == 'false') {
+                        return this.inherited(arguments);
+                    }
+                } 
+                catch (error) {
+                }
+            }
+            
+            if (parentItem.root && parentItem.store.widgetId != null) {
+            
+                widgetId = parentItem.store.widgetId;
+                objectId = parentItem.store.objectId;
+                isFolder = 'true';
+            }
+            
+            // try{
+            // if(this.store.getValue(parentItem, 'children') !=null)
+            // {
+            // return this.inherited(arguments);
+            // }
+            // }catch(error)
+            // {
+            // alert(error);
+            // }
+            
+           var datastr = {"node":{"widgetId": widgetId,"objectId":objectId,"isFolder":isFolder}};
+
+            if(parentItem.root)
+            {
+            	parentItem.level = 1;
+          
+            }
+            this.store.fetch({
+                serverQuery: {
+                    action: 'getChildren',
+                    data: AccelaDojo.toJson(datastr)
+                },
+                onComplete: AccelaDojo.hitch(this, function(items){
+                    //parentItem.childrens= items;                    
+                    
+                    AccelaDojo.forEach(items, function(item){
+                        //debugger;
+                        div.innerHTML = item.i.title;
+                        var labelText = null;
+                        if(div.lastChild)
+                        {                        	
+	                        labelText = div.lastChild.innerText;	                                    
+	                    }
+                        if(labelText == null)
+                        {
+                        	labelText = item.i.title;                       
+	                    }
+                        item.labelText = labelText; 
+                        
+                        item.parentItem = parentItem;
+                        item.level = parentItem.level+1;
+                        
+                    });
+                    
+                    
+                    
+                    //need change div txt to really txt,
+                    
+                    complete_cb(items);
+                }),
+                onError: AccelaDojo.hitch(this, function(err){
+	                	//it means tree node id have been used. 
+	                	//there are many nodes have same id.
+	                	//alert("JS method getChildren error: "+ err.message);
+	                	error_cb(err);
+	                })
+            });
+            return;
+        },
+        
+        mayHaveChildren: function(item){
+            var HaveChildren = false;
+            try {
+                if (item.root ||
+                this.store.getValue(item, 'isFolder').toString() ==
+                'true') {
+                    HaveChildren = true;
+                }
+            } 
+            catch (error) {
+                // alert(error);
+            }
+            
+            // if(!HaveChildren){
+            // alert(item.i.id);
+            // }
+            return HaveChildren;
+        }
+    });
+    
+	
+	 AccelaDojo.declare('accela.dojo._TreeNode', AccelaDijit._TreeNode, {
+		 _setExpando: function(processing)
+		 {
+		 	this.isExpandable = this.item.root ? true :
+		 		((this.item.i.isFolder == false || this.item.i.isFolder == 'false')?false : true);
+		 	this.inherited(arguments);
+		},
+		removeChild: function(node){
+			this.inherited(arguments);
+			var children = this.getChildren();
+			if(children.length == 0){
+				this.expand();
+			}
+		},
+		
+		
+		_setIndentAttr: function(indent){
+			
+			//alert(document.dir);
+			if(document.dir!=null && document.dir=='rtl')
+			{
+				//support rtl. it maybe have some bug in here.			
+				this.indent = indent;
+		
+				// Math.max() is to prevent negative padding on hidden root node (when indent == -1)
+				var pixels = (Math.max(indent, 0) * this.tree._nodePixelIndent) + "px";
+		
+				//dojo.style(this.domNode, "backgroundPosition",	pixels + " 0px");
+				//dojo.style(this.rowNode, dojo._isBodyLtr() ? "paddingLeft" : "paddingRight", pixels);
+		
+				AccelaDojo.forEach(this.getChildren(), function(child){
+					child.attr("indent", indent+1);
+				});
+			}else
+			{
+				this.inherited(arguments);
+			}
+		
+		}
+		
+		
+	 });
+	
+	var originalExpandNode = AccelaDijit.Tree.prototype['_expandNode'];
+	var originalCollapseNode = AccelaDijit.Tree.prototype['_collapseNode'];
+    AccelaDojo.declare('accela.dojo.ChkTree', AccelaDijit.Tree, {
+        _clickTarget: null,
+        _expandNode: function(/*_TreeNode*/ node, /*Boolean?*/ recursive){
+    		var def = originalExpandNode.call(this, node, recursive);
+    		
+    		/**
+    		 * It is used for support other function for special requirement by override
+    		 */
+    		myExpandNode(this,node);
+    		if(!this.resizeAfterExpandOrCollapseNode)
+    		{
+    			var orgCallback = def.callback; 
+    			def.callback = function(res){
+    				orgCallback.call(this, res);
+    				scrollBarIssue.dojoTreeResize();
+    			}
+    			return def;
+    		}
+    		
+    		if(def && def.callback)
+    		{
+    			var orgCallback = def.callback; 
+    			def.callback = function(res){
+    				orgCallback.call(this, res);
+    				scrollBarIssue.dojoTreeResize();
+    			}
+    		}
+    		return def;
+    	},
+    	
+    	
+    	
+        
+    	_collapseNode: function(/*_TreeNode*/ node){
+    		if(!this.resizeAfterExpandOrCollapseNode)
+    		{
+    			node._wipeOut = AccelaDojo.fx.wipeOut({
+				node: node.containerNode, duration: AccelaDijit.defaultDuration,
+				onEnd: function(){
+    					scrollBarIssue.dojoTreeResize();
+					}
+				});
+    		}
+    		originalCollapseNode.call(this, node);
+    	},
+        
+        //reload the tree. commont we use it to update the tree.
+        reloadTree: function(){
+        	this._itemNodesMap ={};
+        	this._load();
+        },
+        
+        //james: we don't want to expand root node. when click it. we will expand it.
+        
+        _load: function(){
+		// summary:
+		//		Initial load of the tree.
+		//		Load root node (possibly hidden) and it's children.
+		this.model.getRoot(
+			AccelaDojo.hitch(this, function(item){
+				var rn = (this.rootNode = this.tree._createTreeNode({
+					item: item,
+					tree: this,
+					isExpandable: true,
+					label: this.label || this.getLabel(item),
+					indent: this.showRoot ? 0 : -1
+				}));
+				if(!this.showRoot){
+					rn.rowNode.style.display="none";
+				}
+				this.domNode.appendChild(rn.domNode);
+				var identity = this.model.getIdentity(item);
+				if(this._itemNodesMap[identity]){
+					this._itemNodesMap[identity].push(rn);
+				}else{
+					this._itemNodesMap[identity] = [rn];
+				}
+
+				rn._updateLayout();		// sets "dijitTreeIsRoot" CSS classname
+				scrollBarIssue.dojoTreeResize();
+
+				//james comment blow code.
+				// load top level children and then fire onLoad() event
+				//this._expandNode(rn).addCallback(AccelaDojo.hitch(this, function(){
+				//	this._loadDeferred.callback(true);
+				//	this.onLoad();
+				//}));
+			}),
+			function(err){
+				console.error(this, ": error loading root: ", err);
+			}
+		);
+	},    	
+        
+        
+        _createTreeNode: function(args){
+            var tnode = new accela.dojo._TreeNode(args);
+            tnode.labelNode.innerHTML = args.label;
+            if (args.item.i != null && args.item.i.widgetId != null) {
+                tnode.id = args.item.i.widgetId;
+                // tnode.item.id= args.item.i.widgetId;
+            }
+            var chckbox = this.getCheckBoxByTreeNode(tnode);
+            if (chckbox != null) {
+                //debugger;
+              
+                //remove onclick event.
+                if (chckbox.hasAttribute("onclick")) {
+                	chckbox.removeAttribute("onclick");
+                    var orgstr = tnode.labelNode.innerHTML;
+                    tnode.labelNode.innerHTML = '';
+                    tnode.labelNode.innerHTML = orgstr;
+                }               
+                this.changeCheckState(tnode, "false");
+            }
+            if (args.item.root) {
+                tnode.labelNode.style.cssText = "font-weight:bold";                
+            }
+            //background-color="highlight";
+            //color="highlighttext";
+            //tnode.labelNode.style.font=  "caption";
+            tnode.labelNode.style.fontSize = "1em";
+            return tnode;
+        },
+        
+        
+		_onNodeFocus: function(/*dijit._Widget*/ node){
+			try{
+				if(node){			
+					var beforeSelected = AccelaDojo.query('.accelaItemSelected');	
+					for (var j = 0; j < beforeSelected.length; j++)
+					{
+						AccelaDojo.removeClass(beforeSelected[j], "accelaItemSelected");
+					}
+					AccelaDojo.addClass(node.contentNode, "accelaItemSelected");							
+				}
+			}catch(error){
+				//do nothing
+				}
+			this.inherited(arguments);
+		},
+        
+        
+        changeCheckState: function(tnode, state)
+        {	        
+	       tnode.labelNode.setAttribute("aria-checked", state); 
+	       //var checkObj= this.getCheckBoxByTreeNode(tnode);
+	       //if(checkObj){
+		   //    checkObj.setAttribute("aria-checked", state); 
+		   // }
+	       
+	     },
+        
+        
+        getTreeNodeByWidgetId: function(/* dojo.data.Item or id */widgetId){
+            var treeNode;
+            var treeNodes = this.getNodesByItem(widgetId);
+            if (treeNodes != null && treeNodes.length > 0) {
+                treeNode = treeNodes[0];
+            }
+            return treeNode;
+        },
+        
+        searchTree: function(/* string */labelText, buildme, searchMode){
+            var store = this.model;
+            var tree = this;
+            var startlevel = 2;                          //default start search level 2;
+            var startWith = false;                       //default no startWith search
+            var sreachRegex = new RegExp(labelText,'i'); //default ignoreCase  search
+            if(searchMode != null && searchMode != '')
+            {
+            	var re = /startwith/i;
+            	if(searchMode.search(re) >= 0)
+            	{
+            		startWith = true;
+            	}
+            	re = /case-sensitive/i;
+            	if(searchMode.search(re) >= 0)
+            	{
+            		sreachRegex = new RegExp(labelText);
+            	}
+            	re = /startlevel:(\d+)/i;
+            	var result = searchMode.match(re);
+            	if(result != null)
+            	{
+            		startlevel = result[1];
+            	}
+            }
+            
+            function loadAll(parentItem){
+                var def = new AccelaDojo.Deferred();
+                
+                store.getChildren(parentItem, function(items){    
+                    
+                    AccelaDojo.forEach(items, function(item){
+                    	
+                    	var itemlabelText = item.labelText;
+                    	if(item.level >= startlevel && itemlabelText != null && itemlabelText != "")
+                    	{	                       
+	                        var index = itemlabelText.search(sreachRegex);
+	                        if(!startWith && index >= 0)
+	                        {
+	                        	buildme.push(item);
+	                        }
+	                        else if(startWith && index == 0)
+	                        {
+	                        	buildme.push(item);
+	                        } 
+                    	}
+                    });
+                    
+                    defs = AccelaDojo.map(items, loadAll);
+                    // And when all those recursive calls finish, signal that
+                    // I'm finished
+                    new AccelaDojo.DeferredList(defs).addCallback(function(){
+                        def.callback();
+                    });
+                    
+                }, function(err){
+                    //alert(err.message);
+                    def.errback(err);
+                });
+                
+                //store.getChildren(parentItem, onComplete , onError);				
+                return def;
+                
+            }
+            
+            return loadAll(tree.rootNode.item);
+        },
+        
+        
+        
+        expandAndChangeColor: function(item){
+        
+            var _this = this;
+            var parentsArray = new Array();
+            var parentItem = item.parentItem;
+            if (!parentItem.root) {
+                parentsArray.push(parentItem);
+            }
+            
+            while (!parentItem.root) {
+                parentItem = parentItem.parentItem;
+                if (!parentItem.root) {
+                    parentsArray.push(parentItem);
+                }
+            }
+            var def = new AccelaDojo.Deferred();
+            if (parentsArray.length > 0) {
+                var id = parentsArray.pop().i.widgetId;
+                var node = _this.getTreeNodeByWidgetId(id);
+                def = expand(node);
+                def.addCallback(function(){
+                    var selectedObj = _this.getTreeNodeByWidgetId(item.i.widgetId);
+                    AccelaDojo.addClass(selectedObj.labelNode, "redColor");
+                    _this.changematchedtxt(selectedObj);
+                });
+            }
+            else {
+                var selectedObj = _this.getTreeNodeByWidgetId(item.i.widgetId);
+                AccelaDojo.addClass(selectedObj.labelNode, "redColor");
+                _this.changematchedtxt(selectedObj);
+                
+            }
+            
+            
+            
+            return def;
+            
+            
+            function expand(node){
+                var def = new AccelaDojo.Deferred();
+                // Expand the node
+                _this._expandNode(node).addCallback(function(){
+                    var childBranches = AccelaDojo.filter(node.getChildren() || [], function(node){
+                        //only expand selected tree
+                        for (var i = 0; i < parentsArray.length; i++) {
+                            if (parentsArray[i].i.widgetId == node.item.i.widgetId) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }), defs = AccelaDojo.map(childBranches, expand);
+                    
+                    // And when all those recursive calls finish, signal that
+                    // I'm finished
+                    new AccelaDojo.DeferredList(defs).addCallback(function(){
+                        def.callback();
+                    });
+                });
+                
+                return def;
+            }
+            
+            
+        
+            
+            
+        },        
+        
+        
+        expandAndSelected: function(parentsArray, selectedWidgetId, labelNodeStyle, isTriggerOnNodeSelectedEvent, contentNodeStyle){
+			var _this = this;
+			var def = new AccelaDojo.Deferred();
+			def = expand(_this.rootNode);
+			def.addCallback(function(){
+				if(selectedWidgetId==null)
+				{
+					return false;
+				}
+
+				var selectedObj = _this.getTreeNodeByWidgetId(selectedWidgetId);
+
+				if(labelNodeStyle)
+				{
+					selectedObj.setSelected(true);
+					_this.focusNode(selectedObj);
+					document.getElementById(selectedWidgetId).scrollIntoView(true);
+				}
+				
+				if (contentNodeStyle)
+				{
+					selectedObj.setSelected(true);
+					_this.focusNode(selectedObj);
+				}
+				
+				if (isTriggerOnNodeSelectedEvent)
+				{
+					_this.onNodeSelected(selectedObj);
+				}
+			});
+			
+            return def;
+            
+            function expand(node){
+                var def = new AccelaDojo.Deferred();
+                // Expand the node
+                _this._expandNode(node).addCallback(function(){
+                    var childBranches = AccelaDojo.filter(node.getChildren() || [], function(node){
+                        //only expand selected tree
+                        for (var i = 0; i < parentsArray.length; i++) {
+                            if (parentsArray[i] == node.item.i.widgetId) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }), defs = AccelaDojo.map(childBranches, expand);
+                    
+                    // And when all those recursive calls finish, signal that
+                    // I'm finished
+                    new AccelaDojo.DeferredList(defs).addCallback(function(){
+                        def.callback();
+                    });
+                });
+                
+                return def;
+            }
+            
+        },
+        
+        
+        changematchedtxt: function(node)
+        {
+          
+             
+        },	        
+        
+        expandAll: function(/* _TreeNode */rootNode1){
+            // summary:
+            // Expand all nodes in the tree
+            // returns:
+            // Deferred that fires when all nodes have expanded
+            
+            var _this = this;
+            
+            function expand(node){
+                var def = new AccelaDojo.Deferred();
+                
+                // Expand the node
+                _this._expandNode(node).addCallback(function(){
+                    // When node has expanded, call expand() recursively on each
+                    // non-leaf child
+                    var childBranches = AccelaDojo.filter(node.getChildren() || [], function(node){
+                        return node.isExpandable;
+                    }), defs = AccelaDojo.map(childBranches, expand);
+                    
+                    // And when all those recursive calls finish, signal that
+                    // I'm finished
+                    new AccelaDojo.DeferredList(defs).addCallback(function(){
+                        def.callback();
+                    });
+                });
+                
+                return def;
+            }
+            
+            return expand(rootNode1);
+        },
+        
+        onNodeChecked: function(node){
+        
+        },
+        
+        onNodeUnchecked: function(node){
+        
+        },
+        
+        onNodeSelected: function(node){
+            //node.labelNode.style.background-color="highlight";
+            //node.labelNode.style.color="highlighttext";
+        },
+        
+        _onKeyPress: function(/* Event */e){
+            try {
+                if (e.keyCode == 32) {
+                    var checkObj = e.target.firstChild;
+                    if (checkObj != null && checkObj.type == 'checkbox') {
+	                    var node=AccelaDijit.getEnclosingWidget(e.target);                        
+                        if(node==null)
+                        {
+	                       node = this.getTreeNodeByWidgetId(checkObj.value);
+	                     }
+                        // alert(node);
+                        if (node != null) {
+                            if (checkObj.checked) {
+                                checkObj.checked = false;
+                                this.changeCheckState(node, "false");
+                                this.onNodeUnchecked(node);
+                                
+                            }
+                            else {
+                                checkObj.checked = true;
+                                 this.changeCheckState(node, "true");
+                                this.onNodeChecked(node);
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                }
+            } 
+            catch (error) {
+                // alert(error);
+            }
+            
+            return this.inherited(arguments);
+        },
+        
+        getCheckBoxByTreeNode: function(node){
+        	
+            var checkbox;
+            try {
+                //debugger;
+                var firstElement = node.labelNode.firstChild;
+                if (firstElement.type == 'checkbox') {
+                    checkbox = firstElement;
+                }
+            } 
+            catch (error) {
+                // TODO . only for dev mode. in produce mode. need comment it.
+                //alert('getCheckBoxByTreeNode error: ' + error);
+            }
+            return checkbox;
+        },
+        
+        onClick: function(/* dojo.data */item, /* TreeNode */ node, /* Event */ evt){
+            //debugger;
+            var checkObj = this.getCheckBoxByTreeNode(node);
+            var evtObj = null;
+            if(typeof (evt) != 'undefined' && evt)
+            {
+            	evtObj = window.event ? evt.srcElement : evt.target;
+            }
+            if (checkObj != null && evtObj && evtObj.type == 'checkbox') {
+                if (checkObj.checked) {
+                    checkObj.setAttribute("checked", true);
+                    //checkObj.checked = true;
+                     this.changeCheckState(node, "true");                    
+                    this.onNodeChecked(node);
+                }
+                else {
+	                this.changeCheckState(node, "false");
+                    //checkObj.setAttribute("checked", false);
+                    //checkObj.checked = false;
+	                checkObj.removeAttribute("checked");
+                    this.onNodeUnchecked(node);
+                }
+            }
+            //else {
+            this.onNodeSelected(node);
+            
+            //}
+            // add blow code for select checkbox. it is only useful for IE,but it is
+            // very strange for that.
+            var orgstr = node.labelNode.innerHTML;
+            node.labelNode.innerHTML = '';
+            node.labelNode.innerHTML = orgstr;
+            // dojo.place(checkObj, node.expandoNode, 'after');
+        }
+    });
+});
+
+function myExpandNode(tree,node)
+{
+    
+};

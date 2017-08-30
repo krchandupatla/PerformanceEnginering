@@ -1,0 +1,790 @@
+//Accela Automation
+//File: template_express.js
+//Accela, Inc.
+//Copyright (C): 2010-2013
+//
+//Description: This javascript implement the dynamic menu bar function.
+//
+//Notes:     
+//$Id: template_express.js 125874 2010-11-24 07:08:07Z ACHIEVO\ray.zhang $
+//
+//Revision History:
+//2010-10-13, ray zhang,  Initial Version.
+
+TemplateExpression = {};
+
+TemplateExpression.expression = function() {
+	TemplateExpression.TemplateTable.superclass.constructor.call(this);
+	this.addEvents({'reload': true});
+};
+
+Ext.extend(TemplateExpression.expression, Template.baseFn, {
+	
+		tableMap : '',
+	
+		init : function(templateMap)
+		{
+			if (this.tableMap)
+				this.tableMap.clear();
+			this.tableMap = null;
+			this.templateMap = templateMap;
+			this.groupCodes = null;
+			this.tableSubgroupArray = null;
+			this.fireEvent('reload');
+		},
+		
+		initGroup : function()
+		{
+			if (!this.templateMap)
+				return;
+			this.groupCodes = [];
+			this.tableSubgroupArray = [];
+			var entry, subDesc, widget,groupCode, subGroupName, tmp;
+		
+			for ( var it = this.templateMap.iterator(); it.hasNext();) {
+				entry = it.next();
+				widget = entry.value;
+				subDesc = widget.subgroupObj;
+				groupCode = subDesc['groupName'];
+		
+				if (subDesc['templateType'] == 'Form') {
+					if (!BaseJS.arrayContains(this.groupCodes, groupCode)) {
+						this.groupCodes.push(groupCode);
+					}
+				} else if (subDesc['templateType'] == 'Table') {
+					subGroupName = subDesc['subgroupName'];
+					tmp = groupCode + '::' + subGroupName;
+					this.tableSubgroupArray.push(tmp);
+				}
+			}
+		},
+		
+		getGroups : function()
+		{
+			if (!this.groupCodes || this.groupCodes.length <= 0)
+			{
+				this.initGroup();
+			}
+			return this.groupCodes;
+		},
+
+		getTableSubgroups : function()
+		{
+			if (!this.groupCodes || this.groupCodes.length <= 0)
+			{
+				this.initGroup();
+			}
+			
+			if (!this.groupCodes || this.groupCodes.length <= 0)
+			{
+				return null;
+			}
+			
+			var obj = {};
+			for (var i = 0; i < this.groupCodes.length; i++)
+			{
+				obj[this.groupCodes[i]] = this.tableSubgroupArray; 
+			}
+			
+			return obj;
+		},
+
+		/**param = {groupCode: '',
+				subGroupCode: '',
+				rowIndex : '',
+				fieldName: ''}*/
+		getFieldWidget : function(param)
+		{
+			if (!param) {
+				return;
+			}
+
+			var groupCode = param.groupCode;
+			var subGroupCode = param.subGroupCode;
+			var fieldName = param.fieldName;
+			var rowIndex = param.rowIndex ? param.rowIndex : 1;
+
+			var tableId = TemplateHelper.generatorMapKey(groupCode,
+					subGroupCode, 'Form');
+			if (!tableId)
+			{
+				return null;
+			}
+			var widget = this.templateMap.get(tableId);
+			var subgroupObj = widget.subgroupObj;
+			var fields = subgroupObj.fields;
+			var row = subgroupObj.rows[0];
+			
+			for (var i = 0; i < fields.length; i++)
+			{
+				if (fields[i].fieldName != fieldName)
+				{
+					continue;
+				}
+				var fieldObject = row[fieldName]; 
+				if (fieldObject) {
+					var obj = BaseJS.apply(fieldObject, TemplateExpression.action);
+					obj['field'] = fields[i];
+					return obj;
+				}
+			}
+			return null;
+		},
+		
+		/*
+		 * listeners: {insertRow: function(){...}}
+		 */
+		getTable : function(groupCode, subGroupCode, listeners)
+		{
+			var tableID = TemplateHelper.generatorMapKey(groupCode,
+					subGroupCode, 'Table');
+			if (!tableID)
+			{
+				return null;
+			}
+			if (!this.tableMap)
+				this.tableMap = new HashMap(10);
+			var table = this.tableMap.get(tableID);
+			var widget = this.templateMap.get(tableID);
+			if (!table)
+			{
+				table = new TemplateExpression.TemplateTable(widget, listeners);
+				this.tableMap.put(tableID, table);
+			}
+			return table;
+		},
+		
+		refreshTemplateData : function()
+		{
+			if (!this.templateMap) return;
+			
+			var template = Template.templates.values()[0];
+			var result = template.getValuesJSON(true);
+		}
+});
+
+//event:{'insertrow':true, 'removerow':true}
+TemplateExpression.TemplateTable = function(widget, listeners)
+{
+	TemplateExpression.TemplateTable.superclass.constructor.call(this);
+	this.addEvents({'insertrow':true, 'removerow':true});
+	this.widget = widget;
+};
+
+
+Ext.extend(TemplateExpression.TemplateTable, Template.baseFn, {
+	// Override the Template.baseFn addMonitor
+	addMonitor : function(listeners)
+	{
+		if (!listeners)
+			return;
+		for ( var p in listeners)
+		{
+			this.widget.addListener(p, listeners[p], this);
+		}
+	},
+	getRowValue : function(rowIndex)
+	{
+		var rows = this.getRows();
+		if (rows)
+			return rows[rowIndex];
+		else
+			return null;
+	},
+	
+	getRows : function()
+	{
+		var subgroupObj = this.widget.subgroupObj;
+		if (subgroupObj)
+			var rows = subgroupObj['rows'];
+		if (rows)
+			return rows;
+		else
+			return null;
+	},
+	
+	setValueConfig : function(row, columns)
+	{
+		if (!row || !columns)
+			return;
+		var fieldName;
+		
+		for (var i = 0; i < columns.length; i++)
+		{
+			fieldName = columns[i].fieldName;
+			if (row[fieldName])
+			{
+				this.setColumnConfig(row[fieldName], columns[i]);	
+			}
+		}
+	},
+	setColumnConfig : function(columnObj, column)
+	{
+		var field = this.getField(columnObj.fieldName);
+		var obj = BaseJS.apply(columnObj, TemplateExpression.action);
+		obj['field'] = field;
+		if (column.message)
+		{
+			obj.setMessage(column.message);
+		}
+		if (column.value)
+		{
+			obj.setValue(column.value);
+		}
+		if (column.hidden == 'Y')
+		{
+			obj.setHidden();
+		}
+		if (column.disable == 'Y')
+		{
+			obj.setDisable(true);
+		}
+		if (column.isRequire)
+		{
+			if (obj.field.required != 'Y')
+				columnObj['required'] = 'Y';
+		}
+	},
+	
+	insertRow : function(columns)
+	{
+		//have set default value when insert a row.
+		this.widget.addRow();
+	},
+	// cells : [{fieldName:'a', rowindex:2 ,isRequire:'Y', message:'abc', value:'aaaa', hidden:'Y', disable:'Y'}] 
+	updateRow : function(cells)
+	{
+		var rowIndex = 0;
+		for (var i = 0; i < cells.length; i++)
+		{
+			rowIndex = cells[i].rowIndex;
+			if (!rowIndex)
+			{
+				continue;
+			}
+			var rowValue = this.getRowValue(rowIndex - 1);
+			this.setValueConfig(rowValue, [cells[i]]);
+		}
+	},
+	removeRow : function(rowIndex)
+	{
+		var table = document.getElementById(this.widget.tableID);
+		if (!table)
+		{
+			return;
+		}
+		var tr = table.childNodes[0].childNodes[rowIndex];
+		if (!tr)
+		{
+			return;
+		}
+		this.widget.remove([tr.childNodes[0].childNodes[0].value]);
+		this.fireEvent('removeRow');
+	},
+	
+	getField : function(fieldName)
+	{
+		var field = null;
+		var fields = this.widget.subgroupObj.fields;
+		if (!fields)
+			return null;
+		for (var i = 0; i < fields.length; i++)
+		{
+			if (fieldName == fields[i].fieldName)
+			{
+				field = fields[i];
+				break;
+			}
+		}	
+		return field;
+	},
+	
+	getCell : function(rowIndex, fieldName)
+	{
+		var rowValue = this.getRowValue(rowIndex - 1), obj;
+		if (!rowValue)
+		{
+			return null;
+		}
+		
+		obj = rowValue[fieldName];
+		if (!obj)
+		{
+			return null;
+		}
+		obj = BaseJS.apply(rowValue[fieldName], TemplateExpression.action);
+		
+		var field = this.getField(fieldName);
+		
+		
+		obj['field'] = field;
+		obj['setRequired'] = function (jsonObject){
+			if (jsonObject.required)
+			{
+				obj['required'] = 'Y';
+			}
+			else
+			{
+				obj['required'] = 'N';
+			}
+			this.isTable = true;
+			this.createRequireSpan(jsonObject);
+		};
+		return obj;
+	},
+	getRowCount : function()
+	{
+		var rows = this.getRows();
+		if (rows)
+		{
+			return rows.length;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	
+}
+);
+
+
+TemplateExpression.action = {
+	
+	getObject : function(id)
+	{
+		return document.getElementById(id); 
+	},
+	getMessageId : function(id)
+	{
+		var msgId = id + 'msg_span';
+		return msgId; 
+	},
+	setTimeTextBoxValue : function(value){
+		var dateTimeArray = Field.getDateTimeId(this.id);
+		var tempValues = value.split(':');	
+		if(value=='')
+		{
+			//fix bug 34016			
+			for(var i=0;i<dateTimeArray.length;++i)
+			{
+				var select=dojo.byId(dateTimeArray[i]);	
+				select.selectedIndex=0;
+			}
+			return;	
+		}
+			
+		for(var i=0;i<tempValues.length;++i){
+			var isExist = false;
+			var select=dojo.byId(dateTimeArray[i]);			
+			if(select){									
+				var length=select.length;
+				for(j = 0;j < length; ++j){
+					
+					if(trim(tempValues[i]) == trim(select.options[j].value)){
+						select.selectedIndex=j;
+						isExist = true;
+						break;
+					}
+				}				
+				if (!isExist)
+				{
+					var	option=new Option(tempValues[i], tempValues[i]);
+					option.title=tempValues[i];
+					select.options[length] = option;
+					select.selectedIndex=length;
+				}				
+			}			
+		}
+	},
+	
+	setValue : function(value)
+	{
+		if ((value===null || value===undefined) && this.field.defaultValue)
+		{
+			return;
+		}
+		if (this.field.fieldTypeValue == 9) //check box
+		{
+			var widget = this.getObject(this.id);
+			if(window.expression.__isValueInList(value, window.expressionConstants.checkValues)){
+				widget.checked=true;
+			}else if(window.expression.__isValueInList(value, window.expressionConstants.unCheckValues)){
+				widget.checked=false;
+			}	
+		}else if(this.field.fieldTypeValue == 3) //radio
+		{
+			var radioLabelArray = Field.getRadioId(this.id);
+			if (window.expression.__isValueInList(value, window.expressionConstants.checkValues))
+			{
+				for(var i = 0; i < radioLabelArray.length; ++i)
+				{
+					var widget=this.getObject(radioLabelArray[i]);
+					if (widget)
+					{
+						if (window.expression.__isValueInList(widget.value,
+								window.expressionConstants.checkValues))
+						{
+							widget.checked=true;
+						}
+					}
+				}
+			}else if(window.expression.__isValueInList(value, window.expressionConstants.unCheckValues))
+			{
+				for(var i = 0; i < radioLabelArray.length; ++i)
+				{
+					var widget=this.getObject(radioLabelArray[i]);
+					if (widget)
+					{
+						if (window.expression.__isValueInList(widget.value,
+								window.expressionConstants.unCheckValues))
+						{
+							widget.checked=true;
+						}
+					}
+					
+				}
+			}
+		}else if ( this.field.fieldTypeValue == 7 ) //time
+		{
+			this.setTimeTextBoxValue(value);
+			if(!value){//Empty time case.
+				value =":";
+			}
+			else if (value.indexOf(':') < 0) {//Only hour or minute value case.
+				value =value+":";				
+			}
+		}else if (this.field.fieldTypeValue == 5) //select
+		{
+			var select = dojo.byId(this.id);
+			window.expression.__setWidgetValue(select,value);
+		}
+		this.getObject(this.id).value = value;
+		this.value = value;
+	},
+
+	getValue : function()
+	{
+		return this.value;
+	},
+	
+	setMessage : function(msg)
+	{
+		var wedget = this.getObject(this.id);	
+		if (wedget && wedget.style.visibility == "hidden")
+		{
+			return;
+		}		
+		var td;
+		if (this.isTable)
+		{
+			td = wedget.parentNode;
+		}else
+		{
+			td = this.getObject(this.id + '_lable');
+		}	
+		var tmpId = this.getMessageId(this.id);
+		var span = this.getObject(tmpId);
+		if (!span)
+		{
+			var span = Field.cloneSpan();
+			span.id =  this.getMessageId(this.id);
+			span.className = 'Error';
+			td.appendChild(span);
+		}
+		span.innerHTML = '&nbsp;&nbsp;'+ msg;
+	},
+
+	setError : function(errorMsg)
+	{
+		Input.alertMsg(this.id, errorMsg);
+	},
+	
+	setHidden : function(hide)
+	{
+		var obj = null;
+		if (this.field.fieldTypeValue == 3)//when field type is radio object, the radio will be hidden
+		{
+			var radioLabelArray = Field.getRadioId(this.id);
+			obj = this.getObject(radioLabelArray[0]);
+			if(obj!=null && obj.parentNode!= null)
+			{
+				var parentNode= obj.parentNode;
+				//hidden TD of radio. fix bug34262
+				if(parentNode!=null)
+				{
+					parentNode.style.visibility = hide?"hidden":"visible";	
+				}						
+			}
+		
+
+		}else if(this.field.fieldTypeValue == 7)//when field type is date time object, the date time will be hidden
+		{
+			var dateTimeArray = Field.getDateTimeId(this.id);
+			obj = this.getObject(dateTimeArray[0]);
+			obj.style.visibility = hide?"hidden":"visible";
+			
+			obj = this.getObject(dateTimeArray[1]);
+			obj.style.visibility = hide?"hidden":"visible";
+		
+		}
+		else if(this.field.fieldTypeValue == 6)//when field type is "textarea". hiddden the TBODY of this textarea
+		{
+			
+			obj = this.getObject(this.id);
+			var thisbody= null;
+			var parenttagName= null;
+			try{
+				thisbody=obj.parentNode.parentNode.parentNode;
+				parenttagName=thisbody.tagName;
+			}catch(error){}
+			if(thisbody!=null && parenttagName!=null && "TBODY"==parenttagName)
+			{		
+				//fix bug34262				
+				thisbody.style.display = hide?"none":"inline";									
+			}
+		
+		}
+		this.setHiddenForOtherDisplay(this.id, hide);
+	},
+	setHiddenForOtherDisplay : function(id, hide)
+	{
+		var targetObj = this.getObject(this.id);
+		targetObj.style.visibility = hide?"hidden":"visible";
+		var obj = this.getObject(this.id+'_lable');
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";
+		}
+		var msgId = this.getMessageId(this.id);
+		obj = this.getObject(msgId);
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";
+		}
+		obj = this.getObject(TemplateHelper.getLableId(this.id));
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";	
+		}		
+		obj = this.getObject(this.id+'_msgLabel_id');
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";
+		}
+		obj = this.getObject(this.id+'_img_id');
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";
+		}
+		obj = this.getObject(this.id+'_require_span');
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";
+		}
+		obj =this.getObject(this.id+'_spellLink'); 
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";
+		}
+		obj = this.getObject(this.id+'__error_span');
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";
+		}
+		obj = this.getObject(this.id+'__watermark');
+		if (obj)
+		{
+			obj.style.visibility = (hide || !Ac360.validator.isEmpty(targetObj.value))?"hidden":"visible";
+			if (obj.style.visibility == "hidden")
+			{
+				obj.setAttribute("Hidden_By_Expression", "Yes");
+			}
+			else
+			{
+				obj.removeAttribute("Hidden_By_Expression");
+			}
+		}
+	},
+	
+	// This is for hidden ASI/ASIT field on the CAP Tab Summary page
+	setHidden1 : function(hide)
+	{
+		var obj = this.getObject(this.id+'_exp');
+		if (obj)
+		{
+			obj.style.visibility = hide?"hidden":"visible";
+		}
+		else
+		{
+			obj = this.getObject(this.id+'_lable');
+			if (obj)
+			{
+				var tabObj = obj.parentNode.parentNode.parentNode.parentNode;
+				tabObj.style.visibility = hide?"hidden":"visible";
+			}
+		}
+	},
+
+	setDisable : function(disabled)
+	{
+		var obj = null;
+		//when field type is radio object, the radio will be disabled
+		if (this.field.fieldTypeValue == 3)
+		{
+			var radioLabelArray = Field.getRadioId(this.id);
+			obj = this.getObject(radioLabelArray[0]);
+			obj.disabled = disabled && true;
+			obj = this.getObject(radioLabelArray[1]);
+			obj.disabled = disabled && true;
+			readOnlyObj.resetReadOnly([obj]);
+			return;
+		}
+		//when field type is date time object, the date time object will be disabled
+		if (this.field.fieldTypeValue == 7)
+		{
+			var dateTimeArray = Field.getDateTimeId(this.id);
+			obj = this.getObject(dateTimeArray[0]);
+			obj.disabled = disabled && true;
+			obj = this.getObject(dateTimeArray[1]);
+			obj.disabled = disabled && true;
+			readOnlyObj.resetReadOnly([obj]);
+			return;
+		}
+		obj = this.getObject(this.id);
+		obj.disabled = disabled && true;
+		readOnlyObj.resetReadOnly([obj]);
+	},
+	
+	setReadOnly : function(readOnly)
+	{
+		if (this.field.fieldTypeValue == 2)
+		{
+			//fix bug 34027
+			obj = this.getObject(this.id);
+			obj.readOnly = readOnly && true;
+			readOnlyObj.resetReadOnly([obj]);
+			for(var i=0; i < obj.parentElement.childNodes.length ; i++)
+			{
+				if( obj.parentElement.childNodes[i].className != 'redstar')
+				{
+					obj.parentElement.childNodes[i].readOnly = readOnly && true;
+					readOnlyObj.resetReadOnly([obj.parentElement.childNodes[i]]);
+				}
+				if(obj.parentElement.childNodes[i].tagName == 'A')
+				{
+					if(readOnly)
+					{
+						obj.parentElement.childNodes[i].onclick = function(){return false;};
+					}
+					else
+					{
+						obj.parentElement.childNodes[i].onclick = BaseJS.createDelegate(window, selectDate, [this.id]);
+					}
+				}
+			}
+			return;
+		}
+		obj = this.getObject(this.id);
+		obj.readOnly = readOnly && true;
+		readOnlyObj.resetReadOnly([obj]);
+	},
+	
+	setRequired : function(jsonObject)
+	{
+		this.createRequireSpan(jsonObject);
+	},
+	
+	createRequireSpan : function(jsonObject)
+	{
+		var wedget = this.getObject(this.id);
+		if (wedget && wedget.style.visibility == "hidden")
+		{
+			return;
+		}
+		var reqiuredMsg = '';
+		if (jsonObject.required)
+		{
+			reqiuredMsg = "*";
+			if(profile.isEnabled508)
+			{
+				reqiuredMsg = "(Required)"
+			}
+		}
+		
+		
+		var td;
+		if (this.isTable)
+		{
+			td = wedget.parentNode;
+		}else
+		{
+			td = this.getObject(this.id + '_lable');
+		}		
+		var tmpId = TemplateHelper.getRequierId(this.id);
+		var span = this.getObject(tmpId);
+		if(!jsonObject.dbRequired)//DB required is first if exist,do nothing.
+		{
+			if (!span)
+			{
+				var span = TemplateHelper.createRequire(this.id);
+				td.appendChild(span);
+			}
+			span.innerHTML = '&nbsp;&nbsp;'+ reqiuredMsg;
+			var requireSpan = this.getObject(this.id+'_require_span');
+			var errorSpan = this.getObject(this.id+'__error_span');
+			if (!jsonObject.required)
+			{
+				ExpressionUtil.displayMessage(requireSpan,'');
+				ExpressionUtil.displayMessage(errorSpan,'');
+			}
+		}
+	},
+	
+	attachExpressionEvent : function(fn, eventType)
+	{
+		var field = this.field;
+		var widget = null;
+		eventType = eventType ? eventType : 'change'; 
+		var fieldType = field.fieldTypeValue;
+
+		switch(fieldType)
+		{
+			case 9://checkbox
+				eventType = 'click';	
+				break;
+			case 7://date time
+				var labelArray = Field.getDateTimeId(this.id);
+				
+				widget = this.getObject(labelArray[0]);
+				BaseJS.addEventHandler(widget, eventType, fn);				
+				
+				widget = this.getObject(labelArray[1]);
+				BaseJS.addEventHandler(widget, eventType, fn);			
+				break;			
+			case 3://radio
+				eventType = 'click';
+				var labelArray = Field.getRadioId(this.id);
+				
+				widget = this.getObject(labelArray[0]);
+				BaseJS.addEventHandler(widget, eventType, fn);				
+				
+				widget = this.getObject(labelArray[1]);
+				BaseJS.addEventHandler(widget, eventType, fn);			
+				break;
+		}
+		widget = this.getObject(this.id);
+		if (!widget)
+		{
+			return;
+		}
+		// Reset listener for the attach Expression table cell, because the cell was clone with same listener.
+		if ('Table' == field.templateTypeEnum && !widget.isNewListener)
+		{
+			var originalListener = widget.listener;
+			widget.listener= BaseJS.cloneAll(originalListener);
+			widget.isNewListener = true;
+		}
+		BaseJS.addEventHandler(widget, eventType, fn);
+	}
+};

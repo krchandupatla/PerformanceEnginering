@@ -1,0 +1,80 @@
+var ac360InputBoxFocus = {
+		
+	init : function()
+	{
+		document.onkeydown = function()
+		{
+			var topDocument = Ac360.getTopDocument();
+			var inputBoxHotKeyId = topDocument.inputBoxHotKeyId;
+			var inputBoxHotKeyDoc = topDocument.inputBoxHotKeyDoc;
+			var inputBoxHotKeyFn = topDocument.inputBoxHotKeyFn;
+			if(inputBoxHotKeyId && inputBoxHotKeyDoc && inputBoxHotKeyFn)
+			{
+				var inputBox = null;
+				try{					
+					 inputBox = inputBoxHotKeyDoc.getElementById(inputBoxHotKeyId);
+				}catch(e){
+					topDocument.inputBoxHotKeyId = null;
+					topDocument.inputBoxHotKeyDoc = null;
+					topDocument.inputBoxHotKeyFn = null;
+					return;
+				}
+				if(inputBox)
+				{
+					inputBoxHotKeyFn(event);
+				}
+			}
+		};
+	},
+	
+	addEvent : function(oTarget,sEventType,funName)
+	{
+		 if(oTarget.addEventListener)
+		 {
+			 oTarget.addEventListener(sEventType,funName, false);
+		 }
+		 else if(oTarget.attachEvent)
+		 {
+			 oTarget.attachEvent("on"+sEventType,funName);
+		 }
+		 else
+		 {
+			 oTarget["on"+sEventType]=funName;
+		 }
+	},
+	
+	addInputBox : function(boxId)
+	{
+		if(boxId)
+		{
+			var topDocument = Ac360.getTopDocument();
+			var inputBoxHotKeyFn = function(event)
+			{
+				new hotKey(event, boxId);
+			};
+			topDocument.inputBoxHotKeyDoc = document;
+			topDocument.inputBoxHotKeyId = boxId;
+			topDocument.inputBoxHotKeyFn = inputBoxHotKeyFn;
+			this.addEvent(topDocument, "onkeydown", inputBoxHotKeyFn)
+		}
+		
+		function hotKey(event, eleId)
+		{
+			var event_ = event ? event : topDocument.parentWindow.event;
+			if(event_)
+			{
+				var ele = document.getElementById(eleId);
+				if(ele)
+				{
+					ele = ele.getElementsByTagName("INPUT");
+					var eventKeyCode = event_.keyCode;
+					if((eventKeyCode >= 49) && (eventKeyCode <= 49 + ele.length -1) && (event_.ctrlKey) && (event_.shiftKey))
+					{
+						focusElement(ele[eventKeyCode-49]);
+					}
+				}		
+			}
+		};
+	}
+}
+ac360InputBoxFocus.init();

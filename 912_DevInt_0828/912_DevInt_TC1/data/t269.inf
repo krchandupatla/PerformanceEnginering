@@ -1,0 +1,11 @@
+[t269]
+FileName1=t269.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/condition/capConditionList.do?mode=viewByCap&module=Building&capIDs=~17BLD-00000-00151-0~17BLD-00000-00150-1~17BLD-00000-00148-2~17BLD-00000-00144-3~17BLD-00000-00143-4
+Total=1
+RequestHeaderFile=t269_RequestHeader.txt
+RequestBodyFile=t269_RequestBody.txt
+ResponseHeaderFile=t269_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_269.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

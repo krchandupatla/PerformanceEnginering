@@ -1,0 +1,125 @@
+//Accela Automation
+//File: checkTextAreaLength.js
+//Accela, Inc.
+//Copyright (C): 2009-2011
+//
+//Description: This javascript is to avoid textarea length exceed 4000 bytes.
+//
+//
+
+// Avoid input text bytes length more than 4000 bytes and character string length exceed DB's defined.
+var maxBytesLengthForTextArea = 4000;
+function avoidTooLongTxt() 
+{   
+    var srcEle = arguments[0].srcElement?arguments[0].srcElement:arguments[0].target;
+    avoidTooLongTxtForAddTextarea(srcEle);
+} 
+
+function avoidTooLongTxtForAddTextarea(srcEle) 
+{
+    if(!srcEle || !srcEle.value)
+    {
+    	return;
+    }
+    
+    // Avoid character string length exceed DB's defined.
+    if(srcEle.maxlength && srcEle.value.length>parseInt(srcEle.maxlength))
+    {
+    	srcEle.value = srcEle.value.substring(0,parseInt(srcEle.maxlength));
+    }
+    // Avoid input text bytes length exceed 4000 bytes
+    if(getBytesLengthForUTF8(srcEle.value) > maxBytesLengthForTextArea)
+    {
+    	var value = srcEle.value.substring(0,srcEle.value.length-1);
+    	while(getBytesLengthForUTF8(value) > maxBytesLengthForTextArea)
+    	{
+    		value = srcEle.value.substring(0,value.length-1);
+    	}
+    	srcEle.value = value; 
+    } 
+} 
+
+// Avoid paste text length exceed 4000 bytes
+function avoidPasteTooLongTxt() {   
+    var srcEle = arguments[0].srcElement?arguments[0].srcElement:arguments[0].target;   
+    if(!(getBytesLengthForUTF8(srcEle.value+clipboardData.getData('text'))>maxBytesLengthForTextArea))
+    {
+    	return true
+    }
+    else
+    {
+    	alert(getTextlable("error.js.exceeds.max.length"));
+    	return false;
+    }
+}
+
+// Get the string bytes length for UTF8.
+function getBytesLengthForUTF8(s)   
+{   
+	if(!s)
+	{
+		return 0;
+	}
+	
+    var a = s.replace(/[\u0000-\u007f]/g,"\u0061");   
+    var b = a.replace(/[\u0080-\u07ff]/g,"\u0061\u0061");   
+    var c = b.replace(/[\u0800-\uffff]/g,"\u0061\u0061\u0061");   
+    return   c.length;   
+}  
+
+// Prevent all textarea element input exceed 4000 bytes.
+function avoidTooLongForTextArea()
+{
+	var elements = document.getElementsByTagName('textarea');
+	if(elements)
+	{
+		for(var i=0;i<elements.length;i++)
+		{
+			if(elements[i].maxlength && elements[i].maxlength <= maxBytesLengthForTextArea)
+			{
+				addLimitedEventForTextArea(elements[i]);
+			}
+		}
+	}
+}
+
+function addLimitedEventForTextArea(obj) 
+{
+	if (window.addEventListener) 
+	{ // for firefox
+		obj.addEventListener("input", avoidTooLongTxt, false);
+		obj.addEventListener("paste", avoidPasteTooLongTxt, false);
+	} 
+	else 
+	{ // for IE
+		obj.attachEvent("onpropertychange", avoidTooLongTxt);
+		obj.attachEvent("onpaste", avoidPasteTooLongTxt);
+	}
+}
+
+function addLimitedEventForAddASITRow(obj) 
+{
+	if (window.addEventListener) 
+	{ // for firefox
+		obj.addEventListener("input", avoidTooLongTxt, false);
+		obj.addEventListener("paste", avoidPasteTooLongTxt, false);
+	} 
+	else 
+	{ // for IE
+		var textareaValue = obj.innerHTML;
+		textareaValue = textareaValue.replace("<TEXTAREA", 
+				"<TEXTAREA onpropertychange=\"avoidTooLongTxtForAddTextarea(this);\" ");
+		obj.innerHTML = textareaValue;
+		obj.attachEvent("onpaste", avoidPasteTooLongTxt);
+	}
+}
+
+// Add onload event to prevent all textarea element input more than 4000 bytes.
+if(window.addEventListener){ //for firefox 
+	window.addEventListener("load",avoidTooLongForTextArea,false);  
+}else{ //for IE
+	window.attachEvent("onload",avoidTooLongForTextArea);    
+}
+/*
+*$Log: checkTextAreaLength.js,v $
+*/

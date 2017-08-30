@@ -1,0 +1,11 @@
+[t125]
+FileName1=t125_sessionmonitor.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/lib/sessionmonitor.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_125.xml
+RequestHeaderFile=t125_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t125_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

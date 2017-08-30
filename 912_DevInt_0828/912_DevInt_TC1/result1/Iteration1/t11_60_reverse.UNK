@@ -1,0 +1,19 @@
+/**
+ * Reverse an array
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('accela.core')
+    .filter('reverse', filter);
+
+  /**
+   * @ngInject
+   */
+  function filter() {
+    return function(items) {
+      return items.slice().reverse();
+    };
+  }
+})();

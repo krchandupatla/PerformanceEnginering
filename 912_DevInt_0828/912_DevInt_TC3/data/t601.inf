@@ -1,0 +1,11 @@
+[t601]
+FileName1=t601.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/professional/ref/refProfessionalDetail.do?mode=viewCondition&module=Building&licSeqNbr=2200860570
+Total=1
+RequestHeaderFile=t601_RequestHeader.txt
+RequestBodyFile=t601_RequestBody.txt
+ResponseHeaderFile=t601_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_601.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

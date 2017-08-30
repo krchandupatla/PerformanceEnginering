@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Content-Type: text/xml; charset=utf-8
+ETag: "2554087618"
+Server: Microsoft-IIS/8.5
+X-CS-DocVersions: |cms-amp-AAnX1Z|186|
+X-CMS-ExecutionTimeInMilliseconds: 19
+AppEx-Activity-Id: 9bb17e5d-1c85-42d2-aa6c-790c880bfc3e
+X-Trace-Context: {"ActivityId":"9bb17e5d-1c85-42d2-aa6c-790c880bfc3e"}
+X-AspNet-Version: 4.0.30319
+X-Powered-By: ASP.NET
+X-Diagnostic-S: Content_IN_0
+X-Diagnostic-DC: westus
+Cache-Control: public, max-age=180
+Date: Mon, 28 Aug 2017 18:31:11 GMT
+Content-Length: 1200
+Connection: close
+

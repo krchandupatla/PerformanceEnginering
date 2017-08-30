@@ -1,0 +1,11 @@
+[t316]
+FileName1=t316_left-hover.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/menu/left-hover.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_316.xml
+RequestHeaderFile=t316_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t316_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

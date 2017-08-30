@@ -1,0 +1,503 @@
+//Accela, Inc.
+//Copyright (C): 2010-2014
+	document.write("<script src='/portlets/framework/includes/javascript/Map.js'></script>");
+	//alert or focus error message for section508
+	function   isIE(){ 
+		if   (window.navigator.userAgent.toString().toLowerCase().indexOf("msie") >=1)
+		return   true;
+		else
+		return   false;
+	}
+
+
+	if(!isIE()){   //firefox   innerText   define
+	      HTMLElement.prototype.__defineGetter__(           "innerText",
+	        function(){
+	          var   anyString   =   "";
+	          var   childS   =   this.childNodes;
+	          for(var   i=0;   i <childS.length;   i++)   {
+	            if(childS[i].nodeType==1)
+	              anyString   +=   childS[i].tagName=="BR"   ?   '\n'   :   childS[i].innerText;
+	            else   if(childS[i].nodeType==3)
+	              anyString   +=   childS[i].nodeValue;
+	          }
+	          return   anyString;
+	        }
+	      );
+	      HTMLElement.prototype.__defineSetter__(           "innerText",
+	        function(sText){
+	          this.textContent=sText;
+	        }
+	      ); 
+	} 
+
+	function prepareVirtualBuffer()
+	{
+		if(!profile.isEnabled508)
+		{
+			return;
+		}
+		 //Focus in the errorMsgPanel
+		 var popupMsg = "";
+		 var errorMsgPanels = document.getElementsByName('errorMsgPanel');
+		 if(errorMsgPanels.length>0)
+		 {
+			 for(var i=0;i<errorMsgPanels.length;i++)
+			 {	
+				 if(errorMsgPanels[i].innerText != "")
+				 {
+					 popupMsg += '\r' + errorMsgPanels[i].innerText;
+				 }			 
+			 }
+		 }else if(!isIE())
+		 {
+			 //for firefox. TODO
+			 //maybe it is better to add NAME attribute for 
+			 //<FONT accessKey=9 id=errorMsgPanel class=Error tabIndex=0> 
+			 errorMsgPanels = document.getElementById('errorMsgPanel');	
+			 if(errorMsgPanels!=null && errorMsgPanels.innerText != "")
+			 {
+				popupMsg = errorMsgPanels.innerText;
+			 }			 
+		 }
+		 var errListPanel=document.getElementById('err_msg');		 
+		 if(errListPanel)
+		 {
+			 //--Append error list panel
+			 var errDiv = document.createElement('div');
+			 var errHtml='';
+		     var errMap = new Map();
+			 var fontArr=document.getElementsByTagName("font");
+			 for (var i=0;i<fontArr.length;i++) 
+			 {
+				var errFont = fontArr[i];
+				if(errFont.getAttribute("air-error")!='true')
+				{
+					continue;
+				}
+				var fieldId = errFont.parentElement.firstChild.htmlFor;
+				if(!fieldId)
+				{
+					fieldId = errFont.getAttribute("air-for");
+					if(fieldId)
+					{
+						if(fieldId.indexOf("ac360_list_id$")==0)
+					    {
+						    var chk_ele_str = "document.getElementsByName('value(chk_Id,"+fieldId.split('$')[1]+")')[0]";
+							if(errFont.innerText != "")
+							{
+								errHtml += '<a class="Redstar" href="#" onclick="javascript:focusElement('+chk_ele_str+')">'+errFont.innerText +'</a><br>';
+							}
+							continue;
+						}	
+						var err_ele=document.getElementById(fieldId);
+						if(!err_ele)
+						{
+							if(errFont.innerText != "")
+							{		    
+								popupMsg += '\r' + errFont.innerText;
+							}
+							continue;
+						}
+						if(err_ele && (err_ele.readOnly==true || err_ele.disabled == true))
+						{	
+							if(errFont.innerText != "")
+							{
+								popupMsg += '\r' + errFont.innerText;
+							}
+				    		continue;
+						}
+					}
+					else
+					{
+						if(errFont.innerText != "")
+						{
+							popupMsg += '\r' + errFont.innerText;
+						}
+						continue;
+					}  
+				}
+				var fieldErrorArray = document.getElementsByName(fieldId);
+				if(fieldErrorArray.length>1)
+				{
+					//Prompt message for radio or checkBox button
+					if(fieldErrorArray[0].type=='radio'||fieldErrorArray[0].type=='checkbox')
+					{
+						// If not id for the element(radio/check) then assign current name to it 
+						// in order to set focus to current element by click prompt error message(Required) content for 508
+						if(!fieldErrorArray[0].id)
+						{
+							fieldErrorArray[0].id = fieldId;
+						}
+						else
+						{
+							fieldId = fieldErrorArray[0].id;
+						}
+						putErrorFont508(errMap,fieldId,errFont);
+					}
+					else
+					{
+						for(j=0;j<fieldErrorArray.length;j++)
+						{
+							if(fieldErrorArray[j].value!='' || fieldErrorArray[j].type == 'hidden')
+							{
+								continue;
+							}
+							
+							//If ID is equal to name then assign an different value to id
+							if(!fieldErrorArray[j].id || fieldErrorArray[j].id==fieldErrorArray[j].name)
+							{
+								fieldErrorArray[j].id = fieldErrorArray[j].name+'_['+j+']';
+							}
+							putErrorFont508(errMap,fieldErrorArray[j].id,errFont);
+						}
+					}
+				}
+				else
+				{
+					putErrorFont508(errMap,fieldId,errFont);
+				}
+			 }
+			 errHtml += getErrorMsgs508(errMap);
+			 errDiv.innerHTML = errHtml;
+			 errListPanel.appendChild(errDiv);	
+			 scrollBarIssue.autoAdjustForErrorMsgDisplay();
+			 if(errListPanel.innerText!=''&&  errListPanel.innerText.match(/^\s*$/i)== null && popupMsg == '')
+			 {				
+				 alert(getTextlable("common.error.prompt"));
+			 }
+		 }
+		
+		 if(errMap.size()>0)
+		 {
+			 var fieldIds = null;
+			 fieldIds = errMap.keys();
+			 if(errorMsgPanels!=null && errorMsgPanels.innerText != "")
+			 {
+				 popupMsg = errorMsgPanels.innerText;
+				 for(var i=0;i<fieldIds.length;i++)
+				 {
+					 var errFont = errMap.get(fieldIds[i]);
+					 if(!errFont)
+					 {
+						 continue;
+					 }
+					 var lab = getLabel508(errFont);
+					 if(lab!='')
+					 {
+						 popupMsg += "\n"+lab + " : " + errFont.innerText;
+					 }
+					 else
+					 {
+						 lab = errFont.innerText;
+					 }
+				 }
+			 }
+		 } 
+			 
+		 if(popupMsg!='')
+		 {
+			 alert(popupMsg);
+		 }
+		 if(errListPanel&&errListPanel.getElementsByTagName('a').length>0)
+		 {
+			 var firstErrorLink = errListPanel.getElementsByTagName('a')[0];
+			 firstErrorLink.accessKey = gErrorPanleAccessKey;
+			 focusElement(firstErrorLink);
+		 }
+		 try
+		 {
+			 if (onAfterShowErrorMessagePanel != undefined && onAfterShowErrorMessagePanel!= null)
+			 {				
+				 onAfterShowErrorMessagePanel();
+			 }
+		 }
+		 catch(E){}
+	}
+	function getLabel508(fontEle)
+	{
+	    var label = fontEle.parentNode.innerHTML;
+	    if(fontEle.getAttribute("air-label"))
+	    {
+	    	label = fontEle.getAttribute("air-label");
+	    }
+	    else if(label.indexOf('<LABEL')>=0)
+	    {
+	    	if(fontEle.parentElement.firstChild.innerText)
+	    	{
+	    		label = fontEle.parentElement.firstChild.innerText;
+	    	}
+	    	else
+	    	{
+	    		label = fontEle.parentElement.firstChild.toString();
+	    	}
+	    }
+	    else if(label.indexOf('<label')>=0)
+	    {
+	    	if(fontEle.parentElement.firstChild.innerText)
+	    	{
+	    		label = fontEle.parentElement.firstChild.innerText;
+	    	}
+	    	else
+	    	{
+				if(fontEle.parentElement.firstChild.nextSibling)
+					label = fontEle.parentElement.firstChild.nextSibling.innerHTML;
+	    	}
+	    }
+	    else
+	    {
+		    label = label.substr(0,label.indexOf('<'));
+	    }
+	    return label;
+	}
+
+	String.prototype.trim = function()
+	{
+	    return this.replace(/(^\s*)|(\s*$)/g, "");
+	}
+	//Merge the mutiple error messages for one field element. 
+	function putErrorFont508(errMap,id,newErr)
+	{
+		var oldErr = errMap.get(id);
+		if(oldErr&&oldErr.innerText!=''&&newErr.innerText!='')
+		{
+			if(oldErr.innerText.toString().trim()!=newErr.innerText.toString().trim())
+			{
+				if(getLabel508(oldErr)!=''){
+					oldErr.innerText +=" "+newErr.innerText;
+					newErr.innerHTML = "";
+				}else{
+					newErr.innerText +=" "+oldErr.innerText;
+					oldErr.innerHTML = "";
+					errMap.put(id,newErr);
+				}
+			}
+			else
+			{
+				newErr.innerHTML="";
+			}
+		}else{
+			errMap.put(id,newErr);
+		}
+	}
+	function getErrorMsgs508(errMap){
+		var fieldIds = null;
+		try{
+			fieldIds = errMap.keys();
+		}catch(e){
+			return "";
+		}
+		var errHtml = "";
+		for(var i=0;i<fieldIds.length;i++)
+		{
+			var errFont = errMap.get(fieldIds[i]);
+			if(!errFont)
+			{
+				continue;
+			}
+			var lab = getLabel508(errFont);
+	    	if(lab!='')
+	    	{
+	    		lab = lab + " : " + errFont.innerText;
+	    	}
+	    	else
+	    	{
+	    		lab = errFont.innerText;
+	    	}
+	    	errHtml += getErrorLink508(fieldIds[i],lab);
+		}
+		return errHtml;
+	}
+	//Generate error message links for do validate failure 
+	function getErrorLink508(id,label)
+	{
+		return '<a class="Redstar" href="#'+ id + '" title="Error | '+label+'">'+label +'</a><br>';
+	}
+	
+	//Alert message to prompt exist one or more failure validations
+	function alertPromptMsg(msg,id)
+	{
+		if(profile.isEnabled508)
+		{
+			//Set default ID to output message content
+			if(id==undefined || id=='')
+			{
+				id='err_msg';
+			}
+			if(document.getElementById(id) && msg !='')
+			{
+				document.getElementById(id).innerHTML=msg;
+				scrollBarIssue.autoAdjustForErrorMsgDisplay();
+				alert(getTextlable("common.error.prompt"));
+			}
+		}
+	}
+	
+	//Use blur event instead of change event for select html element to support section508.
+	function _blur4Select(evt){
+		var evtSrc = evt.srcElement?evt.srcElement:evt.target;
+		var initValue = evtSrc.getAttribute("initValue");
+		if(initValue!=evtSrc.value)
+		{
+			 if(window.addEventListener)
+			 {
+			    evtSrc.onerrorupdate();
+			 }
+			 else
+			 {
+				 evtSrc.fireEvent('onerrorupdate');
+			 }
+		}
+		evtSrc.setAttribute("initValue",evtSrc.value);
+	}
+
+	function _focus4Select(evt){
+		var evtSrc = evt.srcElement?evt.srcElement:evt.target;
+		evtSrc.setAttribute("initValue",evtSrc.value);
+	}
+	
+	function simulateSelectChange(){
+		if(!profile.isEnabled508)
+		{
+			return;
+		}
+		var selObjs = document.getElementsByTagName('select');
+		for(i=0;i<selObjs.length;i++){
+			var obj = selObjs[i];
+			var _onchange = obj.getAttribute("_onchange");
+			if((obj.onchange&&obj.onchange!='undefined')||_onchange!=null){
+				if(_onchange!=null){
+					obj.onerrorupdate =new Function(_onchange);
+				}else{
+					obj.onerrorupdate=obj.onchange;
+					if(obj.onchange!=null)
+					{
+						_onchange = (""+obj.onchange).replace("function anonymous()","");
+						_onchange = _onchange.substring(_onchange.indexOf("{")+1,_onchange.length-1);
+						obj.setAttribute("_onchange",_onchange);
+					}
+					obj.onchange = function(evt) {
+					if (evt != null
+							&& 'jsOnChange'.toUpperCase() == evt.type.toUpperCase()) {
+						if (window.addEventListener) {
+							this.onerrorupdate();
+						} else {
+							this.fireEvent('onerrorupdate');
+						}
+					}
+				};
+				}
+				removeEvent(obj,"focus",_focus4Select);
+				addEvent(obj,"focus",_focus4Select);
+				removeEvent(obj,"blur",_blur4Select);
+				addEvent(obj,"blur",_blur4Select);
+				obj.setAttribute("initValue",obj.value);
+			}
+		}
+	}
+	//Add a title for A link element which first child is img element to surport section508.
+	function setImageTitle4A(){
+		if(!profile.isEnabled508)
+		{
+			return;
+		}
+		var imgsArr= document.getElementsByTagName("img");
+		for(i = 0; i < imgsArr.length; i++)
+		{
+		   img = imgsArr.item(i);
+		   var parentNode = img.parentNode;
+		   if(img && parentNode && parentNode.tagName == 'A' && parentNode.title == '')
+			{
+			   if(img.alt)
+			   {   
+				   parentNode.title = img.alt;
+			   }else{
+				   parentNode.title = parentNode.innerText;
+			   }
+			}
+		}
+	}
+	//Merge the require label in to field label for section508
+	function getParentTD(ele){
+		if (ele&&ele.parentNode)
+		{
+			if (ele.parentNode.nodeName  == 'TD'||ele.parentNode.nodeName  == 'TH') {
+				return ele.parentNode;
+			} else {
+				return getParentTD(ele.parentNode);
+			}
+		}else{
+			return null;
+		}
+	}
+	function mergeRequiredLabel(){
+		if(!profile.isEnabled508)
+		{
+			return;
+		}
+		labArr=document.getElementsByTagName('label');
+		var lab;
+		var labTD;
+		var labArrLen = labArr.length;
+		for(i=0;i<labArrLen;i++)
+		{
+			if(lab && lab.getAttribute('htmlFor')!=null
+					&& labArr[i].getAttribute('className')=='Redstar'
+						&& labTD && labTD == getParentTD(labArr[i]) && !lab.getAttribute('skipFramework'))
+			{
+				lab.innerHTML += "<font class='redstar'>"+labArr[i].innerText+"</font>";
+				labArr[i].innerHTML='';
+				lab=null;
+				labTD=null;
+			}
+			else
+			{
+				lab=labArr[i];
+				labTD=getParentTD(lab);
+			}
+		}
+		scrollBarIssue.autoAdjustForErrorMsgDisplay();
+	}
+	
+	//begin to add by david deng[6/1/2010] for Shield Alt+F4 to execute close window
+	var isAltF4 = false;
+	function altF4Down(){ 
+		var event = Ac360.getEvent();
+		if ((event.altKey)&&(event.keyCode==115)){ 
+			isAltF4 = true;
+			window.close();
+	    }
+		return true;
+	}
+	//to check if section 508 FID is opened. 
+	if(profile.isEnabled508)
+	{
+		addEvent(document,'keydown',altF4Down);
+	}
+	//end to add by david deng[6/1/2010]
+	
+	function hotkey(event)
+	{
+		try
+		{
+			var elemes = top.document.getElementsByTagName("INPUT");
+			event = event || window.event;
+			var eventKeyCode = event.keyCode;
+			if(elemes)
+			{
+				if((eventKeyCode == 83) && (event.ctrlKey))
+				{
+					focusElement(elemes[0]);
+				}
+			}
+		}
+		catch (error)
+		{
+			// Do nothing.
+		}
+	}
+	addEvent(document,'keydown',hotkey);
+	addEvent(this,'load',mergeRequiredLabel);
+	addEvent(this,'load',setImageTitle4A);
+	addEvent(this,'load',simulateSelectChange);
+	addEvent(this,'load',prepareVirtualBuffer);

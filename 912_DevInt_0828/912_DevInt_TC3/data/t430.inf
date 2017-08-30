@@ -1,0 +1,11 @@
+[t430]
+FileName1=t430_menu_people_icon.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/images/space-icons/menu_people_icon.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_430.xml
+RequestHeaderFile=t430_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t430_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

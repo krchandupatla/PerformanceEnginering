@@ -1,0 +1,11 @@
+[t280]
+FileName1=t280_table-header-right-top-400-8.png
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/images/sky_blue/menu/table-header-right-top-400-8.png
+Total=1
+ContentType=image/png
+SnapshotXmlFile=snapshot_280.xml
+RequestHeaderFile=t280_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t280_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

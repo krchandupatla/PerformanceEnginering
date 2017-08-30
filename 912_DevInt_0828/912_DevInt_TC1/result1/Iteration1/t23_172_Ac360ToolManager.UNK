@@ -1,0 +1,508 @@
+//Accela Automation
+//File: Ac360Pool.js
+//Accela, Inc.
+//Copyright (C): 2012-2014
+//
+//Description: This javascript is a set for commone javascript util function.
+//
+//Notes:
+//
+//Revision History: 
+//16/6/2012, Ray Zhang,  Initial Version.
+
+(
+	function(){
+		var Ac360 = function(){};
+		
+		//ajax
+		var Ajax = function(){
+			//private
+			var createXMLHttpRequest = function(){
+				var xmlHttp = false;
+				if (window.XMLHttpRequest)   // Mozilla, Safari, ...
+				{
+					xmlHttp = new XMLHttpRequest();
+				}
+				else if (window.ActiveXObject)  // IE
+				{
+					try
+					{
+				 		xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+					}
+					catch(e1)
+					{
+						try
+						{
+							xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+						}
+						catch(e2)
+						{
+							xmlHttp = false;
+						}
+					}
+				}
+				
+				return xmlHttp;		
+			};
+			
+			var stateChange = function(desc){
+				var req = desc.req;
+				
+				try {
+		          var readyState = req.readyState;
+		          if (readyState != 4) {
+		            return;
+		          }
+		        }
+		        catch (ex) {
+		          return;
+		        }
+		        var status = req.status; // causes Mozilla to except on page moves
+		        
+		        if (status != 200) 
+		        	return;
+		        	
+		         var reply = req.responseText;
+		         var responseXML = req.responseXML;
+		        if (reply == null || reply == "") 
+		        	return;
+		         desc['reply'] = reply;
+		         if (desc.callback)
+		         {
+		         	desc.callback.call(window, reply, responseXML);
+		         }
+			};	
+			
+			this.send = function(url, content , callback, async)
+			{
+				if (typeof async == 'undefined')
+					async = true;
+			
+				var returnData = "";
+				var req = createXMLHttpRequest();
+				if (!req) 
+				{
+					throw new Error("XMLHttp object could be created.");
+				}
+				
+				var desc = {req: req, callback: callback};
+				
+				if(async)
+				{
+					req.onreadystatechange = function(){
+						stateChange(desc);
+					};
+				}
+				
+				req.open("POST", url, async);
+				req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+				req.send(content);
+				if(!async)
+				{
+					stateChange(desc);
+				}
+				
+				return desc.reply;
+
+			};
+		}; 
+		
+		//use strategy implement
+		/*
+		 * 1. if only one object, then return one onjbect.
+		 * 2. if multi object, then reurn array.
+		 * */
+		var query = function(txt)
+		{
+			//var objs;
+			//default
+			var target = document.getElementById(txt);
+			//objs = [target];
+			return target;
+		};
+		
+		var createElement = function(config)
+		{
+			return WidgetFacotry.create(config);
+		};
+		
+		//validate file name suffix
+		var validateFileSuffix = function (fileName, type)
+		{			
+			var fileSuffix = this.getFileSuffix(fileName);
+			
+			if (fileSuffix.toLowerCase() == type.toLowerCase())
+			{
+				return true;
+			}
+			
+			return false;
+		};
+		
+		//get file suffix
+		var getFileSuffix = function (fileName)
+		{
+			var fileSuffix = "";
+			if (fileName != null && fileName != "")
+			{
+				var indexOf = fileName.lastIndexOf(".");
+				if (indexOf > 0)
+				{
+					fileSuffix = fileName.substring(indexOf, fileName.length);
+				}
+			}
+			
+			return fileSuffix;
+		};
+		
+		var toString = Object.prototype.toString;
+		
+		var validator = {
+			isEmpty : function(value) {
+				if (value === undefined ||  value === null || value ==='')
+				{
+					return true;
+				}
+				if (this.isArray(value))
+				{
+					if (value.length == 0)
+						return true;
+				}
+				return false;
+			},
+					
+			isArray: function(value) {
+				return toString.call(value) === '[object Array]';
+			},
+			
+			isObject: function(value) {
+				return value !== null && value !== undefined && toString.call(value) === '[object Object]';
+			}
+		};
+		
+		var addEvent = function(target, type, func){
+			BaseJS.addEventHandler(target, type, func);
+		};
+		
+		var dispatchEvent = function(target, event) {
+			
+            if(typeof(target) == 'undefined' ||  target === null)
+            {
+                return false;
+            }
+            var index = event.indexOf('on');
+            if (target.fireEvent)
+            { 
+                if(index != 0)
+                {
+                	event = 'on'+event;
+                }
+                
+                target.fireEvent(event);
+                return true;
+            }
+			else 
+			{
+                if(index == 0)
+                {
+                	event = event.substr(2);
+                }
+				
+				var evt = document.createEvent('HTMLEvents');
+				evt.initEvent(event, true, true);
+				target.dispatchEvent(evt);
+				return true;
+			}
+            return false;
+		};
+		
+		var strToJson = function(str){
+			return BaseJS.strToJson(str);   
+		};
+		
+		var jsonToStr = function(obj){
+			return BaseJS.jsonToStr(str);
+		};
+		
+		var increase = function(){
+			return BaseJS.increase();
+		};
+
+		var decrease = function(){
+			return BaseJS.decreaseFn();
+		};
+		
+		var getEvent = function(){
+		     if(window.event)    {return window.event;}
+		     var func=getEvent.caller;
+		     while(func!=null){
+		         var arg0=func.arguments[0];
+		         if(arg0){
+		             if((arg0.constructor==Event || arg0.constructor ==MouseEvent
+		                || arg0.constructor==KeyboardEvent)
+		                ||(typeof(arg0)=="object" && arg0.preventDefault
+		                && arg0.stopPropagation)){
+		                 return arg0;
+		             }
+		         }
+		         func=func.caller;
+		     }
+		     return null;
+		};
+		
+		var formatToMaxLength = function(strValue,width,isDecode){
+			if (!strValue)
+				return strValue;
+
+			if (isDecode)
+			{
+				strValue = htmlDecode(strValue);
+			}
+			var charCount = width >= 8 ? width/8 : 20;
+			var result = strValue;
+			if (strValue.length > charCount){
+			    var toCutIndex = charCount - 3;
+			    if(toCutIndex > 0){
+			    	result = result.substring(0,toCutIndex) + "...";
+			    }else{
+			    	result = "...";
+			    }
+			}
+		  if (isDecode)
+          {
+            result = htmlEncode(result);
+          }	
+			
+			return result;
+		};
+		
+		var cancelBubble = function(){
+			var e = getEvent();
+			if(window.event){
+		        e.returnValue=false;
+		        e.cancelBubble=true;
+		     }else if(e.preventDefault){
+		        e.preventDefault();
+		        e.stopPropagation();
+		     }
+		};
+		
+		var getFrameById = function(id){
+			var searchTopDown = function(root,id){
+				if(root.frames[id])
+					return root.frames[id];
+				var targetFrame = null;
+				for(var i=0;i<root.frames.length;i++){
+					targetFrame = arguments.callee(root.frames[i],id);
+					if(targetFrame)
+						break;
+				}
+				return targetFrame;
+			}
+			return searchTopDown(top,id);
+		};
+		
+		var indexOfArray = function(array,item){
+			if(!(array instanceof Array)){
+				return -1;			
+			}
+			for(var i=0;i<array.length;i++){
+				if(array[i]==item)
+					return i;
+			}
+			return -1;
+		};
+		
+		var htmlDecode = function(value)
+		{
+			return !value ? value : 
+				String(value).replace(/&gt;/g, ">")
+							 .replace(/&lt;/g, "<")
+							 .replace(/&quot;/g, '"')
+							 .replace(/&amp;/g, "&")
+							 .replace(/&#92;/g, "\\")
+							 .replace(/&#39;/g, "\'")
+							 .replace(/<BR>/g,"\r\g");
+		};
+		
+		var htmlEncode = function(value)
+		{
+			return !value ? value : 
+				String(value).replace(/&/g, "&amp;")
+							 .replace(/>/g, "&gt;")
+							 .replace(/</g, "&lt;")
+							 .replace(/"/g, "&quot;")
+							 .replace(/\\/g, "&#92;")
+							 .replace(/'/g, "&#39;")
+							 .replace(/\r\n/g, "<BR>");
+		};
+		
+       var attachEvent = function (obj,evType, fn, useCapture) 
+       {
+    	   
+            if(obj === undefined ||  obj === null)
+            {
+                return false;
+            }
+            var index = evType.indexOf('on');
+            if (obj.addEventListener) //IE11+
+            { 
+                if(index==0)
+                {
+                    evType = evType.substr(2); 
+                }
+                obj.addEventListener(evType, fn, useCapture?useCapture:false);
+                return true;
+            }
+            else if(obj.attachEvent)
+            {
+                if(index != 0)
+                {
+                    evType = 'on'+evType;
+                }
+                obj.attachEvent(evType, fn);
+                return true;
+            }
+            
+            return false;
+      };
+      
+      var detachEvent = function (obj,evType, fn, useCapture) 
+       {
+            if(obj === undefined ||  obj === null)
+            {
+                return false;
+            }
+            var index = evType.indexOf('on');
+            if(obj.detachEvent)
+            {
+                if(index != 0)
+                {
+                    evType = 'on'+evType;
+                }
+                obj.detachEvent(evType, fn);
+                return true;
+            }
+            else if (obj.removeEventListener) //IE11+
+            { 
+                if(index==0)
+                {
+                    evType = evType.substr(2);
+                }
+                obj.removeEventListener(evType, fn, useCapture?useCapture:false);
+                return true;
+            }
+            
+            return false;
+      }; 
+      /* 
+       * idOrName : id or name
+       * env : document's environment,for example: parent, opener and so on.
+       * isArray : if true return an array, else return a single element.
+      */
+      var getElementByIdOrName = function(idOrName,env,isArray)
+      {
+    	    var e = null;
+    	    if(validator.isEmpty(env))
+    	    {
+    	    	var eTmp = document.getElementById(idOrName);
+    	    	if(validator.isEmpty(eTmp))
+    	    	{
+    	    		var es = document.getElementsByName(idOrName);
+    	    		if(es.length>0)
+    	    		{
+    	    			e = es;
+    	    		}
+    	    	}
+    	    	else
+    	    	{
+    	    		e =  [eTmp];
+    	    	}
+    	    }
+    	    else
+    	    {
+    	    	try{
+	    	    	var eTmp = env.document.getElementById(idOrName);
+	    	    	if(validator.isEmpty(eTmp))
+	    	    	{
+	    	    		var es = env.document.getElementsByName(idOrName);
+	    	    		if(es.length>0)
+	    	    		{
+	    	    			e = es;
+	    	    		}
+	    	    	}
+	    	    	else
+	    	    	{
+	    	    		e = [eTmp];
+	    	    	}
+    	    	}catch(e)
+    	       {
+    	    	   return null;
+    	       }
+    	    	
+    	    }
+    	    
+    	    if((validator.isEmpty(isArray) || !isArray) && e != null &&  e.length>0)
+    	    {
+    	    	e = e[0];
+    	    }
+    		
+    		return e;
+      };
+	  
+	  // get top document in current domain 
+      var getTopDocument = function()	
+      {
+    	  return getTopWindow().document;
+      };
+      
+      var getTopWindow = function()
+      {
+    	  
+    	  var win = window, preWin;
+    	  try 
+    	  {
+    		  while(win && win != preWin) 
+    		  {
+    			  win.document;//if this can not be access and it will throw deny error.
+    			  preWin = win;
+    			  win = win.parent;
+    		  }
+    	  } catch(e) {
+    		  return preWin;
+    	  }
+    	  return preWin;
+      };
+
+		Ac360.prototype = {
+			constructor: Ac360,
+			ajax : Ajax,
+			query : query,
+			createElement: createElement,
+			validateFileSuffix: validateFileSuffix,
+			getFileSuffix : getFileSuffix,
+			validator : validator,
+			addEvent : addEvent,
+			getEvent : getEvent,
+			strToJson : strToJson,
+			jsonToStr : jsonToStr,
+			formatToMaxLength : formatToMaxLength,
+			getFrameById : getFrameById,
+			increase : increase,
+			decrease : decrease,
+			cancelBubble : cancelBubble,
+			indexOfArray : indexOfArray,
+			htmlDecode : htmlDecode,
+			htmlEncode : htmlEncode,
+			attachEvent : attachEvent,
+			detachEvent : detachEvent,
+			getElementByIdOrName : getElementByIdOrName,
+			getTopDocument : getTopDocument,
+			getTopWindow : getTopWindow,
+			dispatchEvent : dispatchEvent
+		};
+		
+		window.Ac360 = new Ac360();
+	}
+)();
+

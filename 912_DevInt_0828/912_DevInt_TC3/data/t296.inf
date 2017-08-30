@@ -1,0 +1,11 @@
+[t296]
+FileName1=t296.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/framework/includes/error/blank.jsp
+Total=1
+ContentType=text/html
+SnapshotXmlFile=snapshot_296.xml
+RequestHeaderFile=t296_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t296_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

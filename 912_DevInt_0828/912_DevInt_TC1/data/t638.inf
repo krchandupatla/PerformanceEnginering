@@ -1,0 +1,11 @@
+[t638]
+FileName1=t638_i18n-config.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/i18n-config.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_638.xml
+RequestHeaderFile=t638_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t638_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

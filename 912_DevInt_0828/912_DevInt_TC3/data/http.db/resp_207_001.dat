@@ -1,0 +1,42 @@
+/*
+	File Name: /web/AAHELP.js
+
+	Copyright (C): 2016
+	   Accela.com
+	   701 Gateway Blvd., Suite 151
+	   South San Francisco, CA 94080
+	   All Rights Reserved
+	   Printed in U.S.A.
+
+	Description:
+
+	Notes:
+*/
+
+function ClickHelp() {	
+	remote1 = window.open("","remote","width=566,height=540,menubar,resizable,scrollbars,status,toolbar");
+   	var hrefString = "/help/index.cfm?FUSEACTION=HelpLink";
+   	remote1.location.href = hrefString;   	
+}
+
+function ShowI18NHelp(helpID)
+{
+	var url = "/portlets/menu/menuForm.do?value(mode)=helpid&helpId="+helpID;
+	var data = sendHttpRequest(url, "",false);
+	if(data.length >0)
+	{
+		openHelpdoc(data);
+	}
+}
+
+function openHelpdoc(data)
+{
+	var content = data;
+	var contentArray = content.split(",");
+	var contextId = contentArray[0];
+	var docsWar = contentArray[1];
+
+	var url = docsWar + "/docs/index.html?contextId="+contextId;
+	return window.open(url,"newwin","width=830,height=540,scrollbars=yes,resizable=no,toolbar=no,status=no,menubar=no,top=150,right=300");
+}	
+

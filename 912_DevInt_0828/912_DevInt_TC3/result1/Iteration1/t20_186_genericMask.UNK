@@ -1,0 +1,1581 @@
+/**
+ * Accela Automation
+ * File: genericMask.js
+ * Accela, Inc.
+ * Copyright (C): 2012-2014
+ * 
+ * Description: This javascript implement the functions of input content with mask.
+ * 
+ * Notes:
+ * 
+ * Revision History:
+ * 8/29/2012, Ethan Mo, Initial.
+ */
+ document.write("<script src='/portlets/framework/includes/javascript/I18N.js'></script>");
+ document.write("<script src='/portlets/framework/includes/javascript/hashMap.js'></script>");
+ function _GenericMask()
+ {
+	 this.version = "1.0";
+	 this.instancesCount = 0;
+	 this.objects = {};
+	 this.referEles = {};
+	 this.referEleCount = 0;
+	 this.isApplyMask = true;
+	 this.messageMap = new HashMap(3);
+	 this.initMsg = true;
+	 this.maskGroupMap = {};
+	 this.putMaskGroup = function (targetName, mask)
+	 {
+		 if (!targetName)
+		 {
+			 targetName = "err_msg";
+		 }
+		 if (!this.maskGroupMap[targetName])
+		 {
+			 this.maskGroupMap[targetName] = new Object();
+		 }
+		 if (!this.maskGroupMap[targetName].maskList)
+		 {
+			 this.maskGroupMap[targetName].maskList = [];
+		 }
+		 this.maskGroupMap[targetName].maskList.push(mask);
+	 }
+ }
+ 
+ var instance = new _GenericMask();
+ var formResetting = false;
+ var referEleValueCaches = new HashMap();
+ 
+function _mask(mask, doValidate, syncUrl, msgTarget, editViewMaskStr)
+{
+	if (!mask) 
+	{
+		mask = "";
+	}
+	
+	this._maskMap = {
+		'A' : "[a-zA-Z]",
+		'#' : "[0-9]"
+	};
+	
+	this.id = instance.instancesCount++;
+	instance.objects[this.id] = this;
+	this._originalMask = mask;
+	this._sMask = "";
+	this._sFormat = "";
+	this._aEscapeChar = new Array();
+	this._buffer = {};
+	this._resetBuffer;
+	this._target;
+	this._hiddenTarget
+	this._attached = false;
+	this._enableMaskInput = false;
+	this._isReadOnly = false;
+	this._ref = "instance.objects['" + this.id + "']";
+	this._originalValue = "";
+	this._syncUrl = syncUrl;
+	this._doValidate = doValidate;
+	this._errMsg;
+	this._initialResetBuf = true;
+	this._resetCountry = '';
+	this._referElement;
+	this._msgTarget = msgTarget;
+	this._validateResult = true;
+	this._editViewMaskStr = editViewMaskStr;
+	instance.putMaskGroup(msgTarget, this);
+	this._initialize = function()
+	{	
+		if (editViewMaskStr == null || editViewMaskStr == "null")
+		{
+			this._buildFormatMask();
+		}
+		//this._writeBuffer(0);
+	}
+	
+	this._buildFormatMask = function()
+	{	
+		if(this._originalMask == 'undefined' || this._originalMask.length == 0)
+		{
+			this._sFormat = '';
+			this._buffer = '';
+			this._sMask = '';
+		}
+		for(var i = 0 ; i < this._originalMask.length ; i++)
+		{
+			var s = this._originalMask.charAt(i);
+			if (this._maskMap[s] != null)
+			{
+				this._sFormat += '_';
+				this._buffer[i] = '_';
+			} 
+			else 
+			{
+				this._sFormat += s;
+				this._buffer[i] = s;
+			}
+			this._sMask += s;
+		}
+		this._buffer.length = this._originalMask.length;
+		if(this._initialResetBuf)
+		{
+			this._resetBuffer = this._sFormat;
+			this._initialResetBuf = false;
+		}
+	}
+	
+	this._validate = function()
+	{
+		this._clearErrMsg();
+		if(this._doValidate != "No")
+		{
+			if (!document.getElementById(this._target.id) || this._target.disabled || this._hiddenTarget.value == "")
+			{
+				return true;
+			}
+			//The object created method has been changed in Java code, so use 'id' to instead  of 'name'
+			var errorName = this._target.id.replace("value(", "").replace(")", "").replace("_disp", "") +"*msg";
+			var errorEle = document.getElementById(errorName);
+			if(this._target.value == 'undefined' || this._target.value.trim() == '' || isHidden(this._target))
+			{
+				return true;
+			}
+			var output = this._target.value.split("");
+			var errMsg = this._errMsg;
+			if(!errMsg)
+			{
+				errMsg = document.createElement("font");
+				errMsg.id = "maskErr" + this.id;
+				errMsg.setAttribute("class", "Error");
+				if(errorEle && errorEle.parentNode)
+				{
+					var parentEle = errorEle.parentNode;
+					if(parentEle.lastChild == errorEle)
+					{
+						parentEle.appendChild(errMsg);
+					}
+					else
+					{
+						parentEle.insertBefore(errMsg, errorEle.nextSibling);
+					}
+				}
+				this._errMsg = errMsg;
+			}
+			
+			if(this._sMask.length == 0)
+			{
+				if (this._target.maxLength == 15 && this._hiddenTarget.value != "")
+				{
+					if (this._hiddenTarget.value.length > 10)
+					{
+						errMsg.innerHTML = instance.messageMap.get('UnMaskZipLengthError');
+						return false;
+					}
+				}
+				return true;
+			}
+			
+			if(output.length == this._sMask.length)
+			{
+				if(!this._checkMaskInput(output) || output.join().indexOf("_") >= 0)
+				{
+					errMsg.innerHTML = "&nbsp;&nbsp;" + this._originalMask ;
+					return false;
+				}
+				return true;
+			}
+			else 
+			{
+				var startPos = -1;
+				if (this._buffer[this._buffer.length - 1] == ')')
+				{
+					for(var i = this._buffer.length - 1; i >= 0; i--)
+					{
+						if(this._buffer[i] == '(')
+						{
+							startPos = i;
+							break;
+						}
+					}
+				}
+				
+				if(startPos >= 0)
+				{
+					if (output.length > startPos)
+					{
+						for(startPos + 1; startPos < this._buffer.length - 1; startPos++)
+						{
+							if(this._buffer[startPos] != '_' && this._buffer[startPos] != this._sMask.charAt(startPos))
+							{
+								errMsg.innerHTML = "&nbsp;&nbsp;" + this._originalMask;
+								return false;
+							}
+						}
+					}
+					else if (output.length < startPos)
+					{
+						errMsg.innerHTML = "&nbsp;&nbsp;" + this._originalMask;
+						return false;
+					}
+				}
+				else
+				{
+					errMsg.innerHTML = "&nbsp;&nbsp;" + this._originalMask;
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	this._clearErrMsg = function()
+	{
+		if(this._errMsg)
+		{
+			this._errMsg.innerHTML = "";
+		}
+	}
+	
+	this._focus = function(objEvent)
+	{
+		this._originalValue = this._target.value;
+		
+		if(this._target.readOnly == true)
+		{
+			this._isReadOnly = true;
+			this._enableMaskInput = false;
+			return;
+		}
+
+		var text = this._target.value;
+
+		if (text != "")
+		{	
+			var len = text.length;
+			if (len > this._sFormat.length && this._sFormat.length > 0)
+			{
+				this._enableMaskInput = false;
+				return ;
+			}
+			var chars = text.split("");
+			if (this._checkMaskInput(chars) || this._sFormat.length == 0)
+			{
+				var buffer = text;
+				if (len < this._sFormat.length && this._sFormat.length)
+				{
+					buffer = buffer + this._sFormat.substr(len);
+				}
+				
+				this._enableMaskInput = true;
+				this._buffer = buffer.split("");
+				this._writeBuffer(len);
+						
+			}
+			else
+			{
+				this._enableMaskInput = false;
+			}
+		}
+		else
+		{
+			this._enableMaskInput = true;
+			this._buffer = this._sFormat.split("");
+			
+			var destPos = this._destPost();
+			//Move the cursor to the proper position.
+			if (destPos != -1)
+			{
+				this._writeBuffer(destPos);
+			}
+			
+		}
+	}
+	
+	this._keydown = function(objEvent)
+	{
+		var k = 0;
+		var nPos = this._getCursorPos().begin;
+		var env = window.event || objEvent;
+		k = env.keyCode || env.which;
+		
+		if (k == 13) //enter
+		{
+			this._formatBufferOnLostFocus();
+			//Enter supports.
+			return true;
+		}
+		
+		if (k == 8) //backspace
+		{
+			this._deleteChar();
+			return false;
+		}
+		if(k == 46)//delete
+		{
+			var	startPos = this._getCursorPos().begin;
+			var	endPos = this._getCursorPos().end;
+			var range = endPos - startPos;
+			if(range == this._buffer.length || (this._target.value && range == this._target.value.length))
+			{
+				this._deleteChar();
+			}	
+			return false;
+		}
+				
+		if (k == 27) // allow to send 'ESC' command
+		{
+			this._buffer = this._sFormat.split("");
+			return false;
+		}	
+	}
+	
+	this._onpaste = function()
+	{
+		if (this._isReadOnly || !this._enableMaskInput) return ;
+		
+		var pasteValue = window.clipboardData.getData('Text');
+		var maxLength = this._target.maxLength;
+		for (var i = 0; i < pasteValue.length && i < maxLength; i++) 
+		{
+			this._pastePress(pasteValue.charAt(i));
+		}
+		
+		return false;
+	}
+	
+	this._pastePress = function(char)
+	{	
+		var ch = char.toUpperCase();
+		var nPos = this._getCursorPos().begin;
+		//If there is no mask, output the char directly.
+		if(this._sFormat.length == 0)
+		{
+			this._buffer[nPos] = ch;
+			this._writeBuffer(nPos + 1);
+			return false;
+		}
+		while (nPos < this._sFormat.length)
+		{
+			c = this._sMask.charAt(nPos);
+			
+			if (this._maskMap[c] != null && !this._aEscapeChar[nPos])
+			{
+				var regExpChar = new RegExp(this._maskMap[c]);
+				
+				if (ch.match(regExpChar))
+				{
+					this._buffer[nPos] = ch;
+					this._writeBuffer(nPos + 1);
+				}
+				break;
+			}
+			else
+			{
+				nPos++;
+			}
+		}
+		
+		return false;	
+	}
+	
+	this._keypress = function(objEvent)
+	{		
+		var env = window.event || objEvent;
+		var nPos = this._getCursorPos().begin;
+
+		var	endPos = this._getCursorPos().end;
+		var range = endPos - nPos;
+		
+		if(range == this._buffer.length || (this._target.value && range == this._target.value.length))
+		{
+			this._deleteChar();
+		}	
+		var k = env.keyCode || env.which;
+		if(k == 13)
+		{
+			return true;			
+		}
+		else
+		{
+			env.cancelBubble = true;
+		}
+	
+		if(this._isReadOnly) return;
+		
+		var inputChar = String.fromCharCode(k);
+		var currPos = this._getCursorPos().begin;
+		return this._inputChar(inputChar);
+	
+		
+	}
+	
+	this._blur = function(objEvent)
+	{
+		if (this._isReadOnly || !this._enableMaskInput) return ;
+				
+		/*
+		var sText = this._target.value;
+		
+		if (sText == this._sFormat)
+		{
+			this._target.value = "";
+		}
+		*/
+		
+		if(this._target.value == ''){
+			this._buffer.length = 0;
+		}
+		
+		this._formatBufferOnLostFocus();
+		
+		//mask prevents to fire onchange event, expression cannot execute.
+		//Manually fire the onchange event when input text value is change.
+		if(this._originalValue != this._target.value)
+		{
+			Ac360.dispatchEvent(this._target, 'change');
+		}
+		this._validate();
+	}
+	
+	this._oncut = function(objEvent)
+	{
+		if (this._isReadOnly || !this._enableMaskInput) return ;
+				
+		var data = document.selection.createRange().text;
+		var range = this._getCursorPos();
+		var c;
+
+		for(var i = range.begin ; i < range.end ; i++)
+		{
+			c = this._sMask.charAt(i);
+				
+			if (this._maskMap[c] != null)
+			{
+				this._buffer[i] = "_";
+			}
+		}
+		this._writeBuffer(range.begin);
+		
+		window.clipboardData.setData("Text",data);
+	}
+	
+	this._onclick = function(objEvent)
+	{
+		if (this._isReadOnly || !this._enableMaskInput) return ;
+		
+		var destPos = this._destPost();
+		//Move the cursor to the proper position.
+		if (destPos != -1)
+		{
+			this._setCursorPos(destPos);
+		}
+	}
+	
+	this._onresetmask = function()
+	{
+//		if (!this._enableMaskInput) return ;
+		this._sFormat = this._resetBuffer;
+	}
+	
+	this._deleteChar = function()
+	{
+		if(this._isReadOnly) return ;
+		var	startPos = this._getCursorPos().begin;
+		var	endPos = this._getCursorPos().end;
+		if(startPos == endPos && startPos > 0)
+		{
+			startPos--;
+		}
+		var currentChar;
+		var formatChar;
+		var deleteCount = 0;
+		var tempEndPos = endPos;
+		//If the value is invalid, delete the value;
+		if(this._target.value && this._sFormat.length > 0)
+		{
+			if(!this._checkMaskInput(this._target.value.split("")))
+			{
+				startPos = 0;
+				endPos = this._target.value.length;
+			}
+		}
+		//If there is no mask, delete the char from buffer directly, else replace the char by '_'.
+		for(startPos; startPos < endPos;)
+		{
+			currentChar = this._buffer[startPos];
+			if(this._sFormat.length > 0)
+			{
+				formatChar = this._sFormat.charAt(startPos);
+				if("_" == formatChar)
+				{
+					this._buffer[startPos] = "_";
+				}
+				else
+				{
+					this._buffer[startPos] = formatChar;
+				}
+				startPos++;
+			}
+			else
+			{
+				this._buffer.splice(startPos, 1);
+				endPos--;
+			}
+			deleteCount++;
+		}
+		if(deleteCount > 0 && !this._enableMaskInput)
+		{
+			this._enableMaskInput = true;
+		}
+		
+		if (tempEndPos - deleteCount == 0)
+		{
+			var destPos = this._destPost();
+			//Move the cursor to the proper position.
+			if (destPos != -1)
+			{
+				this._writeBuffer(destPos);
+			}
+			else
+			{
+				this._writeBuffer(tempEndPos - deleteCount);
+			}
+		}
+		else
+		{
+			this._writeBuffer(tempEndPos - deleteCount);
+		}
+		
+	}
+	
+	this._destPost = function()
+	{
+		if(this._isReadOnly) return -1;
+		var destPos = -1;
+		var nPos = this._getCursorPos().begin;
+		for(var i = 0 ; i < this._buffer.length ; i++ )	
+		{
+			c = this._buffer[i];
+			s = this._sMask.charAt(i);
+			
+			if (c == '_' && this._maskMap[s] != null)
+			{
+				destPos = i;
+				break;
+			}
+		}
+		
+		return destPos;
+	}
+	
+	this._inputChar = function(input)
+	{
+		if(this._isReadOnly) return false;
+		
+		var inputChar = input.toUpperCase();
+		var currentPos = this._getCursorPos().begin;
+		//If there is no mask, output the char directly.
+		if(this._sFormat.length == 0)
+		{
+			var inputLength = this._target.maxLength;
+			//If there are some characters inputed by other input method, update the buffer.
+			if(this._buffer.length != this._target.value.length)
+			{
+				this._buffer = this._target.value.split("");
+			}
+			if(inputLength > 0 && this._buffer.length + 1 > inputLength)
+			{
+				this._enableMaskInput = false;
+				return false;
+			}
+			this._buffer[currentPos] =inputChar;
+			this._writeBuffer(this._getNextPos(currentPos));
+			return false;
+		}
+		if(currentPos >= this._sFormat.length)
+		{
+			this._enableMaskInput = false;
+			return false;
+		}
+		var currentChar = this._buffer[currentPos];
+		var formatChar = this._sFormat.charAt(currentPos);
+		
+		if("_" == formatChar)
+		{
+			this._buffer[currentPos] =inputChar;
+			if(!this._checkMaskInput(this._buffer))
+			{
+				this._buffer[currentPos] = currentChar;
+				this._writeBuffer(currentPos);
+				return false;
+			}
+		}
+		else if(formatChar == inputChar)
+		{
+			this._buffer[currentPos] =inputChar;
+			this._writeBuffer(currentPos);
+			return false;
+		}
+		this._writeBuffer(this._getNextPos(currentPos));
+		return false;
+	}
+	
+	this._getNextPos = function(currentPos)
+	{
+		if(currentPos == 'undefined') return 0;
+		currentPos++;
+		if(this._sFormat.length == 0)
+		{
+			return currentPos;
+		}
+		else if(currentPos >= this._sFormat.length)
+		{
+			return this._sFormat.length;
+		}
+		else if(currentPos < 0)
+		{
+			currentPos = 0;
+		}
+		var currentChar = this._sFormat.charAt(currentPos);
+		var nextPos = currentPos;
+		if("_" != currentChar)
+		{
+			nextPos = this._getNextPos(nextPos);
+		}
+		return nextPos;
+	}
+	
+	
+	this._getCursorPos = function()
+	{
+		var result = {begin: 0, end: 0 };
+
+		if (this._target.setSelectionRange)
+		{
+			result.begin = this._target.selectionStart;
+			result.end  = this._target.selectionEnd;
+		}
+		else if (document.selection && document.selection.createRange)
+		{
+			var range = document.selection.createRange();			
+			result.begin = 0 - range.duplicate().moveStart('character', -100000);
+			result.end = result.begin + range.text.length;
+		}
+		return result;
+	}
+	
+	this._setCursorPos = function(pos)
+	{
+		if (pos < 0 || pos > this._buffer.length) return;
+		
+		if (this._target.setSelectionRange)
+		{
+			this._target.focus();
+			this._target.setSelectionRange(pos,pos);
+		}
+		else if (this._target.createTextRange)
+		{
+			var range = this._target.createTextRange();
+			range.collapse(true);
+			range.moveEnd('character', pos);
+			range.moveStart('character', pos);
+			range.select();
+		}
+	}
+	
+	/**
+	 * When we delete character. If there are value on the right the deleted character, moves it left.
+	 * @param {Object} currPos
+	 */
+	this._moveLeft = function(currPos)
+	{
+		if(this._isReadOnly) return ;
+		while(currPos > 0)
+		{
+			c = this._sMask.charAt(currPos - 1);
+
+			if (this._maskMap[c] != null && !this._aEscapeChar[currPos - 1])
+			{
+				var buffer2 = new Array(this._buffer.length);
+				var destPos = currPos ;
+
+				for(var i = 0 ; i < this._buffer.length ; i++)
+				{	
+					//If there are value on the left the deleted character, keep it fixedly.
+					if (i < currPos - 1)
+					{
+						buffer2[i] = this._buffer[i];
+					}
+					else
+					{
+						//If there are value on the right the deleted character ,move it left.					
+						c1 = this._sMask.charAt(i);
+						
+						if (destPos < this._buffer.length
+							&& !this._aEscapeChar[destPos]
+							&& this._maskMap[c1] != null)
+						{
+							var bFound = false;
+								
+							while(destPos < this._buffer.length)
+							{
+								c2 = this._sMask.charAt(destPos);
+								
+								if(this._maskMap[c2] != null && !this._aEscapeChar[destPos])
+								{
+									buffer2[i] = this._buffer[destPos++];
+									bFound = true;
+									break;
+								}
+								destPos++;
+							}
+								
+							if (!bFound)
+							{
+								buffer2[i] = this._sFormat.charAt(i);
+							}
+						}
+						else
+						{
+							buffer2[i] = this._sFormat.charAt(i);
+						}
+					}
+				}
+				
+				if (this._matchMaskRule(buffer2))
+				{
+					this._buffer = buffer2;
+				}
+				else
+				{
+					this._buffer[currPos - 1] = '_'
+				}
+				this._writeBuffer(currPos - 1);
+
+				break;
+			}
+			else
+			{
+				this._setCursorPos(--currPos);
+			}
+		}
+	}
+	
+	//Check whether the input value is validate.
+	this._checkMaskInput = function(chars)
+	{
+		if(!chars)
+		{
+			return this._originalMask ? false : true;
+		}
+		var ch, maskChar, formatChar;
+//		var chars = value.split("");
+		var regExp;
+		var regExpStr;
+		var isMatch = true;
+		for(var i = 0; i < chars.length; i++)
+		{
+			ch = chars[i];
+			maskChar = this._sMask.charAt(i);
+			formatChar = this._sFormat.charAt(i);
+			regExpStr = this._maskMap[maskChar];
+			if(regExpStr != null)
+			{
+				if(ch == "_")
+				{
+					continue;
+				}
+				regExp = new RegExp(regExpStr);
+				if(!ch.match(regExp))
+				{
+					isMatch = false;
+					break;
+				}
+			}
+			else
+			{
+				if(ch != formatChar)
+				{
+					isMatch = false;
+					break;
+				}
+			}
+		}
+		return isMatch;
+	}
+	
+	this._getEnteredCharacter = function(env)
+	{
+		var nKeyNum = env.keyCode || env.which;
+		
+		return String.fromCharCode(nKeyNum);
+	}
+	
+	this._writeBuffer = function(pos)
+	{
+		var sText = "";
+		var hiddenText = "";
+
+		for(var i = 0 ; i < this._buffer.length ;i++)
+		{
+			var ch = this._buffer[i];
+			sText += ch;
+			if(this._sFormat.length > 0)
+			{
+				var m = this._sFormat.charAt(i);
+				if (m == '_' && ch != '_')
+				{
+					hiddenText += ch;
+				}
+			}
+			else
+			{
+				hiddenText += ch;
+			}
+		}
+		this._target.value = sText;
+		this._hiddenTarget.value = hiddenText;
+		this._setCursorPos(pos);
+	}
+	
+	this._formatBufferOnLostFocus = function()
+	{
+		var sText = "";
+		var tempStr = "";
+		var startPos = -1;
+		if (this._buffer[this._buffer.length-1] == ')')
+		{
+			for (var k = this._buffer.length-1 ; k >= 0; k--)
+			{
+				if (this._buffer[k] == '(')
+				{
+					startPos = k;
+					break;
+				}
+			}
+		}
+		for(var i = 0 ; i < this._buffer.length ; i++)
+		{
+			var c = this._buffer[i];
+			var m = this._sFormat.charAt(i);
+			if (c == '_' && m != '_')
+			{
+				break;
+			}
+			else if(c != '_' && m == '_')
+			{
+				sText += tempStr;
+				sText += c;
+				tempStr = "";
+			}
+			else if(m != '_')
+			{
+				tempStr += c;
+			}
+			else if(c == '_')
+			{
+				if (tempStr != "" )
+				{
+					sText += tempStr;
+					if (startPos != -1 && sText.lastIndexOf('(') == startPos)
+					{
+						sText = sText.substr(0, sText.lastIndexOf('('));
+					}
+				}
+				break;
+			}
+			if(i ==  this._buffer.length-1)
+			{
+				sText += tempStr;
+			}
+		}
+		
+		if (this._sMask.indexOf(sText) == 0)
+		{
+			var pos = 0;
+			
+			for(var j = 0 ; j < sText.length ; j++ )
+			{
+				var f = this._sFormat.charAt(j); 
+				if (f == '_') pos++;
+			}
+			
+			sText = sText.substr(0,pos);
+
+		}
+		this._target.value = sText;
+	}
+	
+	this._registerEventForHTMLForm = function(obj)
+	{
+		var parentObj = obj.parentElement;
+		while(parentObj != null || parentObj != undefined)
+		{
+			if (parentObj.tagName == 'FORM')
+			{
+				parentObj.onreset = new Function("resetMaskForHTMLForm(this)");
+				break;
+			}
+			
+			parentObj = parentObj.parentElement;
+		}
+	}
+	
+	this._applyMask = function(newMask)
+	{
+		this._originalMask = newMask;
+		this._sMask = "";
+		this._sFormat = "";
+		this._buffer = {};
+		this._initialize();
+		if(newMask == "")
+		{
+			this._target.value = this._hiddenTarget.value;
+		}
+	}
+	
+	this._onPropChanged = function(event)
+	{
+		if (event.propertyName.toLowerCase () == "value") 
+		{
+            if (event.srcElement.value == "")
+            {
+            	this._buffer = this._sFormat.split("");
+            	this._hiddenTarget.value = "";
+            }
+        }
+	}
+	
+	this.attach = function(target)
+	{
+		if (this._attached)
+		{
+			alert(getTextlable("error.js.masked.AV360MaskAttach"));
+			return ;
+		}
+		if (target == null || target == undefined) return ;
+		
+		this._target = target;
+		
+		var hiddenName = target.name.replace("_disp", "");
+		var hiddenTarget = document.getElementsByName(hiddenName);
+		if(hiddenTarget && hiddenTarget.length > 0)
+		{
+			for(var i=0; i<hiddenTarget.length; i++)
+			{
+				if(hiddenName == hiddenTarget[i].name)
+				{
+					this._hiddenTarget = hiddenTarget[i];
+				}
+			}
+		}
+		
+		if(this._hiddenTarget == 'undefined')
+		{
+			return;
+		}
+		this._initialize();
+
+		this._target["onfocus"] = new Function("event","return " + this._ref + "._focus(event)");
+		this._target["onkeydown"] = new Function("event","return " + this._ref + "._keydown(event)");
+		this._target["onkeypress"] = new Function("event","return " + this._ref + "._keypress(event)");
+		this._target["onblur"] = new Function("event","return " + this._ref + "._blur(event)");
+		this._target["onpaste"] = new Function("event","return " + this._ref + "._onpaste()");
+		this._target["oncut"] = new Function("event","return " + this._ref + "._oncut(event)");
+		this._target["onclick"] = new Function("event","return " + this._ref + "._onclick(event)");
+		this._target["onresetmask"] = new Function("event","return " + this._ref + "._onresetmask()");
+		// IE10 X delete icon delete data,after lose the focus data really delete
+		this._target["onpropertychange"] = new Function("event","return " + this._ref + "._onPropChanged(window.event)");
+		this._registerEventForHTMLForm(this._target);
+		this._attached = true;
+	}
+}
+
+//For special logic in Exam, Education, ContinuingEducation
+function _bindMask(maskedEleName, doValidate, syncUrl, refer, msgTarget, editViewMaskStr)
+{
+	var _maskObj;
+	var maskedEle = document.getElementById(maskedEleName);
+	if(!maskedEle)
+	{
+		var maskedEles = document.getElementsByName(maskedEleName);
+		if(!maskedEles || maskedEles.length == 0)
+		{
+			return;
+		}
+		maskedEle = maskedEles[0];
+	}
+	var referEle = document.getElementById(refer);
+	var referValue;
+	if(!referEle || !maskedEle)
+	{
+		var referEles = document.getElementsByName(refer);
+		if(!referEles || referEles.length == 0)
+		{
+			referValue = '';
+		}
+		else
+		{
+			referEle = referEles[0];
+			referValue = referEle.value;
+		}
+	}
+	var _maskStr = '';
+	if(referEle)
+	{
+		referValue = referEle.value;
+		_maskStr = getMaskByAjax(maskedEle, syncUrl, referValue).maskStr;
+	}
+	_maskObj = new _mask(_maskStr, doValidate, syncUrl, msgTarget, editViewMaskStr);
+	_maskObj.attach(maskedEle);
+	if(referEle)
+	{
+		_maskObj._resetCountry = referEle.value;
+		_maskObj._referElement = referEle;
+		applyMask(referEle, _maskObj, editViewMaskStr);
+		
+		//Bind propertyChangeEvn function to apply phone, zip mask based on availability of browser event.
+		//onpropertychange event is available in IE8, mostly it is chnage event for other browsers.
+		var propertyChangeEvn;
+		var hasOnPropChangeEvent = false;
+		if(hasOnPropChangeEvent = ("onpropertychange" in referEle)){
+			propertyChangeEvn = function(referEle,_maskObj){
+				if(window.event.propertyName.toUpperCase() == "SELECTEDINDEX")
+				{
+					applyMask(referEle, _maskObj, editViewMaskStr);
+				}
+			};
+			propertyChangeEvn = propertyChangeEvn.bind(referEle,referEle,_maskObj);
+			Ac360.attachEvent(referEle,"onpropertychange", propertyChangeEvn);
+		}else{
+			propertyChangeEvn = function(referEle,_maskObj){
+				applyMask(referEle, _maskObj, editViewMaskStr);
+			};
+			propertyChangeEvn = propertyChangeEvn.bind(referEle,referEle,_maskObj);
+			Ac360.attachEvent(referEle,"change", propertyChangeEvn);
+		}
+		
+		if(instance)
+		{
+			arrayPush(referEle);
+			if (instance.initMsg)
+			{
+				initMessage(_maskObj._syncUrl);
+			}
+		}
+	}
+	//Return this object, so we can use it quickly in HTML page.(For function 'dealWithMaskedString') 
+	return _maskObj;
+}
+
+function applyMask(referEle, _maskObj, editViewMaskStr)
+{
+	if (editViewMaskStr != null && editViewMaskStr != "null")
+	{
+		return;
+	}
+	if(!instance.isApplyMask)
+	{
+		return;
+	}
+	
+	var referEleValue = getReferEleValue(referEle);
+	var maskResult = getMaskByAjax(_maskObj._target, _maskObj._syncUrl, referEleValue);
+	var maskStr = maskResult.maskStr;
+	if(!maskStr)
+	{
+		maskStr = '';
+	}
+	_maskObj._applyMask(maskStr);
+	setMaskForRegional(maskResult, _maskObj);
+	clearErrMsg();
+}
+
+function getReferEleValue(referEle)
+{
+	var referEleValue = referEle.value;
+	var referEleValueCache = referEleValueCaches.get(referEle.name);
+	
+	if (formResetting)
+	{
+		if ((referEleValue == null || referEleValue == '') && referEleValueCache != null)
+		{
+			referEleValue = referEleValueCache;
+		}
+	}
+	else
+	{
+		if (referEleValueCache == null)
+		{
+			referEleValueCaches.put(referEle.name, referEleValue);
+		}
+	}
+	
+	return referEleValue;
+}
+
+function getMaskByAjax(maskedEle, syncUrl, referValue)
+{
+	if(!syncUrl || syncUrl == '')
+	{
+		return '';
+	}
+	if(!referValue || referValue == '')
+	{
+		referValue = '';
+	}
+	var ajaxResult = sendHttpRequest(syncUrl + '&referValue='+referValue, null,false);
+	if(ajaxResult != null && ajaxResult != '')
+	{
+		var maskResult = eval('(' + ajaxResult + ')');
+	}
+	if(maskResult)
+	{
+		return maskResult
+	}
+	return '';
+}
+
+function setMaskForRegional(maskResult, _maskObj)
+{
+	var isUsePostalCode = maskResult.isPostalCodeUsed;
+	//If the select country is not use postal/zip code, disable postal/zip code field.
+	var maskedEle = _maskObj._target;
+	var hiddenEle = _maskObj._hiddenTarget;
+	if(isUsePostalCode != 'undefined' && 'N' == isUsePostalCode)
+	{
+		maskedEle.disabled = true;
+		hiddenEle.disabled = true;
+		maskedEle.value = '';
+		hiddenEle.value = '';
+		readOnlyObj.resetReadOnly([maskedEle, hiddenEle]);
+	}
+	else if(_maskObj._referElement && 'hidden' != _maskObj._referElement.type && !_maskObj._referElement.disabled)
+	{
+		maskedEle.disabled = '';
+		hiddenEle.disabled = '';
+		readOnlyObj.resetReadOnly([maskedEle, hiddenEle]);
+	}
+}
+
+function validateMask(a)
+{
+	//If the action is reset or change contact type, do not validate the mask.
+	if(a)
+	{
+		for( var i=1; i<a.length; i+=2)
+		{
+			if(a[i+1] == "accelareset" || a[i+1] ==  "setEditContactType" || a[i+1] == "setInsertContactType" )
+			{
+				return true;
+			}
+		}
+	}
+	var result = true;
+	var url = "";
+	var trMap = new HashMap();
+	if(instance && instance.instancesCount > 0)
+	{
+		for(var i=0; i<instance.instancesCount; i++)
+		{
+			var obj = instance.objects[i];
+			if(i==0)
+			{
+				url = obj._syncUrl;
+			}
+			if(obj)
+			{
+				var trObj;
+				if(obj._referElement)
+				{
+					trObj = getTrObj(obj._referElement.id);
+				}
+				if(!obj._validate())
+				{
+					//For special logic in Examination, Education, ContinuingEducation, set background color on tr.	
+					if(trObj != null)
+					{
+						trObj.style.background = "FFAEB9";
+						if(trMap.get(trObj.id) == null)
+						{
+							trMap.put(trObj.id , trObj);
+						}
+					}
+					obj._validateResult = false;
+					result = false;
+				}
+				else
+				{
+					//clear background color on tr.
+					if(trObj != null && trMap.get(trObj.id) == null)
+					{
+						trObj.style.background = "";
+					}
+					obj._validateResult = true;
+				}
+			}
+		}
+	}
+	// Show the message by group that validate failure and attach it to relative html target
+	showMessageByGroup(instance.maskGroupMap);
+	
+	return result;
+}
+
+function showMessageByGroup(groupMap)
+{
+	for (var prop in groupMap)
+	{
+		var groupMembers = groupMap[prop].maskList;
+		var result = true;
+		for (var i=0; i < groupMembers.length; i++)
+		{
+			var mask = groupMembers[i];
+			if (!mask._validateResult)
+			{
+				var err = getTargetElement(prop);
+				if(err)
+				{
+					err.innerHTML = '';
+					var maskErr = document.getElementById("regional_mask_err_msg");
+					if(!maskErr || maskErr == null || (!err.contains(maskErr)))
+					{
+						maskErr = document.createElement("font");
+						maskErr.id = "regional_mask_err_msg";
+						maskErr.name = "regional_mask_err_msg";
+						maskErr.setAttribute("class", "Error");
+						err.appendChild(maskErr);
+					}
+					if(!mask._sMask && mask._hiddenTarget.value != "" )
+					{
+						maskErr.innerHTML = instance.messageMap.get('UnMaskZipError');
+					}
+					else
+					{
+						maskErr.innerHTML = instance.messageMap.get('RegionalMaskInvalidError');
+					}
+					scrollBarIssue.autoAdjustForErrorMsgDisplay(document);
+				}
+				result = false;
+				break;
+			}
+		}
+		// If all of member in the group pass the validation, remove the error message if it contain.
+		if (result)
+		{
+			var err = getTargetElement(prop);
+			if (err)
+			{
+				// Just remove the mask validation error message
+				var maskErrs = document.getElementsByName("regional_mask_err_msg");
+				for (var i=0; i < maskErrs.length; i++)
+				{
+					if (err.contains(maskErrs[i]))
+					{
+						err.removeChild(maskErrs[i]);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+function getTargetElement(targetID)
+{
+	var target = document.getElementById(targetID);
+	if (!target)
+	{
+		target = document.getElementById("err_msg");
+	}
+	return target;
+}
+
+function clearErrMsg()
+{
+	if(instance && instance.instancesCount > 0)
+	{
+		for(var i=0; i<instance.instancesCount; i++)
+		{
+			var obj = instance.objects[i];
+			if(obj)
+			{
+				obj._clearErrMsg();
+			}
+		}
+	}
+	var maskErr = document.getElementById("regional_mask_err_msg");
+	if(!maskErr && maskErr != null)
+	{
+		maskErr.innerHTML = '';
+	}
+}
+
+function arrayPush(obj)
+{
+	if(obj)
+	{
+		var i = 0;
+		for(; i<instance.referEleCount; i++)
+		{
+			if(instance.referEles[i] == obj)
+			{
+				return;
+			}
+		}
+		
+		instance.referEles[i] = obj;
+		instance.referEleCount++;
+	}
+}
+
+function resetMaskForHTMLForm(form)
+{
+	if (form.tagName != "FORM") return ;
+	if(instance && instance.instancesCount > 0)
+	{
+		for(var i=0; i<instance.instancesCount; i++)
+		{
+			var obj = instance.objects[i];
+			if(obj)
+			{
+				var maskResult = getMaskByAjax(obj._target, obj._syncUrl, obj._resetCountry);
+				var maskStr = maskResult.maskStr;
+				if(!maskStr)
+				{
+					maskStr = '';
+				}
+				obj._applyMask(maskStr);
+				setMaskForRegional(maskResult, obj);
+				clearErrMsg();
+			}
+		}
+		//If the function onAfterReset is already existed, execute it first and then replace it by the new function to reset mask.
+		window.setTimeout(function (){
+			for(var i=0; i<instance.referEleCount; i++)
+			{
+				var obj = instance.referEles[i];
+				if(obj &&  obj.deleted !="Y")
+				{
+					instance.isApplyMask = false;
+					if(typeof(obj.hasLoad) != 'undefined')
+					{
+						obj.hasLoad = true;
+					}
+					var referEle;
+					if(obj.id)
+					{
+						referEle = document.getElementById(obj.id);
+					}else if(obj.name)
+					{
+						referEle = document.getElementsByName(obj.name)[0];
+					}
+					if(referEle)
+					{
+						obj.resetFunInvoke = true;
+						Ac360.dispatchEvent(referEle, 'change');
+						obj.resetFunInvoke = false;
+					}
+					
+					if(typeof(obj.hasLoad) != 'undefined')
+					{
+						obj.hasLoad = false;
+					}
+					instance.isApplyMask = true;
+				}
+			}
+			if(onAfterReset!=null)
+			{
+				onAfterReset();
+			}
+			
+		},300);
+	}
+}
+
+
+function initMessage(url)
+{
+	var messageMap = instance.messageMap;
+	var messageResult = eval('(' + sendHttpRequest(url + '&getMsg=Y', null,false) + ')');
+	messageMap.put('RegionalMaskInvalidError', messageResult.RegionalMaskInvalidError);
+	messageMap.put('UnMaskZipError', messageResult.UnMaskZipError);
+	messageMap.put('UnMaskZipLengthError', messageResult.UnMaskZipLengthError);
+	instance.initMsg = false;
+}
+
+
+
+//Mask the ummaskedStr
+function  dealWithMaskedString(obj, maskStr, unmaskedStr, maskType, isPartialFmt)
+{
+	if (unmaskedStr == null || unmaskedStr == "")
+	{
+		return unmaskedStr;
+	}
+	
+	var maskedStr = unmaskedStr;
+	var phoneNumIDD = "";
+	if ("phoneNumber".toUpperCase() == maskType.toUpperCase() && unmaskedStr.indexOf(")") > -1)
+	{
+		var endPos = unmaskedStr.lastIndexOf(")");
+		phoneNumIDD = unmaskedStr.substring(0, endPos + 1);
+		unmaskedStr = unmaskedStr.substring(endPos + 1);
+		maskedStr = unmaskedStr;
+	}
+	if (maskStr)
+	{
+		if(isMaskedValue(maskStr, unmaskedStr))
+		{
+			obj._target.value = maskedStr; 
+			return;
+		}
+		var numPattern =  /[0-9]*/;
+		var alphaPattern =  /[a-zA-Z]*/;
+		var maskArr = maskStr.split("");
+		var unmaskedArr = unmaskedStr.split("");
+		var strBuilder = "";
+		var index = 0;
+		for (var ch = 0; ch < maskArr.length; ch++)
+		{
+			if (unmaskedArr.length <= index)
+			{
+				// If the mask contains special characters except 'A' and '#', output it to page.
+				if ("#A".indexOf(maskArr[ch]) < 0)
+				{
+					strBuilder += maskArr[ch];
+					index++;
+					continue;
+				}
+				else
+				{
+					break;
+				}
+			}
+			var unmaskCh = unmaskedArr[index];
+			if (maskArr[ch] == '#' && numPattern.test(unmaskCh))
+			{
+				strBuilder += unmaskCh;
+				index++;
+			}
+			else if (maskArr[ch] == 'A' && alphaPattern.test(unmaskCh))
+			{
+				strBuilder += unmaskCh;
+				index++;
+			}
+			else if ("#A".indexOf(maskArr[ch]) >= 0)
+			{
+				break;
+			}
+			else
+			{
+				strBuilder += maskArr[ch];
+			}
+		}
+
+		if (strBuilder.length == maskArr.length || isPartialFmt)
+		{
+			maskedStr = strBuilder;
+		}
+		else if ((maskStr.lastIndexOf(")") == maskStr.length - 1)
+				&& (strBuilder.lastIndexOf("(") == maskStr.lastIndexOf("(")))
+		{
+			maskedStr = strBuilder.substring(0, maskStr.lastIndexOf("("));
+		}
+	}
+	if ("phoneNumber".toUpperCase() == maskType.toUpperCase())
+	{
+		if(maskedStr)
+		{
+			maskedStr = phoneNumIDD + maskedStr;
+		}
+	}
+	obj._target.value = maskedStr; 
+}
+
+//Check the unmaskedStr whether need to mask
+function isMaskedValue(maskStr, unmaskedStr)
+{
+	if (maskStr.length != unmaskedStr.length)
+	{
+		return false;
+	}
+	var result = true;
+	var numPattern =  /[0-9]*/;
+	var alphaPattern =  /[a-zA-Z]*/;
+	var maskArr = maskStr.split();
+	var unmaskedArr = unmaskedStr.split();
+	var index = 0;
+	for (var ch = 0; ch < maskArr.length; ch++)
+	{
+		var unmaskCh = unmaskedArr[index];
+		if (maskArr[ch] == '#' && !numPattern.test(unmaskCh))
+		{
+			result = false;
+			break;
+		}
+		else if (maskArr[ch] == 'A' && !alphaPattern.test(unmaskCh))
+		{
+			result = false;
+			break;
+		}
+		else if ("#A".indexOf(maskArr[ch]) < 0 && !maskArr[ch].toUpperCase() == unmaskCh.toUpperCase())
+		{
+			result = false;
+			break;
+		}
+		index++;
+	}
+	return result;
+}
+
+
+//Bind object for mask and set the value with correct mask
+function bindMaskAndDealValue (maskedEleId, doValidate, syncUrl, refer, value, maskType, targetID)
+{
+	//Check the element whether has been binded mask, if false, will be binded.
+	var ele = document.getElementById(maskedEleId);
+	
+	if(!ele)
+	{
+		return;
+	}
+		
+	var maskObj = ele.obj;
+	
+	if(!maskObj)
+	{
+		maskObj = _bindMask(maskedEleId, doValidate, syncUrl, refer, targetID);
+		maskObj._target.obj = maskObj;
+	}
+	if(ele && maskObj && value)
+	{
+		dealWithMaskedString(maskObj, maskObj._sMask, value, maskType, false);
+	}
+}
+
+
+function getTrObj(objID)
+{
+	var countryCodeStr = objID.substr(objID.indexOf("countryCode"));
+	var indexStr = countryCodeStr.substr(11,countryCodeStr.length);
+	var index = indexStr.substr(0,indexStr.length-1);
+	var trObj;
+	if(objID.indexOf('examProviderDetailModel') > -1)
+	{
+		trObj = document.getElementById("exam_"+index+"_common");
+	}
+	if(objID.indexOf("(contProviderDetailModel") > -1)
+	{
+		trObj = document.getElementById("cont_"+index+"_common");
+	}
+	if(objID.indexOf("providerDetailModel") > -1)
+	{
+		trObj = document.getElementById("edu_" + index +"_common");
+	}
+	return trObj;
+}
+
+function isHidden(target)
+{
+	return target.style.display == 'none' || target.style.visibility == 'hidden';
+}

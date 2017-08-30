@@ -1,0 +1,11 @@
+[t385]
+FileName1=t385.htm
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/cap/formAjaxUtil.do?portlet_language=en_US&attriKey=capSearchForm&staffName=value(capDetailModel*completeStaff)&userType=1&dept=&mode=getStaffsByDept
+Total=1
+RequestHeaderFile=t385_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t385_ResponseHeader.txt
+ContentType=text/html
+SnapshotXmlFile=snapshot_385.xml
+[ProtocolInfo]
+ProtocolId=QTWeb

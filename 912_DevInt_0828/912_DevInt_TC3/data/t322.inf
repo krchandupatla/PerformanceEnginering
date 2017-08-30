@@ -1,0 +1,11 @@
+[t322]
+FileName1=t322_session.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/session.do?mode=activateSpace&spaceName=null
+Total=1
+ContentType=application/json
+SnapshotXmlFile=snapshot_322.xml
+RequestHeaderFile=t322_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t322_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb

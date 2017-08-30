@@ -1,0 +1,11 @@
+[t64]
+FileName1=t64_launchpad-page.html
+URL1=https://aa-pt6245.dev.accela.com:5443/portlets/spa/js/core/entities/launchpad-page.js
+Total=1
+ContentType=text/javascript
+SnapshotXmlFile=snapshot_64.xml
+RequestHeaderFile=t64_RequestHeader.txt
+RequestBodyFile=NONE
+ResponseHeaderFile=t64_ResponseHeader.txt
+[ProtocolInfo]
+ProtocolId=QTWeb
